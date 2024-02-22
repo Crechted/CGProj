@@ -69,8 +69,8 @@ void TriangleComponent::Initialize()
         D3D11_INPUT_ELEMENT_DESC{"POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
         D3D11_INPUT_ELEMENT_DESC{
             "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0}};
-
-    device->CreateInputLayout(inputElements, 2, vertexBC->GetBufferPointer(), vertexBC->GetBufferSize(), &layout);
+  
+    device->CreateInputLayout(inputElements, numElements, vertexBC->GetBufferPointer(), vertexBC->GetBufferSize(), &layout);
 
     /*DirectX::XMFLOAT4 points[8] = {
         DirectX::XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f),
@@ -178,5 +178,6 @@ void TriangleComponent::Reload()
 
 void TriangleComponent::Update(float timeTick)
 {
-    totalTime = game->GetTotalTime();
+    //totalTime = game->GetTotalTime();
+    totalTime = 0.4;
 }
