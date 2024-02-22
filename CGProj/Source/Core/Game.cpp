@@ -24,7 +24,7 @@ Game::~Game()
     }
 }
 
-Game& Game::GetGame()
+Game &Game::GetGame()
 {
     static Game game;
     return game;
@@ -34,7 +34,8 @@ void Game::Initialize()
 {
     display = new WinDisplay();
     display->WindowInit();
-    if (!display) return;
+    if (!display)
+        return;
 
     //swapDesc = {};
     swapDesc.BufferCount = 2;
@@ -54,16 +55,33 @@ void Game::Initialize()
     swapDesc.SampleDesc.Quality = 0;
 
     D3D_FEATURE_LEVEL featureLevel[] = {D3D_FEATURE_LEVEL_11_1};
-    auto res = D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, D3D11_CREATE_DEVICE_DEBUG, featureLevel, 1,
-        D3D11_SDK_VERSION, &swapDesc, &swapChain, &device, nullptr, &context);
+    auto res = D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE,
+                                             nullptr, D3D11_CREATE_DEVICE_DEBUG,
+                                             featureLevel, 1,
+                                             D3D11_SDK_VERSION, &swapDesc,
+                                             &swapChain, &device, nullptr,
+                                             &context);
 
     if (FAILED(res))
     {
         // Well, that was unexpected
     }
+
+    ID3D11Texture2D* backTex;
+    res = swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backTex); // __uuidof(ID3D11Texture2D)
+    res = device->CreateRenderTargetView(backTex, nullptr, &renderTargetView);
+
+
+    viewport = {};
+    viewport.Width = static_cast<float>(display->screenWidth);
+    viewport.Height = static_cast<float>(display->screenHeight);
+    viewport.TopLeftX = 0;
+    viewport.TopLeftY = 0;
+    viewport.MinDepth = 0;
+    viewport.MaxDepth = 1.0f;
 }
 
-void Game::Input(bool& isExitRequested)
+void Game::Input(bool &isExitRequested)
 {
     // Handle the windows messages.
     while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
@@ -97,7 +115,9 @@ void Game::Run()
 void Game::Update()
 {
     curTime = std::chrono::steady_clock::now();
-    float deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(curTime - PrevTime).count() / 1000000.0f;
+    float deltaTime = std::chrono::duration_cast<
+            std::chrono::microseconds>(curTime - PrevTime).count() /
+        1000000.0f;
     PrevTime = curTime;
 
     totalTime += deltaTime;
@@ -124,8 +144,16 @@ void Game::Update()
 
 void Game::Render()
 {
+    float color[] = {0.0f, 0.0f, 0.0f, 1.0f};
+    context->ClearState();
+    context->RSSetViewports(1, &viewport);
+    context->ClearRenderTargetView(renderTargetView, color);
+    context->OMSetRenderTargets(1, &renderTargetView, nullptr);
+    
     for (const auto gComp : gameComponents)
     {
         gComp->Draw();
     }
+    
+    swapChain->Present(1, /*DXGI_PRESENT_DO_NOT_WAIT*/ 0);
 }

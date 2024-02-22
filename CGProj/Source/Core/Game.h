@@ -10,28 +10,31 @@ class Game
 {
 
 public:
-    Game(const Game& obj) = delete;
+    Game(const Game &obj) = delete;
     ~Game();
-    static Game& GetGame();
+    static Game &GetGame();
 
     virtual void Run();
     virtual void Update();
     virtual void Render();
     virtual void Initialize();
-    void Input(bool& isExitRequested);
+    void Input(bool &isExitRequested);
 
-    float GetTotalTime() const {return totalTime;}
-    WinDisplay* display;
+    float GetTotalTime() const { return totalTime; }
+    WinDisplay *display;
     Microsoft::WRL::ComPtr<ID3D11Device> device;
-    ID3D11DeviceContext* context;
-    IDXGISwapChain* swapChain;
+    ID3D11DeviceContext *context;
+    IDXGISwapChain *swapChain;
     DXGI_SWAP_CHAIN_DESC swapDesc;
 
-    Array<GameComponent*> gameComponents;
+    ID3D11RenderTargetView *renderTargetView;
+    D3D11_VIEWPORT viewport;
+
+    Array<GameComponent *> gameComponents;
 
 private:
     //D3D_FEATURE_LEVEL featureLevel;
-    
+
     explicit Game()
     {
     }

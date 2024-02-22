@@ -4,44 +4,52 @@
 
 #include "GameComponent.h"
 
+struct ConstData
+{
+    DirectX::XMFLOAT4 offset;
+    DirectX::XMFLOAT4 color;
+};
 
-class TriangleComponent : public GameComponent {
+class TriangleComponent : public GameComponent
+{
 public:
-  TriangleComponent();
-  ~TriangleComponent();
+    TriangleComponent();
+    ~TriangleComponent();
 
-  void Initialize() override;
-  void DestroyResource() override;
-  void Draw() override;
-  void Reload() override;
-  void Update(float timeTick) override;
+    void Initialize() override;
+    void DestroyResource() override;
+    void Draw() override;
+    void Reload() override;
+    void Update(float timeTick) override;
 
-  void SetPoints(DirectX::XMFLOAT4 *pts, int32_t count) {
-    points = pts;
-    countPoints = count;
-  };
+    void SetPoints(DirectX::XMFLOAT4 *pts, int32_t count)
+    {
+        points = pts;
+        countPoints = count;
+    };
 
-  ID3D11RasterizerState *rastState;
-  ID3D11InputLayout *layout;
-  ID3DBlob *vertexBC;
-  ID3DBlob *pixelBC;
-  ID3D11VertexShader *vertexShader;
-  ID3D11PixelShader *pixelShader;
+    ID3D11RasterizerState *rastState;
+    ID3D11InputLayout *layout;
+    ID3DBlob *vertexBC;
+    ID3DBlob *pixelBC;
+    ID3D11VertexShader *vertexShader;
+    ID3D11PixelShader *pixelShader;
 
-  D3D11_BUFFER_DESC vertexBufDesc;
-  D3D11_SUBRESOURCE_DATA vertexData;
+    D3D11_BUFFER_DESC vertexBufDesc;
+    D3D11_SUBRESOURCE_DATA vertexData;
 
-  UINT numElements;
+    ID3D11Buffer *constantBuffer;
+
+    UINT numElements;
 
 private:
-  ID3D11RenderTargetView *rtv;
-  ID3D11Buffer *vb;
-  ID3D11Buffer *ib;
+    ID3D11Buffer *vb;
+    ID3D11Buffer *ib;
 
-  DirectX::XMFLOAT4 *points;
-  int32_t countPoints;
+    DirectX::XMFLOAT4 *points;
+    int32_t countPoints;
 
-  UINT *strides;
-  UINT *offsets;
-  float totalTime = 0;
+    UINT *strides;
+    UINT *offsets;
+    float totalTime = 0;
 };

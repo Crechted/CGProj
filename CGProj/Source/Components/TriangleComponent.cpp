@@ -27,13 +27,13 @@ void TriangleComponent::Initialize()
     auto& context = game->context;
     const auto& display = game->display;
 
-    ID3D11Texture2D* backTex;
+    /*ID3D11Texture2D* backTex;
     auto res = swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backTex); // __uuidof(ID3D11Texture2D)
-    res = device->CreateRenderTargetView(backTex, nullptr, &rtv);
+    res = device->CreateRenderTargetView(backTex, nullptr, &rtv);*/
 
     vertexBC = nullptr;
     ID3DBlob* errorVertexCode = nullptr;
-    res = D3DCompileFromFile(L"./Resource/Shaders/MyVeryFirstShader.hlsl", nullptr /*macros*/, nullptr /*include*/, "VSMain", "vs_5_0",
+    auto res = D3DCompileFromFile(L"./Resource/Shaders/MyVeryFirstShader.hlsl", nullptr /*macros*/, nullptr /*include*/, "VSMain", "vs_5_0",
         D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION, 0, &vertexBC, &errorVertexCode);
 
     if (FAILED(res))
@@ -71,17 +71,6 @@ void TriangleComponent::Initialize()
             "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0}};
   
     device->CreateInputLayout(inputElements, numElements, vertexBC->GetBufferPointer(), vertexBC->GetBufferSize(), &layout);
-
-    /*DirectX::XMFLOAT4 points[8] = {
-        DirectX::XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f),
-        DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),
-        DirectX::XMFLOAT4(-0.5f, -0.5f, 0.5f, 1.0f),
-        DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(0.5f, -0.5f, 0.5f, 1.0f),
-        DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
-        DirectX::XMFLOAT4(-0.5f, 0.5f, 0.5f, 1.0f),
-        DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-    };*/
 
     //D3D11_BUFFER_DESC vertexBufDesc = {};
     vertexBufDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -128,8 +117,15 @@ void TriangleComponent::Initialize()
 
     context->RSSetState(rastState);
 
-    //       FROM CYCLE
-    //Draw();
+    D3D11_BUFFER_DESC constBufDesc = {};
+    constBufDesc.Usage = D3D11_USAGE_DYNAMIC;
+    constBufDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    constBufDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    constBufDesc.MiscFlags = 0;
+    constBufDesc.StructureByteStride = 0;
+    constBufDesc.ByteWidth = sizeof(ConstData);
+
+    device->CreateBuffer(&constBufDesc, nullptr, &constantBuffer);
 }
 
 void TriangleComponent::DestroyResource()
@@ -142,20 +138,7 @@ void TriangleComponent::Draw()
 {
     if (!game) return;
     
-    float color[] = {totalTime, 0.1f, 0.1f, 1.0f};
-    game->context->ClearState();
-
     game->context->RSSetState(rastState);
-
-    D3D11_VIEWPORT viewport = {};
-    viewport.Width = static_cast<float>(game->display->screenWidth);
-    viewport.Height = static_cast<float>(game->display->screenHeight);
-    viewport.TopLeftX = 0;
-    viewport.TopLeftY = 0;
-    viewport.MinDepth = 0;
-    viewport.MaxDepth = 1.0f;
-
-    game->context->RSSetViewports(1, &viewport);
 
     game->context->IASetInputLayout(layout);
     game->context->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -164,12 +147,8 @@ void TriangleComponent::Draw()
     game->context->VSSetShader(vertexShader, nullptr, 0);
     game->context->PSSetShader(pixelShader, nullptr, 0);
 
-    game->context->OMSetRenderTargets(1, &rtv, nullptr);
-    game->context->ClearRenderTargetView(rtv, color);
     game->context->DrawIndexed(6, 0, 0);
 
-    game->context->OMSetRenderTargets(0, nullptr, nullptr);
-    game->swapChain->Present(1, /*DXGI_PRESENT_DO_NOT_WAIT*/ 0);
 }
 
 void TriangleComponent::Reload()

@@ -13,11 +13,14 @@ int main() {
   Game *game = &Game::GetGame();
   game->Initialize();
 
-  AddTriangle(game, new DirectX::XMFLOAT4[3]{
-                  DirectX::XMFLOAT4(0.2f, 0.2f, 1.0f, 1.0f),
+  AddTriangle(game, new DirectX::XMFLOAT4[6]{
+                  DirectX::XMFLOAT4(-0.1f, 0.2f, 1.0f, 1.0f),
                   DirectX::XMFLOAT4(0.2f, 0.5f, 1.0f, 1.0f),
+                  DirectX::XMFLOAT4(0.5f, 0.4f, 1.0f, 1.0f),
                   DirectX::XMFLOAT4(0.5f, 0.2f, 1.0f, 1.0f),
-              }, 3);
+                  DirectX::XMFLOAT4(0.5f, 0.2f, 1.0f, 1.0f),
+                  DirectX::XMFLOAT4(0.5f, 0.2f, 1.0f, 1.0f),
+              }, 6);
 
   AddTriangle(game, new DirectX::XMFLOAT4[6]{
                   DirectX::XMFLOAT4(-0.2f, 0.2f, 1.0f, 1.0f),
@@ -26,7 +29,7 @@ int main() {
                   DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
                   DirectX::XMFLOAT4(-0.35f, 0.7f, 1.0f, 1.0f),
                   DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f),
-              }, 6, 1);
+              }, 6);
 
   AddTriangle(game, new DirectX::XMFLOAT4[8]{
                   DirectX::XMFLOAT4(-0.2f, -0.2f, 1.0f, 1.0f),
