@@ -36,7 +36,7 @@ void BallMoveComponent::Reload()
 
 void BallMoveComponent::CalcOffset(float timeTick)
 {
-    velocity *= speed;
+    //velocity *= speed;
     offset.x += velocity.x * timeTick;
     offset.y += velocity.y * timeTick;
 }

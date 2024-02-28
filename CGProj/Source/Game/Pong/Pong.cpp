@@ -8,11 +8,11 @@
 void Pong::Initialize()
 {
     game->Initialize();
-    AddRacket(game, rightIsAI, 0.5, {0.9, 0.0, 0.5}, {0.015, 0.15, 0.2}, {1.0, 1.0, 1.0}, Keys::Up, Keys::Down, Keys::Left, Keys::Right);
+    AddRacket(game, rightIsAI, 1.5, {0.9, 0.0, 0.5}, {0.015, 0.15, 0.2}, {1.0, 1.0, 1.0}, Keys::Up, Keys::Down, Keys::Left, Keys::Right);
     AddRacket(game, leftIsAI, 1.0, {-0.9, -0.0, 0.5}, {0.015, 0.15, 0.2}, {1.0, 0.0, 0.0});
-    AddBall(game, {0.0, 0.0, 0.5}, {0.02, 0.02, 0.2}, {1.0, 1.0, 1.0}, 1.5);
-    AddWall(game, WallType::Up);
-    AddWall(game, WallType::Down);
+    AddBall(game, {0.0, 0.0, 0.5}, {0.02, 0.02, 0.2}, {1.0, 1.0, 1.0}, 2.0);
+    AddWall(game, WallType::Up, {0.0, 0.5, 0.5});
+    AddWall(game, WallType::Down, {0.0, -0.5, 0.5});
     AddWall(game, WallType::Left);
     AddWall(game, WallType::Right);
 }
@@ -30,6 +30,19 @@ void Pong::AddWall(Game* game, WallType type)
     game->gameObjects.insert(wall);
 }
 
+void Pong::AddWall(Game* game, WallType type, Vector3 center,
+        Vector3 extends,
+        Vector3 Color)
+{
+    const auto wall = new Wall(type);
+    wall->pong = this;
+    wall->center = center;
+    wall->extends = extends;
+    wall->color = Color;
+    wall->Initialize();
+    game->gameObjects.insert(wall);
+}
+
 void Pong::AddRacket(Game* game, bool isAI, float speed, Vector3 center, Vector3 extends, Vector3 Color, Keys up, Keys down, Keys left, Keys right)
 {
     const auto racket = new Racket(center, extends, Color);
@@ -40,6 +53,7 @@ void Pong::AddRacket(Game* game, bool isAI, float speed, Vector3 center, Vector3
     racket->moveComp->inputDown = down;
     racket->moveComp->inputLeft = left;
     racket->moveComp->inputRight = right;
+    racket->moveComp->speed = speed;
     game->gameObjects.insert(racket);
 }
 
@@ -49,15 +63,16 @@ void Pong::AddRacket(Game* game, bool isAI, float speed)
     racket->isAI = isAI;
     racket->pong = this;
     racket->Initialize();
+    racket->moveComp->speed = speed;
     game->gameObjects.insert(racket);
 }
 
 void Pong::AddBall(Game* game, Vector3 center, Vector3 extends, Vector3 Color, float speed)
 {
     const auto ball = new Ball(center, extends, Color);
-    ball->moveComp->speed;
     ball->pong = this;
     ball->Initialize();
+    ball->moveComp->speed = speed;
     game->gameObjects.insert(ball);
 }
 

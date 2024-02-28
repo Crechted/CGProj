@@ -1,8 +1,8 @@
 ﻿#include "Game/Pong/Pong.h"
-
+sw
 int main()
 {
-    Pong* pong = new Pong(true, true);
+    Pong* pong = new Pong(false, false);
     pong->Initialize();
     pong->Run();
 

@@ -19,6 +19,11 @@ public:
     void Run();
 
     void AddWall(Game* game, WallType type);
+    
+    void AddWall(Game* game, WallType type, Vector3 center,
+       Vector3 extends = {0.97f, 0.02f, 0.5f},
+       Vector3 Color = {1.f, 1.f, 1.f});
+
 
     void AddRacket(Game* game, bool isAI,float speed, Vector3 center, Vector3 extends, Vector3 Color,
         Keys up = Keys::W, Keys down = Keys::S, Keys left = Keys::A, Keys right = Keys::D);
