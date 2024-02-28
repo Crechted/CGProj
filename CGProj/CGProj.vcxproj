@@ -27,6 +27,7 @@
     <ClInclude Include="Source\Core\WinDisplay.h" />
     <ClInclude Include="Source\Game\GameSquare.h" />
     <ClInclude Include="Source\Game\Pong\Components\BallMoveComponent.h" />
+    <ClInclude Include="Source\Game\Pong\Components\RacketAIMoveComponent.h" />
     <ClInclude Include="Source\Game\Pong\Components\RacketMoveComponent.h" />
     <ClInclude Include="Source\Game\Pong\Objects\Ball.h" />
     <ClInclude Include="Source\Game\Pong\Objects\PongObject.h" />
@@ -49,6 +50,7 @@
     <ClCompile Include="Source\Core\WinDisplay.cpp" />
     <ClCompile Include="Source\Game\GameSquare.cpp" />
     <ClCompile Include="Source\Game\Pong\Components\BallMoveComponent.cpp" />
+    <ClCompile Include="Source\Game\Pong\Components\RacketAIMoveComponent.cpp" />
     <ClCompile Include="Source\Game\Pong\Components\RacketMoveComponent.cpp" />
     <ClCompile Include="Source\Game\Pong\Objects\Ball.cpp">
       <RuntimeLibrary>MultiThreadedDebugDll</RuntimeLibrary>

@@ -2,7 +2,7 @@
 
 int main()
 {
-    Pong* pong = new Pong();
+    Pong* pong = new Pong(true, true);
     pong->Initialize();
     pong->Run();
 

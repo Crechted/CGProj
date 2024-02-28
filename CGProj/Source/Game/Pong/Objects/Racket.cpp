@@ -2,6 +2,7 @@
 
 #include "Wall.h"
 #include "../../../Components/TriangleComponent.h"
+#include "../Components/RacketAIMoveComponent.h"
 #include "../Components/RacketMoveComponent.h"
 
 Racket::Racket(Vector3 center, Vector3 extends, Vector3 color)
@@ -13,7 +14,7 @@ Racket::Racket(Vector3 center, Vector3 extends, Vector3 color)
 
 void Racket::CreateComponents()
 {
-    moveComp = new RacketMoveComponent();
+    moveComp = isAI ? new RacketAIMoveComponent() : new RacketMoveComponent();
     boxSprite = new TriangleComponent();
 }
 

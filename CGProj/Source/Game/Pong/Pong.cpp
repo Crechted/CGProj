@@ -8,9 +8,9 @@
 void Pong::Initialize()
 {
     game->Initialize();
-    AddRacket(game);
-    AddRacket(game, {-0.9, -0.0, 0.5}, {0.015, 0.15, 0.2}, {1.0, 0.0, 0.0}, Keys::Up, Keys::Down, Keys::Left, Keys::Right);
-    AddBall(game, {0.0, 0.0, 0.5}, {0.02, 0.02, 0.2}, {1.0, 1.0, 1.0});
+    AddRacket(game, rightIsAI, 0.5, {0.9, 0.0, 0.5}, {0.015, 0.15, 0.2}, {1.0, 1.0, 1.0}, Keys::Up, Keys::Down, Keys::Left, Keys::Right);
+    AddRacket(game, leftIsAI, 1.0, {-0.9, -0.0, 0.5}, {0.015, 0.15, 0.2}, {1.0, 0.0, 0.0});
+    AddBall(game, {0.0, 0.0, 0.5}, {0.02, 0.02, 0.2}, {1.0, 1.0, 1.0}, 1.5);
     AddWall(game, WallType::Up);
     AddWall(game, WallType::Down);
     AddWall(game, WallType::Left);
@@ -30,9 +30,10 @@ void Pong::AddWall(Game* game, WallType type)
     game->gameObjects.insert(wall);
 }
 
-void Pong::AddRacket(Game* game, Vector3 center, Vector3 extends, Vector3 Color, Keys up, Keys down, Keys left, Keys right)
+void Pong::AddRacket(Game* game, bool isAI, float speed, Vector3 center, Vector3 extends, Vector3 Color, Keys up, Keys down, Keys left, Keys right)
 {
     const auto racket = new Racket(center, extends, Color);
+    racket->isAI = isAI;
     racket->pong = this;
     racket->Initialize();
     racket->moveComp->inputUp = up;
@@ -42,17 +43,19 @@ void Pong::AddRacket(Game* game, Vector3 center, Vector3 extends, Vector3 Color,
     game->gameObjects.insert(racket);
 }
 
-void Pong::AddRacket(Game* game)
+void Pong::AddRacket(Game* game, bool isAI, float speed)
 {
     const auto racket = new Racket();
+    racket->isAI = isAI;
     racket->pong = this;
     racket->Initialize();
     game->gameObjects.insert(racket);
 }
 
-void Pong::AddBall(Game* game, Vector3 center, Vector3 extends, Vector3 Color)
+void Pong::AddBall(Game* game, Vector3 center, Vector3 extends, Vector3 Color, float speed)
 {
     const auto ball = new Ball(center, extends, Color);
+    ball->moveComp->speed;
     ball->pong = this;
     ball->Initialize();
     game->gameObjects.insert(ball);

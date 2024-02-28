@@ -9,6 +9,7 @@ public:
         Vector3 extends = {0.015, 0.15, 0.2},
         Vector3 color = {1.f, 1.f, 1.f});
 
+    bool isAI = false;
     void CreateComponents() override;
 
     void OnBeginOverlapped(Object* other) override;
