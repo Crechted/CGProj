@@ -3,12 +3,20 @@
 
 #include <iostream>
 
+#include "Game.h"
+#include "../Core/Input/InputDevice.h"
+
 WinDisplay::WinDisplay()
 {
 }
 
 WinDisplay::~WinDisplay()
 {
+}
+
+LRESULT WinDisplay::WindowProcedure(HWND handlerWindow, uint32_t message, UINT_PTR uintParam, LONG_PTR intParam)
+{
+    return Game::GetGame().inputDevice->HandleInput(handlerWindow, message, uintParam, intParam);
 }
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam)
@@ -37,7 +45,7 @@ void WinDisplay::WindowInit()
     hInstance = GetModuleHandle(nullptr);
 
     wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-    wc.lpfnWndProc = WndProc;
+    wc.lpfnWndProc = WindowProcedure;
     wc.cbClsExtra = 0;
     wc.cbWndExtra = 0;
     wc.hInstance = hInstance;
@@ -71,6 +79,4 @@ void WinDisplay::WindowInit()
     SetFocus(hWnd);
 
     ShowCursor(true);
-
 }
-

@@ -6,6 +6,7 @@
 #include <d3d.h>
 #include <d3dcompiler.h>
 
+#include "Movement2DComponent.h"
 #include "../Core/Game.h"
 #include "../Core/Windisplay.h"
 
@@ -21,21 +22,82 @@ TriangleComponent::~TriangleComponent()
 
 void TriangleComponent::Initialize()
 {
-    const auto& swapDesc = game->swapDesc;
-    auto& swapChain = game->swapChain;
-    auto& device = game->device;
-    auto& context = game->context;
-    const auto& display = game->display;
+    if (!CompileVertexBC())
+        return;
 
-    /*ID3D11Texture2D* backTex;
-    auto res = swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backTex); // __uuidof(ID3D11Texture2D)
-    res = device->CreateRenderTargetView(backTex, nullptr, &rtv);*/
+    if (!CompilePixelBC())
+        return;
 
+    CreateShaders();
+    CreateLayout();
+
+    CreateVertexBuffer();
+
+    CreateIndexBuffer();
+
+    CreateAndSetRasterizerState();
+}
+
+void TriangleComponent::DestroyResource()
+{
+    vertexShader->Release();
+    pixelShader->Release();
+}
+
+void TriangleComponent::Draw()
+{
+    if (!game)
+        return;
+
+    game->context->RSSetState(rastState);
+
+    game->context->IASetInputLayout(layout);
+    game->context->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    game->context->IASetIndexBuffer(ib, DXGI_FORMAT_R32_UINT, 0);
+    game->context->IASetVertexBuffers(0, 1, &vb, strides, offsets);
+    game->context->VSSetShader(vertexShader, nullptr, 0);
+    game->context->PSSetShader(pixelShader, nullptr, 0);
+    
+    game->context->DrawIndexed(idxCount, 0, 0);
+}
+
+void TriangleComponent::Reload()
+{
+}
+
+void TriangleComponent::Update(float timeTick)
+{
+    totalTime = game->GetTotalTime();
+}
+
+bool TriangleComponent::CompileVertexBC()
+{
     vertexBC = nullptr;
     ID3DBlob* errorVertexCode = nullptr;
-    auto res = D3DCompileFromFile(L"./Resource/Shaders/MyVeryFirstShader.hlsl", nullptr /*macros*/, nullptr /*include*/, "VSMain", "vs_5_0",
-        D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION, 0, &vertexBC, &errorVertexCode);
+    LPCWSTR pFileName = L"./Resource/Shaders/MyVeryFirstShader.hlsl";
+    const auto res = D3DCompileFromFile(pFileName, nullptr /*macros*/, nullptr /*include*/,
+        "VSMain", "vs_5_0",
+        D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION, 0, &vertexBC,
+        &errorVertexCode);
 
+    return CheckResCompile(errorVertexCode, res, pFileName);
+}
+
+bool TriangleComponent::CompilePixelBC()
+{
+    D3D_SHADER_MACRO Shader_Macros[] = {"TEST", "1", "TCOLOR", "float4(0.0f, 1.0f, 0.0f, 1.0f)", nullptr, nullptr};
+    ID3DBlob* errorPixelCode;
+
+    LPCWSTR pFileName = L"./Resource/Shaders/MyVeryFirstShader.hlsl";
+    auto res = D3DCompileFromFile(pFileName, Shader_Macros /*macros*/,
+        nullptr /*include*/, "PSMain",
+        "ps_5_0",
+        D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION, 0, &pixelBC, &errorPixelCode);
+    return CheckResCompile(errorPixelCode, res, pFileName);
+}
+
+bool TriangleComponent::CheckResCompile(ID3DBlob* errorVertexCode, const HRESULT& res, LPCWSTR pFileName)
+{
     if (FAILED(res))
     {
         // If the shader failed to compile it should have written something to the error message.
@@ -48,31 +110,33 @@ void TriangleComponent::Initialize()
         // If there was  nothing in the error message then it simply could not find the shader file itself.
         else
         {
-            MessageBox(display->hWnd, L"MyVeryFirstShader.hlsl", L"Missing Shader File", MB_OK);
+            MessageBox(game->display->hWnd, pFileName, L"Missing Shader File", MB_OK);
         }
 
-        return;
+        return false;
     }
+    return true;
+}
 
-    D3D_SHADER_MACRO Shader_Macros[] = {"TEST", "1", "TCOLOR", "float4(0.0f, 1.0f, 0.0f, 1.0f)", nullptr, nullptr};
+void TriangleComponent::CreateShaders()
+{
+    game->device->CreateVertexShader(vertexBC->GetBufferPointer(), vertexBC->GetBufferSize(), nullptr, &vertexShader);
+    game->device->CreatePixelShader(pixelBC->GetBufferPointer(), pixelBC->GetBufferSize(), nullptr, &pixelShader);
+}
 
-    ID3DBlob* errorPixelCode;
-    res = D3DCompileFromFile(L"./Resource/Shaders/MyVeryFirstShader.hlsl", Shader_Macros /*macros*/, nullptr /*include*/, "PSMain",
-        "ps_5_0",
-        D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION, 0, &pixelBC, &errorPixelCode);
-
-    device->CreateVertexShader(vertexBC->GetBufferPointer(), vertexBC->GetBufferSize(), nullptr, &vertexShader);
-
-    device->CreatePixelShader(pixelBC->GetBufferPointer(), pixelBC->GetBufferSize(), nullptr, &pixelShader);
-
+void TriangleComponent::CreateLayout()
+{
     D3D11_INPUT_ELEMENT_DESC inputElements[] = {
         D3D11_INPUT_ELEMENT_DESC{"POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        D3D11_INPUT_ELEMENT_DESC{
-            "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0}};
-  
-    device->CreateInputLayout(inputElements, numElements, vertexBC->GetBufferPointer(), vertexBC->GetBufferSize(), &layout);
+        D3D11_INPUT_ELEMENT_DESC{"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT,
+                                 D3D11_INPUT_PER_VERTEX_DATA, 0}};
 
-    //D3D11_BUFFER_DESC vertexBufDesc = {};
+    game->device->CreateInputLayout(inputElements, numElements, vertexBC->GetBufferPointer(), vertexBC->GetBufferSize(),
+        &layout);
+}
+
+void TriangleComponent::CreateVertexBuffer()
+{
     vertexBufDesc.Usage = D3D11_USAGE_DEFAULT;
     vertexBufDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
     vertexBufDesc.CPUAccessFlags = 0;
@@ -80,31 +144,32 @@ void TriangleComponent::Initialize()
     vertexBufDesc.StructureByteStride = 0;
     vertexBufDesc.ByteWidth = sizeof(DirectX::XMFLOAT4) * countPoints;
 
-    //D3D11_SUBRESOURCE_DATA vertexData = {};
     vertexData.pSysMem = points;
     vertexData.SysMemPitch = 0;
     vertexData.SysMemSlicePitch = 0;
 
-    
-    device->CreateBuffer(&vertexBufDesc, &vertexData, &vb);
+    game->device->CreateBuffer(&vertexBufDesc, &vertexData, &vb);
+}
 
-    int indeces[] = {0, 1, 2, 1, 0, 3};
-    D3D11_BUFFER_DESC indexBufDesc = {};
+void TriangleComponent::CreateIndexBuffer()
+{
     indexBufDesc.Usage = D3D11_USAGE_DEFAULT;
     indexBufDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
     indexBufDesc.CPUAccessFlags = 0;
     indexBufDesc.MiscFlags = 0;
     indexBufDesc.StructureByteStride = 0;
-    indexBufDesc.ByteWidth = sizeof(int) * std::size(indeces);
+    indexBufDesc.ByteWidth = sizeof(int32_t) * countIndexes;
 
     D3D11_SUBRESOURCE_DATA indexData = {};
-    indexData.pSysMem = indeces;
+    indexData.pSysMem = indexes;
     indexData.SysMemPitch = 0;
     indexData.SysMemSlicePitch = 0;
 
-    
-    device->CreateBuffer(&indexBufDesc, &indexData, &ib);
+    game->device->CreateBuffer(&indexBufDesc, &indexData, &ib);
+}
 
+void TriangleComponent::CreateAndSetRasterizerState()
+{
     strides = new UINT[1]{32};
     offsets = new UINT[1]{0};
 
@@ -112,51 +177,7 @@ void TriangleComponent::Initialize()
     rastDesc.CullMode = D3D11_CULL_NONE;
     rastDesc.FillMode = D3D11_FILL_SOLID;
 
-    rastState;
-    res = device->CreateRasterizerState(&rastDesc, &rastState);
+    auto res = game->device->CreateRasterizerState(&rastDesc, &rastState);
 
-    context->RSSetState(rastState);
-
-    D3D11_BUFFER_DESC constBufDesc = {};
-    constBufDesc.Usage = D3D11_USAGE_DYNAMIC;
-    constBufDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    constBufDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    constBufDesc.MiscFlags = 0;
-    constBufDesc.StructureByteStride = 0;
-    constBufDesc.ByteWidth = sizeof(ConstData);
-
-    device->CreateBuffer(&constBufDesc, nullptr, &constantBuffer);
-}
-
-void TriangleComponent::DestroyResource()
-{
-    vertexShader->Release();
-    pixelShader->Release();
-}
-
-void TriangleComponent::Draw()
-{
-    if (!game) return;
-    
     game->context->RSSetState(rastState);
-
-    game->context->IASetInputLayout(layout);
-    game->context->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    game->context->IASetIndexBuffer(ib, DXGI_FORMAT_R32_UINT, 0);
-    game->context->IASetVertexBuffers(0, 1, &vb, strides, offsets);
-    game->context->VSSetShader(vertexShader, nullptr, 0);
-    game->context->PSSetShader(pixelShader, nullptr, 0);
-
-    game->context->DrawIndexed(6, 0, 0);
-
-}
-
-void TriangleComponent::Reload()
-{
-}
-
-void TriangleComponent::Update(float timeTick)
-{
-    //totalTime = game->GetTotalTime();
-    totalTime = 0.4;
 }

@@ -9,7 +9,9 @@
 #include <d3dcompiler.h>
 #include <chrono>
 
-#include "../Components/GameComponent.h"
+#include "Object.h"
+#include "../Core/Input/InputDevice.h"
+#include "../Game/GameSquare.h"
 
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxgi.lib")
@@ -18,13 +20,22 @@
 
 Game::~Game()
 {
-    for (const auto gComp : gameComponents)
+    for (const auto gComp : gameObjects)
     {
         delete gComp;
     }
+    Destroy();
 }
 
-Game &Game::GetGame()
+void Game::Destroy()
+{
+    renderTargetView->Release();
+    swapChain->Release();
+    context->Release();
+    device->Release();
+}
+
+Game& Game::GetGame()
 {
     static Game game;
     return game;
@@ -33,68 +44,12 @@ Game &Game::GetGame()
 void Game::Initialize()
 {
     display = new WinDisplay();
+    inputDevice = new InputDevice(&GetGame());
+    if (!display || !inputDevice) return;
     display->WindowInit();
-    if (!display)
-        return;
 
-    //swapDesc = {};
-    swapDesc.BufferCount = 2;
-    swapDesc.BufferDesc.Width = display->screenWidth;
-    swapDesc.BufferDesc.Height = display->screenHeight;
-    swapDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    swapDesc.BufferDesc.RefreshRate.Numerator = 60;
-    swapDesc.BufferDesc.RefreshRate.Denominator = 1;
-    swapDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-    swapDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-    swapDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    swapDesc.OutputWindow = display->hWnd;
-    swapDesc.Windowed = true;
-    swapDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-    swapDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-    swapDesc.SampleDesc.Count = 1;
-    swapDesc.SampleDesc.Quality = 0;
-
-    D3D_FEATURE_LEVEL featureLevel[] = {D3D_FEATURE_LEVEL_11_1};
-    auto res = D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE,
-                                             nullptr, D3D11_CREATE_DEVICE_DEBUG,
-                                             featureLevel, 1,
-                                             D3D11_SDK_VERSION, &swapDesc,
-                                             &swapChain, &device, nullptr,
-                                             &context);
-
-    if (FAILED(res))
-    {
-        // Well, that was unexpected
-    }
-
-    ID3D11Texture2D* backTex;
-    res = swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backTex); // __uuidof(ID3D11Texture2D)
-    res = device->CreateRenderTargetView(backTex, nullptr, &renderTargetView);
-
-
-    viewport = {};
-    viewport.Width = static_cast<float>(display->screenWidth);
-    viewport.Height = static_cast<float>(display->screenHeight);
-    viewport.TopLeftX = 0;
-    viewport.TopLeftY = 0;
-    viewport.MinDepth = 0;
-    viewport.MaxDepth = 1.0f;
-}
-
-void Game::Input(bool &isExitRequested)
-{
-    // Handle the windows messages.
-    while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
-    {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
-    }
-
-    // If windows signals to end the application then exit out.
-    if (msg.message == WM_QUIT)
-    {
-        isExitRequested = true;
-    }
+    CreateDeviceAndSwapChain();
+    CreateTargetViewAndViewport();
 }
 
 void Game::Run()
@@ -112,12 +67,25 @@ void Game::Run()
     std::cout << "Hello World!\n";
 }
 
+void Game::Input(bool& isExitRequested)
+{
+    // Handle the windows messages.
+    while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+    {
+        //TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+
+    if (inputDevice->IsKeyDown(Keys::Escape))
+    {
+        isExitRequested = true;
+    }
+}
+
 void Game::Update()
 {
     curTime = std::chrono::steady_clock::now();
-    float deltaTime = std::chrono::duration_cast<
-            std::chrono::microseconds>(curTime - PrevTime).count() /
-        1000000.0f;
+    float deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(curTime - PrevTime).count() / 1000000.0f;
     PrevTime = curTime;
 
     totalTime += deltaTime;
@@ -136,9 +104,35 @@ void Game::Update()
         frameCount = 0;
     }
 
-    for (const auto gComp : gameComponents)
+    DetectOverlapped();
+
+    for (const auto Obj : gameObjects)
     {
-        gComp->Update(deltaTime);
+        Obj->Update(deltaTime);
+    }
+}
+
+void Game::DetectOverlapped()
+{
+    for (int32_t i = 0; i < gameObjects.size(); i++)
+    {
+        const auto square1 = dynamic_cast<GameSquare*>(gameObjects[i]);
+        if (!square1) continue;
+        for (int32_t j = i + 1; j < gameObjects.size(); j++)
+        {
+            const auto square2 = dynamic_cast<GameSquare*>(gameObjects[j]);
+            if (!square2) continue;
+            if (square1->BoxCollision.Contains(square2->BoxCollision))
+            {
+                square1->beginOverlapped.Broadcast(square2);
+                square2->beginOverlapped.Broadcast(square1);
+            }
+            else
+            {
+                square1->endOverlapped.Broadcast(square2);
+                square2->endOverlapped.Broadcast(square1);
+            }
+        }
     }
 }
 
@@ -146,14 +140,62 @@ void Game::Render()
 {
     float color[] = {0.0f, 0.0f, 0.0f, 1.0f};
     context->ClearState();
-    context->RSSetViewports(1, &viewport);
-    context->ClearRenderTargetView(renderTargetView, color);
     context->OMSetRenderTargets(1, &renderTargetView, nullptr);
-    
-    for (const auto gComp : gameComponents)
+    context->ClearRenderTargetView(renderTargetView, color);
+    context->RSSetViewports(1, &viewport);
+
+    for (const auto Obj : gameObjects)
     {
-        gComp->Draw();
+        Obj->Draw();
     }
-    
+
     swapChain->Present(1, /*DXGI_PRESENT_DO_NOT_WAIT*/ 0);
+}
+
+void Game::CreateDeviceAndSwapChain()
+{
+    swapDesc.BufferCount = 2;
+    swapDesc.BufferDesc.Width = display->screenWidth;
+    swapDesc.BufferDesc.Height = display->screenHeight;
+    swapDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    swapDesc.BufferDesc.RefreshRate.Numerator = 60;
+    swapDesc.BufferDesc.RefreshRate.Denominator = 1;
+    swapDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+    swapDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+    swapDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    swapDesc.OutputWindow = display->hWnd;
+    swapDesc.Windowed = true;
+    swapDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+    swapDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+    swapDesc.SampleDesc.Count = 1;
+    swapDesc.SampleDesc.Quality = 0;
+
+    D3D_FEATURE_LEVEL featureLevel[] = {D3D_FEATURE_LEVEL_11_1};
+    auto res = D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE,
+        nullptr, D3D11_CREATE_DEVICE_DEBUG,
+        featureLevel, 1,
+        D3D11_SDK_VERSION, &swapDesc,
+        &swapChain, &device, nullptr,
+        &context);
+
+    if (FAILED(res))
+    {
+        // Well, that was unexpected
+    }
+}
+
+void Game::CreateTargetViewAndViewport()
+{
+    HRESULT res;
+    ID3D11Texture2D* backTex;
+    res = swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backTex); // __uuidof(ID3D11Texture2D)
+    res = device->CreateRenderTargetView(backTex, nullptr, &renderTargetView);
+
+    viewport = {};
+    viewport.Width = static_cast<float>(display->screenWidth);
+    viewport.Height = static_cast<float>(display->screenHeight);
+    viewport.TopLeftX = 0;
+    viewport.TopLeftY = 0;
+    viewport.MinDepth = 0;
+    viewport.MaxDepth = 1.0f;
 }
