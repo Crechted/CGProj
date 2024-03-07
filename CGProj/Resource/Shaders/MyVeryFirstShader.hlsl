@@ -1,4 +1,4 @@
-struct ConstantData
+/*struct ConstantData
 {
     float4 offset;
     float4 color;
@@ -7,6 +7,18 @@ struct ConstantData
 cbuffer ConstBuf : register(b0)
 {
     ConstantData ConstData;
+}*/
+
+struct ViewData
+{
+    matrix mWorld;
+    matrix mView;
+    matrix mProj;
+};
+
+cbuffer ViewBuf : register(b0)
+{
+    ViewData viewData;
 }
 
 struct VS_IN
@@ -24,8 +36,11 @@ struct PS_IN
 PS_IN VSMain(VS_IN input)
 {
     PS_IN output = (PS_IN)0;
-
-    output.pos = float4(input.pos.xyz + ConstData.offset.xyz, 1.0f);
+    
+    //output.pos = float4(input.pos.xyz + OffsetTransformData.offsetLoc.xyz, 1.0f);
+    output.pos = mul(input.pos, viewData.mWorld);
+    output.pos = mul(output.pos, viewData.mView);
+    output.pos = mul(output.pos, viewData.mProj);
     output.col = input.col;
 
     return output;

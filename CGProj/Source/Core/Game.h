@@ -3,6 +3,9 @@
 #include <wrl.h>
 #include "../Utils/Array/Array.h"
 
+#include "../Core/Object.h"
+#include "../Game/Camera.h"
+
 class Object;
 class InputDevice;
 class WinDisplay;
@@ -34,8 +37,36 @@ public:
     D3D11_VIEWPORT viewport;
 
     Array<Object*> gameObjects;
+    Array<GameComponent*> gameComponents;
 
+    Camera* camera;
     InputDevice* inputDevice;
+
+    template <typename T>
+    T* CreateObjects()
+    {
+        T* newObj = new T();
+        if (const auto nGObj = reinterpret_cast<Object*>(newObj))
+        {
+            gameObjects.insert(nGObj);
+            return newObj;
+        }
+        return nullptr;
+
+    }
+
+    template <typename T>
+    T* CreateComponent()
+    {
+        if (const auto nComp = reinterpret_cast<GameComponent*>(new T()))
+        {            
+            gameComponents.insert(nComp);
+            nComp->Owner = nullptr;
+            return reinterpret_cast<T*>(nComp);
+        }
+        return nullptr;
+        
+    }
 
 protected:
     //D3D_FEATURE_LEVEL featureLevel;

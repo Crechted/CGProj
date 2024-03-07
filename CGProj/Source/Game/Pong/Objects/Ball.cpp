@@ -18,8 +18,8 @@ Ball::Ball(Vector3 center, Vector3 extends, Vector3 color)
 
 void Ball::CreateComponents()
 {
-    moveComp = new BallMoveComponent();
-    boxSprite = new TriangleComponent();
+    moveComp = CreateComponent<BallMoveComponent>();
+    boxSprite = CreateComponent<TriangleComponent>();
 }
 
 

@@ -14,8 +14,8 @@ Racket::Racket(Vector3 center, Vector3 extends, Vector3 color)
 
 void Racket::CreateComponents()
 {
-    moveComp = isAI ? new RacketAIMoveComponent() : new RacketMoveComponent();
-    boxSprite = new TriangleComponent();
+    moveComp = isAI ? CreateComponent<RacketAIMoveComponent>() : CreateComponent<RacketMoveComponent>();
+    boxSprite = CreateComponent<TriangleComponent>();
 }
 
 void Racket::OnBeginOverlapped(Object* other)

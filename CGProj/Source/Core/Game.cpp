@@ -10,6 +10,7 @@
 #include <chrono>
 
 #include "Object.h"
+#include "../Components/GameComponent.h"
 #include "../Core/Input/InputDevice.h"
 #include "../Game/GameSquare.h"
 
@@ -47,9 +48,21 @@ void Game::Initialize()
     inputDevice = new InputDevice(&GetGame());
     if (!display || !inputDevice) return;
     display->WindowInit();
-
+    
     CreateDeviceAndSwapChain();
     CreateTargetViewAndViewport();
+
+    camera = CreateObjects<Camera>();
+    
+    for (const auto Comp : gameComponents)
+    {
+        Comp->Initialize();
+    }
+    for (const auto Obj : gameObjects)
+    {
+        Obj->Initialize();
+    }
+    
 }
 
 void Game::Run()
@@ -106,6 +119,11 @@ void Game::Update()
 
     DetectOverlapped();
 
+    for (const auto Comp : gameComponents)
+    {
+        Comp->Update(deltaTime);
+    }
+    
     for (const auto Obj : gameObjects)
     {
         Obj->Update(deltaTime);
@@ -144,6 +162,10 @@ void Game::Render()
     context->ClearRenderTargetView(renderTargetView, color);
     context->RSSetViewports(1, &viewport);
 
+    for (const auto Comp : gameComponents)
+    {
+        Comp->Draw();
+    }
     for (const auto Obj : gameObjects)
     {
         Obj->Draw();

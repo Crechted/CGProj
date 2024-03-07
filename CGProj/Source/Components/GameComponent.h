@@ -1,5 +1,6 @@
 #pragma once
 
+class Object;
 class Game;
 
 class GameComponent
@@ -15,5 +16,6 @@ public:
     virtual void Reload(){}    
     virtual void Update(float timeTick) = 0;
 
+    Object* Owner;
     Game* game;
 };

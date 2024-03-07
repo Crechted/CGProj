@@ -2,6 +2,7 @@
 #include <d3d11.h>
 #include <directxmath.h>
 #include "GameComponent.h"
+#include "Inc/SimpleMath.h"
 
 
 class Movement2DComponent;
@@ -27,9 +28,10 @@ public:
     void SetIndexes(int32_t* ids, int32_t count)
     {
         indexes = ids;
-        countIndexes = count;
+        idxCount = count;
     };
-
+    
+    
     ID3D11RasterizerState* rastState;
     ID3D11InputLayout* layout;
     ID3DBlob* vertexBC;
@@ -39,6 +41,8 @@ public:
     UINT idxCount = 6;
 
     UINT numElements = 2;
+
+    D3D11_PRIMITIVE_TOPOLOGY topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 private:
     bool CompileVertexBC();
@@ -64,7 +68,6 @@ private:
     int32_t countPoints;
 
     int32_t* indexes;
-    int32_t countIndexes;
 
     
     UINT* strides;

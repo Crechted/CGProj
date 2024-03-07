@@ -14,8 +14,8 @@ GameSquare::GameSquare(Vector3 center, Vector3 extends, Vector3 color)
 
 void GameSquare::CreateComponents()
 {
-    moveComp = new Movement2DComponent();
-    boxSprite = new TriangleComponent();
+    moveComp = CreateComponent<Movement2DComponent>();
+    boxSprite = CreateComponent<TriangleComponent>();
 }
 
 void GameSquare::Initialize()
@@ -53,6 +53,12 @@ void GameSquare::Draw()
     boxSprite->Draw();
 }
 
+void GameSquare::Update(float timeTick)
+{
+    Object::Update(timeTick);
+    UpdateCenter();
+}
+
 void GameSquare::UpdateCenter()
 {
     curCenter.x = center.x + moveComp->GetOffset().x;
@@ -60,12 +66,6 @@ void GameSquare::UpdateCenter()
     BoxCollision.Center = curCenter;
 }
 
-void GameSquare::Update(float timeTick)
-{
-    moveComp->Update(timeTick);
-    boxSprite->Update(timeTick);
-    UpdateCenter();
-}
 
 void GameSquare::Destroy()
 {

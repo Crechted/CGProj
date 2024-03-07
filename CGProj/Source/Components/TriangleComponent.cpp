@@ -6,7 +6,6 @@
 #include <d3d.h>
 #include <d3dcompiler.h>
 
-#include "Movement2DComponent.h"
 #include "../Core/Game.h"
 #include "../Core/Windisplay.h"
 
@@ -35,7 +34,7 @@ void TriangleComponent::Initialize()
 
     CreateIndexBuffer();
 
-    CreateAndSetRasterizerState();
+    CreateAndSetRasterizerState();    
 }
 
 void TriangleComponent::DestroyResource()
@@ -48,16 +47,17 @@ void TriangleComponent::Draw()
 {
     if (!game)
         return;
-
+    
     game->context->RSSetState(rastState);
 
     game->context->IASetInputLayout(layout);
-    game->context->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    game->context->IASetPrimitiveTopology(topology);
     game->context->IASetIndexBuffer(ib, DXGI_FORMAT_R32_UINT, 0);
     game->context->IASetVertexBuffers(0, 1, &vb, strides, offsets);
     game->context->VSSetShader(vertexShader, nullptr, 0);
     game->context->PSSetShader(pixelShader, nullptr, 0);
     
+
     game->context->DrawIndexed(idxCount, 0, 0);
 }
 
@@ -158,7 +158,7 @@ void TriangleComponent::CreateIndexBuffer()
     indexBufDesc.CPUAccessFlags = 0;
     indexBufDesc.MiscFlags = 0;
     indexBufDesc.StructureByteStride = 0;
-    indexBufDesc.ByteWidth = sizeof(int32_t) * countIndexes;
+    indexBufDesc.ByteWidth = sizeof(int32_t) * idxCount;
 
     D3D11_SUBRESOURCE_DATA indexData = {};
     indexData.pSysMem = indexes;
