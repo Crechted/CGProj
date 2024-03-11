@@ -11,29 +11,30 @@ void PlanetMoveComponent::Update(float timeTick)
 void PlanetMoveComponent::Initialize()
 {
     MovementComponent::Initialize();
-    if (!SearchSceneComponent()) return;
+    if (!sceneComp && !SearchSceneComponent()) return;
     if (!game || !sceneComp) return;
     Reload();
-    sceneComp->mTransform = Matrix::CreateWorld(sceneComp->location, sceneComp->forward, sceneComp->up);
 }
 
 void PlanetMoveComponent::HandleInputByKey()
 {
-    MovementComponent::HandleInputByKey();
+    //MovementComponent::HandleInputByKey();
 }
 
 void PlanetMoveComponent::CalcOffset(float timeTick)
 {
-    Vector3 prevTrons = sceneComp->mTransform.Translation();
-    
-    if (true)
+    if (!sceneComp) return;
+
+    if (isRotationAround)
     {
-        sceneComp->mTransform *= Matrix::CreateTranslation(-prevTrons);        
-        sceneComp->mTransform *= Matrix::CreateFromAxisAngle(-rotationAroundAxis, timeTick);
-        //sceneComp->mTransform *= Matrix::CreateRotationY(-rotationAroundAxisy * timeTick);
-        //sceneComp->mTransform *= sceneComp->mTransform.CreateRotationX(-delRotation.x * timeTick);
-        sceneComp->mTransform *= Matrix::CreateTranslation(prevTrons);
+        sceneComp->AddRotation(rotationAroundAxis * speed * timeTick);
+        printf(" Rotation: Pitch=%04.4f Yaw:%04.4f Roll:%04.4f\n",
+            sceneComp->GetRotation().x,
+            sceneComp->GetRotation().y,
+            sceneComp->GetRotation().z);
     }
-    //delLocation
-    sceneComp->mTransform *= Matrix::CreateTranslation(delLocation * timeTick);
+    if (isMoveByVector)
+    {
+        sceneComp->AddLocation(moveByVector * speed * timeTick);
+    }
 }

@@ -9,10 +9,9 @@ SceneComponent::SceneComponent()
 
 void SceneComponent::Initialize()
 {
-    initPosition = Vector3(2.0f, 2.0f, 2.0f);
-    forward = Vector3(-1.0, -0.2, -1.0);
-    right = Vector3(0.0, 1.0, 0.0);
-    up = Vector3(0.0, 1.0, 0.0);
+    transform.location = initPosition;
+    transform.rotate = initRotation;
+    transform.scale = initScale;
 
     constBufDesc.Usage = D3D11_USAGE_DYNAMIC;
     constBufDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -32,10 +31,28 @@ void SceneComponent::Draw()
 void SceneComponent::Reload()
 {
     GameComponent::Reload();
+    transform.location = initPosition;
+    transform.rotate = initRotation;
+    transform.scale = initScale;
+}
+
+void SceneComponent::UpdateTransformMatrix()
+{
+    mTransform = Matrix();
+    const float pitch = RadiansFromDegree(transform.rotate.x);
+    const float yaw = RadiansFromDegree(transform.rotate.y);
+    const float roll = RadiansFromDegree(transform.rotate.z);
+    mTransform = Matrix::CreateFromYawPitchRoll(yaw, pitch, roll);    
+    mTransform.Translation(GetLocation());
+    /*const auto forw = GetLocation()+GetForward();
+    const auto up = GetLocation()+GetUp();
+    mTransform = Matrix::CreateWorld(GetLocation(), forw , up);*/
+    mTransform *= mTransform.CreateScale(GetScale());
 }
 
 void SceneComponent::Update(float timeTick)
 {
+    UpdateTransformMatrix();
     UpdateConstantBuffer();
 }
 
@@ -44,10 +61,16 @@ void SceneComponent::UpdateConstantBuffer()
     D3D11_MAPPED_SUBRESOURCE res = {};
     game->context->Map(constantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
 
+    auto Res = GetWorldMatrix();
+    /*printf(" Position: posX=%04.4f posY:%04.4f posZ:%04.4f\n",
+        Res.Translation().x,
+        Res.Translation().y,
+        Res.Translation().z);*/
+
     ViewData data =
     {
-        //Matrix(game->camera->mWorld).Transpose(),
-        GetWorldMatrix().Transpose(),
+        Res.Transpose(),
+        //Matrix::CreateWorld(Res.Translation(), Res.Forward(), Res.Up()).Transpose(),
         Matrix(game->camera->mView).Transpose(),
         Matrix(game->camera->mProj).Transpose(),
     };
@@ -64,23 +87,45 @@ void SceneComponent::DestroyResource()
     constantBuffer->Release();
 }
 
-Vector3 SceneComponent::Forward() const
+const Vector3& SceneComponent::GetForward() const
 {
-    //return forward;
-    return mTransform.Translation() + mTransform.Forward();
+    const float pitch = RadiansFromDegree(transform.rotate.x);
+    const float yaw = RadiansFromDegree(transform.rotate.y);
+    const float roll = RadiansFromDegree(transform.rotate.z);
+    return Matrix::CreateFromYawPitchRoll(yaw, pitch, roll).Forward();
 }
 
-Matrix SceneComponent::GetWorldMatrix()
+const Vector3& SceneComponent::GetRight() const
+{
+    const float pitch = RadiansFromDegree(transform.rotate.x);
+    const float yaw = RadiansFromDegree(transform.rotate.y);
+    const float roll = RadiansFromDegree(transform.rotate.z);
+    return Matrix::CreateFromYawPitchRoll(yaw, pitch, roll).Right();
+}
+
+const Vector3& SceneComponent::GetUp() const
+{
+    const float pitch = RadiansFromDegree(transform.rotate.x);
+    const float yaw = RadiansFromDegree(transform.rotate.y);
+    const float roll = RadiansFromDegree(transform.rotate.z);
+    return Matrix::CreateFromYawPitchRoll(yaw, pitch, roll).Up();
+}
+
+const Vector3& SceneComponent::GetGlobalUp() const
+{
+    return Vector3(0.0f, 1.0f, 0.0f);
+}
+
+const Matrix& SceneComponent::GetWorldMatrix()
 {
     SceneComponent* rootComponent = this;
-    Matrix Res = {1.f, 0.f, 0.f, 0.f,
-                  0.f, 1.f, 0.f, 0.f,
-                  0.f, 0.f, 1.f, 0.f,
-                  0.f, 0.f, 0.f, 1.f};
+    Matrix Res = Matrix();
     while (rootComponent)
     {
         Res *= rootComponent->mTransform;
-        rootComponent = parentComponent;    
+        //Res *= Matrix::CreateTranslation(-Res.Translation());
+        rootComponent = rootComponent->parentComponent;
     }
-    return Res;
+    //Res *= Matrix::CreateTranslation(-Res.Translation());
+    return Res/* * Matrix::CreateTranslation(-Res.Translation())*/;
 }

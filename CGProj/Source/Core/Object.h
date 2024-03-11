@@ -33,9 +33,7 @@ public:
 
     virtual void Draw();
 
-    virtual void Destroy()
-    {
-    }
+    virtual void Destroy();
 
     Array<GameComponent*> gameComponents;
     //Array<Object*> overlappedObjects;

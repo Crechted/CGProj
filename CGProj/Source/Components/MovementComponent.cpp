@@ -4,7 +4,6 @@
 #include "../Core/Game.h"
 #include "../Core/Input/InputDevice.h"
 
-static constexpr float PI = 3.14159265f;
 
 bool MovementComponent::SearchSceneComponent()
 {
@@ -24,80 +23,62 @@ bool MovementComponent::SearchSceneComponent()
 
 void MovementComponent::Initialize()
 {
-    if (!SearchSceneComponent()) return;
+    if (!sceneComp && !SearchSceneComponent()) return;
     if (!game || !sceneComp) return;
     Reload();
     game->inputDevice->KeyDownDelegate.AddRaw(this, &MovementComponent::OnKeyDown);
     game->inputDevice->KeyUpDelegate.AddRaw(this, &MovementComponent::OnKeyUp);
     game->inputDevice->MouseMoveDelegate.AddRaw(this, &MovementComponent::OnMouseMove);
-    sceneComp->mTransform = Matrix::CreateWorld(sceneComp->location, sceneComp->forward, sceneComp->up);
 }
 
 void MovementComponent::Reload()
 {
-    /*offsetLocation = Vector4::Zero;
-    offsetRotation = Vector4::Zero;*/
-    if(!sceneComp) return;
-    sceneComp->location = sceneComp->initPosition;
-    //location = mTransform.Translation();
-    sceneComp->rotation = sceneComp->initRotation;
-    sceneComp->mTransform = Matrix::CreateWorld(sceneComp->location, sceneComp->forward, sceneComp->up);
+    if (!sceneComp) return;
+    sceneComp->Reload();
 }
 
 void MovementComponent::Update(float timeTick)
 {
-    if(!sceneComp) return;
+    if (!sceneComp) return;
     HandleInputByKey();
     CalcOffset(timeTick);
 }
 
 void MovementComponent::HandleInputByKey()
 {
-    if(!sceneComp) return;
+    if (!sceneComp) return;
 
     delLocation = Vector3(0.0);
-    if (game->inputDevice->IsKeyDown(inputForward)) delLocation += sceneComp->mTransform.Forward() * speed;
-    if (game->inputDevice->IsKeyDown(inputRight)) delLocation += sceneComp->mTransform.Right() * speed;
-    if (game->inputDevice->IsKeyDown(inputUp)) delLocation += sceneComp->up * speed;
-    if (game->inputDevice->IsKeyDown(inputBackward)) delLocation += -sceneComp->mTransform.Forward() * speed;
-    if (game->inputDevice->IsKeyDown(inputLeft)) delLocation += -sceneComp->mTransform.Right() * speed;
-    if (game->inputDevice->IsKeyDown(inputDown)) delLocation += -sceneComp->up * speed;
+    if (game->inputDevice->IsKeyDown(inputForward)) delLocation += sceneComp->GetForward() * speed;
+    if (game->inputDevice->IsKeyDown(inputRight)) delLocation += sceneComp->GetRight() * speed;
+    if (game->inputDevice->IsKeyDown(inputUp)) delLocation += sceneComp->GetGlobalUp() * speed;
+    if (game->inputDevice->IsKeyDown(inputBackward)) delLocation += -sceneComp->GetForward() * speed;
+    if (game->inputDevice->IsKeyDown(inputLeft)) delLocation += -sceneComp->GetRight() * speed;
+    if (game->inputDevice->IsKeyDown(inputDown)) delLocation += -sceneComp->GetGlobalUp() * speed;
 }
 
 void MovementComponent::CalcOffset(float timeTick)
 {
-    if(!sceneComp) return;
+    if (!sceneComp) return;
 
-    /*if (rotation.x * timeTick > PI / 2 || rotation.x * timeTick < -PI / 2)
+    if (sceneComp->GetRotation().x >= 89 && delRotation.x > 0 || sceneComp->GetRotation().x <= -89 && delRotation.x < 0)
     {
-        /*printf(" Position: posX=%04.4f posY:%04.4f posZ:%04.4f\n",
-                mTransform.Translation().x,
-                mTransform.Translation().y,
-                mTransform.Translation().z);#1#
-        rotation -= delRotation;
         delRotation.x = 0;
-    }*/
+    }
 
-    Vector3 prevTrons = sceneComp->mTransform.Translation();
-    sceneComp->mTransform *= Matrix::CreateTranslation(-prevTrons);
-
-    
-    //if (delRotation.x != 0 || delRotation.y != 0) sceneComp->mTransform *= Matrix::CreateFromAxisAngle(Vector3(-delRotation.x,-delRotation.y, 0.0),  timeTick);
-
-    //sceneComp->mTransform *= Matrix::CreateFromAxisAngle(Vector3(0.1,0.0, 0.0),  timeTick);
-    //sceneComp->mTransform *= Matrix::CreateFromQuaternion(Quaternion(-delRotation * timeTick, 1));
-    sceneComp->mTransform *= Matrix::CreateRotationY(-delRotation.y * timeTick);
-    sceneComp->mTransform *= sceneComp->mTransform.CreateRotationX(-delRotation.x * timeTick);
-    //sceneComp->mTransform *= Matrix::CreateRotationZ(-delRotation.z * timeTick);
-    sceneComp->mTransform *= Matrix::CreateTranslation(prevTrons);
+    sceneComp->AddRotation(delRotation * timeTick);
+    sceneComp->AddLocation(delLocation * timeTick);
     delRotation = Vector3(0.0);
 
-    sceneComp->mTransform *= Matrix::CreateTranslation(delLocation * timeTick);
+    /*printf(" Rotation: Pitch=%04.4f Yaw:%04.4f Roll:%04.4f\n",
+        sceneComp->GetRotation().x,
+        sceneComp->GetRotation().y,
+        sceneComp->GetRotation().z);
 
-    /*printf(" Position: posX=%04.4f posY:%04.4f offsetZ:%04.4f\n",
-        mTransform.Forward().x,
-        mTransform.Forward().y,
-        mTransform.Forward().z);*/
+    printf(" Position: posX=%04.4f posY:%04.4f offsetZ:%04.4f\n",
+        sceneComp->GetLocation().x,
+        sceneComp->GetLocation().y,
+        sceneComp->GetLocation().z);*/
 }
 
 void MovementComponent::OnKeyDown(Keys key)
@@ -111,11 +92,11 @@ void MovementComponent::OnKeyUp(Keys key)
 
 void MovementComponent::OnMouseMove(const MouseMoveEventArgs& mouseEvent)
 {
-    if(!sceneComp) return;
+    if (!sceneComp) return;
 
     if (game->inputDevice->IsKeyDown(Keys::LeftShift)) return;
-    delRotation.x = /*(1.0f-fmod(sceneComp->Forward().z, 1.0f)) * */mouseEvent.Offset.y * sensitive;
+    delRotation.x = /*(1.0f-fmod(sceneComp->Forward().z, 1.0f)) * */-mouseEvent.Offset.y * sensitive;
     //delRotation.z = fmod(sceneComp->Forward().z, 1.0f)*mouseEvent.Offset.y * sensitive;
-    delRotation.y = mouseEvent.Offset.x * sensitive;
-    sceneComp->rotation += delRotation;
+    delRotation.y = -mouseEvent.Offset.x * sensitive;
+    //sceneComp->rotation += delRotation;
 }

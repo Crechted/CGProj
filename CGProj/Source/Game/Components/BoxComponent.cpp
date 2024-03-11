@@ -20,22 +20,14 @@ void BoxComponent::Initialize()
 
     triangleComp->SetPoints(new DirectX::XMFLOAT4[pointNum]
     {
-        DirectX::XMFLOAT4(center.x + size.x, center.y + size.y, center.z + size.z, 1.0f),
-        DirectX::XMFLOAT4(color.x, color.y, color.z, 1.0f),
-        DirectX::XMFLOAT4(center.x - size.x, center.y + size.y, center.z + size.z, 1.0f),
-        DirectX::XMFLOAT4(color.x, color.y, color.z, 1.0f),
-        DirectX::XMFLOAT4(center.x - size.x, center.y - size.y, center.z + size.z, 1.0f),
-        DirectX::XMFLOAT4(color.x, color.y, color.z, 1.0f),
-        DirectX::XMFLOAT4(center.x + size.x, center.y - size.y, center.z + size.z, 1.0f),
-        DirectX::XMFLOAT4(color.x, color.y, color.z, 1.0f),
-        DirectX::XMFLOAT4(center.x + size.x, center.y + size.y, center.z - size.z, 1.0f),
-        DirectX::XMFLOAT4(color.x, color.y, color.z, 1.0f),
-        DirectX::XMFLOAT4(center.x - size.x, center.y + size.y, center.z - size.z, 1.0f),
-        DirectX::XMFLOAT4(color.x, color.y, color.z, 1.0f),
-        DirectX::XMFLOAT4(center.x - size.x, center.y - size.y, center.z - size.z, 1.0f),
-        DirectX::XMFLOAT4(color.x, color.y, color.z, 1.0f),
-        DirectX::XMFLOAT4(center.x + size.x, center.y - size.y, center.z - size.z, 1.0f),
-        DirectX::XMFLOAT4(color.x, color.y, color.z, 1.0f),
+        DirectX::XMFLOAT4(+size.x, +size.y, +size.z, 1.0f), DirectX::XMFLOAT4(color.x, color.y, color.z, 1.0f),
+        DirectX::XMFLOAT4(-size.x, +size.y, +size.z, 1.0f), DirectX::XMFLOAT4(color.x, color.y, color.z, 1.0f),
+        DirectX::XMFLOAT4(-size.x, -size.y, +size.z, 1.0f), DirectX::XMFLOAT4(color.x, color.y, color.z, 1.0f),
+        DirectX::XMFLOAT4(+size.x, -size.y, +size.z, 1.0f), DirectX::XMFLOAT4(color.x, color.y, color.z, 1.0f),
+        DirectX::XMFLOAT4(+size.x, +size.y, -size.z, 1.0f), DirectX::XMFLOAT4(color.x, color.y, color.z, 1.0f),
+        DirectX::XMFLOAT4(-size.x, +size.y, -size.z, 1.0f), DirectX::XMFLOAT4(color.x, color.y, color.z, 1.0f),
+        DirectX::XMFLOAT4(-size.x, -size.y, -size.z, 1.0f), DirectX::XMFLOAT4(color.x, color.y, color.z, 1.0f),
+        DirectX::XMFLOAT4(+size.x, -size.y, -size.z, 1.0f), DirectX::XMFLOAT4(color.x, color.y, color.z, 1.0f),
     }, pointNum);
     int32_t idxCount = 16;
     triangleComp->SetIndexes(new int32_t[idxCount]{2, 1, 3, 0, 7, 4, 6, 5, 3, 7, 2, 6, 1, 5, 0, 4}, idxCount);

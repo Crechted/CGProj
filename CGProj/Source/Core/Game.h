@@ -42,6 +42,8 @@ public:
     Camera* camera;
     InputDevice* inputDevice;
 
+    void CreateCamera();
+
     template <typename T>
     T* CreateObjects()
     {
@@ -71,9 +73,7 @@ public:
 protected:
     //D3D_FEATURE_LEVEL featureLevel;
 
-    explicit Game()
-    {
-    }
+    explicit Game();
 
     std::chrono::time_point<std::chrono::steady_clock> PrevTime;
     std::chrono::time_point<std::chrono::steady_clock> curTime;

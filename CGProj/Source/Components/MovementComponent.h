@@ -26,8 +26,8 @@ public:
     Keys inputUp = Keys::Space;
     Keys inputDown = Keys::C;
 
-    float speed = 0.5;
-    float sensitive = 0.5;
+    float speed = 1.0;
+    float sensitive = 10.0;
     
     Vector3 delLocation;
     Vector3 delRotation;

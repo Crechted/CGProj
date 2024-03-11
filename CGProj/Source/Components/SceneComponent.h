@@ -2,57 +2,86 @@
 #include <d3d11.h>
 
 #include "GameComponent.h"
-#include "../Utils/Array/Array.h"
 #include "Inc/SimpleMath.h"
 
 
+using namespace DirectX::SimpleMath;
+
 struct ViewData
 {
-    DirectX::SimpleMath::Matrix mWorld;
-    DirectX::SimpleMath::Matrix mView;
-    DirectX::SimpleMath::Matrix mProj;
+    Matrix mWorld;
+    Matrix mView;
+    Matrix mProj;
 };
 
-using namespace DirectX::SimpleMath;
+struct Transform
+{
+    Vector3 location;
+    Vector3 rotate;
+    Vector3 scale;
+};
+
+static constexpr float PI = 3.14159265f;
+
+static float RadiansFromDegree(float deg)
+{
+    return deg * PI / 180;
+}
+
+static float DegreeFromRadians(float rad)
+{
+    return rad * 180 / PI;
+}
 
 class SceneComponent : public GameComponent
 {
 public:
     SceneComponent();
-    SceneComponent* parentComponent;
-    Array<SceneComponent*> childComponents;
-    
+    SceneComponent* parentComponent; /*
+    Array<SceneComponent*> childComponents;*/
+
     void Initialize() override;
     void Draw() override;
     void Reload() override;
+    void UpdateTransformMatrix();
     void UpdateConstantBuffer();
     void Update(float timeTick) override;
     void DestroyResource() override;
 
     //Vector3 GetLocation() const { return location; }
-    Vector3 GetLocation() const { return mTransform.Translation(); }
-    Vector3 Forward() const ;
-    Vector3 Right() const {return mTransform.Right();}
-    //Vector3 Up() const {return up;}
-    Vector3 Up() const {return mTransform.Up();}
+    const Transform& GetTransform() const { return transform; }
+    void SetTransform(const Transform& trans) { transform = trans; }
+
+    const Vector3& GetLocation() const { return transform.location; }
+    void SetLocation(const Vector3& loc) { transform.location = loc; }
+    void AddLocation(const Vector3& addLoc) { transform.location += addLoc; }
+
+    const Vector3& GetScale() const { return transform.scale; }
+    void SetScale(const Vector3& scale) { transform.scale = scale; }
+
+    const Vector3& GetRotation() const { return transform.rotate; }
+    void SetRotation(const Vector3& rot) { transform.rotate = rot; }
+    void AddRotation(const Vector3& addRot) { transform.rotate += addRot; }
 
 
-    Matrix GetWorldMatrix();
-    Matrix mTransform;
-    Vector3 forward = Vector3(1.0, 0.0, 0.0);
-    Vector3 right = Vector3(0.0, 1.0, 0.0);
-    Vector3 up = Vector3(1.0, 1.0, 1.0);
+    const Vector3& GetForward() const;
+    const Vector3& GetRight() const;
+    const Vector3& GetUp() const;
 
-    Vector3 location;
+    const Vector3& GetGlobalUp() const;
 
-    Vector3 rotation;
+    const Matrix& GetWorldMatrix();
+
 
     Vector3 initPosition = Vector3(0.0f);
     Vector3 initRotation = Vector3(0.0f);
+    Vector3 initScale = Vector3(1.0f);
 
-    bool isAttachedToParent = false;
-    
+protected:
+    Matrix mTransform;
+    Transform transform;
+
     ID3D11Buffer* constantBuffer;
     D3D11_BUFFER_DESC constBufDesc;
-    
+
 };

@@ -31,3 +31,11 @@ void Object::Draw()
         gameComp->Draw();
     }
 }
+
+void Object::Destroy()
+{
+    for (auto gameComp : gameComponents)
+    {
+        gameComp->DestroyResource();
+    }
+}

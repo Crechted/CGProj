@@ -19,6 +19,16 @@
 #pragma comment(lib, "d3dcompiler.lib")
 #pragma comment(lib, "dxguid.lib")
 
+
+void Game::CreateCamera()
+{
+    camera = camera ? camera : CreateObjects<Camera>();
+}
+
+Game::Game()
+{    
+}
+
 Game::~Game()
 {
     for (const auto gComp : gameObjects)
@@ -52,8 +62,7 @@ void Game::Initialize()
     CreateDeviceAndSwapChain();
     CreateTargetViewAndViewport();
 
-    camera = CreateObjects<Camera>();
-    
+    CreateCamera();
     for (const auto Comp : gameComponents)
     {
         Comp->Initialize();
@@ -62,7 +71,6 @@ void Game::Initialize()
     {
         Obj->Initialize();
     }
-    
 }
 
 void Game::Run()
@@ -77,7 +85,7 @@ void Game::Run()
         Render();
     }
 
-    std::cout << "Hello World!\n";
+    std::cout << "End!\n";
 }
 
 void Game::Input(bool& isExitRequested)

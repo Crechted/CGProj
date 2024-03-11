@@ -6,8 +6,11 @@
 
 Planet::Planet()
 {
+    meshComponent = new BoxComponent();
+    meshComponent->Owner = this;
     moveComp = CreateComponent<PlanetMoveComponent>();
-    meshComponent = CreateComponent<BoxComponent>();
+    moveComp->sceneComp = meshComponent;
+    gameComponents.insert(meshComponent);
 }
 
 void Planet::Initialize()
@@ -17,7 +20,6 @@ void Planet::Initialize()
 
 void Planet::AddSputnik(Planet* dirPlanet, float orbitRadius)
 {
-    meshComponent->childComponents.insert(dirPlanet->meshComponent);
     dirPlanet->meshComponent->parentComponent = meshComponent;
     dirPlanet->moveComp->orbitRadius = orbitRadius;
 }
@@ -25,7 +27,6 @@ void Planet::AddSputnik(Planet* dirPlanet, float orbitRadius)
 void Planet::AddSputnik(float orbitRadius)
 {
     auto newPlanet = game->CreateObjects<Planet>();
-    meshComponent->childComponents.insert(newPlanet->meshComponent);
     newPlanet->meshComponent->parentComponent = meshComponent;
     newPlanet->moveComp->orbitRadius = orbitRadius;
 }

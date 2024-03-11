@@ -12,7 +12,7 @@ public:
 
     virtual void Initialize() = 0;
     virtual void DestroyResource();
-    virtual void Draw() = 0;
+    virtual void Draw() {}
     virtual void Reload(){}    
     virtual void Update(float timeTick) = 0;
 

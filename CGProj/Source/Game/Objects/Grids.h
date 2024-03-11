@@ -1,6 +1,7 @@
 #pragma once
 #include "../../Core/Object.h"
 
+class SceneComponent;
 class TriangleComponent;
 
 class Grids : public Object
