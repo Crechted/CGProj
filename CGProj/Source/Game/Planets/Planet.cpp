@@ -17,7 +17,7 @@ Planet::Planet()
 void Planet::Initialize()
 {
     Object::Initialize();
-    game->inputDevice->KeyDownDelegate.AddRaw(this, &Planet::OnKeyDown);
+    game->GetInputDevice()->KeyDownDelegate.AddRaw(this, &Planet::OnKeyDown);
 }
 
 void Planet::AddSputnik(Planet* dirPlanet, float orbitRadius)
@@ -29,7 +29,7 @@ void Planet::AddSputnik(Planet* dirPlanet, float orbitRadius)
     dirPlanet->parentPlanet = this;
 }
 
-void Planet::AddSputnik(float orbitRadius)
+void Planet::AddSputnik(float orbitRadius, Keys keyToPos)
 {
     auto newPlanet = game->CreateObject<Planet>();
     newPlanet->meshComponent->radius = orbitRadius / 10.0f;
@@ -38,19 +38,20 @@ void Planet::AddSputnik(float orbitRadius)
 
     newPlanet->moveComp->orbitRadius = orbitRadius;
     newPlanet->moveComp->isRotationAround = true;
+    //newPlanet->moveComp->isMoveByDirection = true;
     newPlanet->moveComp->rotationAroundAxis = Vector3(2.0f, 20.0f, 0.0f);
     newPlanet->parentPlanet = this;
 
-    newPlanet->keyToPoses = Keys::N;
+    newPlanet->keyToPoses = keyToPos;
 }
 
 void Planet::OnKeyDown(Keys key)
 {
     if(key == keyToPoses)
     {
-        game->camera->springArmComp->AttachTo(meshComponent);
-        game->camera->springArmComp->SetLocation(Vector3(0.0f));        
-        game->camera->springArmComp->SetRotation(Vector3(0.0f));
-        game->camera->springArmComp->springLenght = meshComponent->radius*2.0f;
+        game->GetCamera()->springArmComp->AttachTo(meshComponent);
+        game->GetCamera()->springArmComp->SetLocation(Vector3(0.0f));        
+        game->GetCamera()->springArmComp->SetRotation(Vector3(0.0f));
+        game->GetCamera()->springArmComp->springLenght = meshComponent->radius*4.0f;
     }
 }

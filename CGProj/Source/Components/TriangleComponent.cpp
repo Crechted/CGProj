@@ -48,16 +48,16 @@ void TriangleComponent::Draw()
     if (!game)
         return;
 
-    game->context->RSSetState(rastState);
+    game->GetContext()->RSSetState(rastState);
 
-    game->context->IASetInputLayout(layout);
-    game->context->IASetPrimitiveTopology(topology);
-    game->context->IASetIndexBuffer(ib, DXGI_FORMAT_R32_UINT, 0);
-    game->context->IASetVertexBuffers(0, 1, &vb, strides, offsets);
-    game->context->VSSetShader(vertexShader, nullptr, 0);
-    game->context->PSSetShader(pixelShader, nullptr, 0);
+    game->GetContext()->IASetInputLayout(layout);
+    game->GetContext()->IASetPrimitiveTopology(topology);
+    game->GetContext()->IASetIndexBuffer(ib, DXGI_FORMAT_R32_UINT, 0);
+    game->GetContext()->IASetVertexBuffers(0, 1, &vb, strides, offsets);
+    game->GetContext()->VSSetShader(vertexShader, nullptr, 0);
+    game->GetContext()->PSSetShader(pixelShader, nullptr, 0);
 
-    game->context->DrawIndexed(indexes.size(), 0, 0);
+    game->GetContext()->DrawIndexed(indexes.size(), 0, 0);
 }
 
 void TriangleComponent::Reload()
@@ -137,7 +137,7 @@ bool TriangleComponent::CheckResCompile(ID3DBlob* errorVertexCode, const HRESULT
         // If there was  nothing in the error message then it simply could not find the shader file itself.
         else
         {
-            MessageBox(game->display->hWnd, pFileName, L"Missing Shader File", MB_OK);
+            MessageBox(game->GetDisplay()->hWnd, pFileName, L"Missing Shader File", MB_OK);
         }
 
         return false;
@@ -147,8 +147,8 @@ bool TriangleComponent::CheckResCompile(ID3DBlob* errorVertexCode, const HRESULT
 
 void TriangleComponent::CreateShaders()
 {
-    game->device->CreateVertexShader(vertexBC->GetBufferPointer(), vertexBC->GetBufferSize(), nullptr, &vertexShader);
-    game->device->CreatePixelShader(pixelBC->GetBufferPointer(), pixelBC->GetBufferSize(), nullptr, &pixelShader);
+    game->GetDevice()->CreateVertexShader(vertexBC->GetBufferPointer(), vertexBC->GetBufferSize(), nullptr, &vertexShader);
+    game->GetDevice()->CreatePixelShader(pixelBC->GetBufferPointer(), pixelBC->GetBufferSize(), nullptr, &pixelShader);
 }
 
 void TriangleComponent::CreateLayout()
@@ -158,7 +158,7 @@ void TriangleComponent::CreateLayout()
         D3D11_INPUT_ELEMENT_DESC{"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT,
                                  D3D11_INPUT_PER_VERTEX_DATA, 0}};
 
-    game->device->CreateInputLayout(inputElements, numElements, vertexBC->GetBufferPointer(), vertexBC->GetBufferSize(),
+    game->GetDevice()->CreateInputLayout(inputElements, numElements, vertexBC->GetBufferPointer(), vertexBC->GetBufferSize(),
         &layout);
 }
 
@@ -175,7 +175,7 @@ void TriangleComponent::CreateVertexBuffer()
     vertexData.SysMemPitch = 0;
     vertexData.SysMemSlicePitch = 0;
 
-    game->device->CreateBuffer(&vertexBufDesc, &vertexData, &vb);
+    game->GetDevice()->CreateBuffer(&vertexBufDesc, &vertexData, &vb);
 }
 
 void TriangleComponent::CreateIndexBuffer()
@@ -192,7 +192,7 @@ void TriangleComponent::CreateIndexBuffer()
     indexData.SysMemPitch = 0;
     indexData.SysMemSlicePitch = 0;
 
-    game->device->CreateBuffer(&indexBufDesc, &indexData, &ib);
+    game->GetDevice()->CreateBuffer(&indexBufDesc, &indexData, &ib);
 }
 
 void TriangleComponent::CreateAndSetRasterizerState()
@@ -205,6 +205,6 @@ void TriangleComponent::CreateAndSetRasterizerState()
     rastDesc.FillMode = fillMode; // D3D11_FILL_SOLID
     rastDesc.AntialiasedLineEnable = isAntialiasedLine;
 
-    auto res = game->device->CreateRasterizerState(&rastDesc, &rastState);
-    game->context->RSSetState(rastState);
+    auto res = game->GetDevice()->CreateRasterizerState(&rastDesc, &rastState);
+    game->GetContext()->RSSetState(rastState);
 }

@@ -21,32 +21,42 @@
 #pragma comment(lib, "dxguid.lib")
 
 
-void Game::CreateCamera()
+Camera* Game::CreateCamera(ViewType ViewType)
 {
-    camera = camera ? camera : CreateObject<Camera>();
+    auto cam = CreateObject<Camera>();
+    cam->viewType = ViewType;
+    return cam;
 }
 
 Game::Game()
-{    
+{
 }
 
 Game::~Game()
 {
-    for (const auto gComp : gameObjects)
-    {
-        delete gComp;
-    }
     Destroy();
 }
 
 void Game::Destroy()
 {
-    renderTargetView->Release();
-    depthStencil->Release();
-    depthStencilView->Release();
-    swapChain->Release();
-    context->Release();
-    device->Release();
+    for (const auto gObj : gameObjects)
+    {
+        delete gObj;
+    }
+
+    for (const auto gComp : gameComponents)
+    {
+        delete gComp;
+    }
+    for (auto plData : pipelinesData)
+    {
+        plData->renderTargetView->Release();
+        plData->depthStencil->Release();
+        plData->depthStencilView->Release();
+        plData->swapChain->Release();
+        plData->context->Release();
+        plData->device->Release();
+    }
 }
 
 Game& Game::GetGame()
@@ -55,18 +65,36 @@ Game& Game::GetGame()
     return game;
 }
 
+void Game::AddWindow(int32_t scrWidth, int32_t scrHeight, int32_t posX, int32_t posY, Camera* camera)
+{
+    auto plData = new PipelineData();
+    curPlData = plData;
+    curPlData->display = new WinDisplay();
+    curPlData->display->screenWidth = scrWidth;
+    curPlData->display->screenHeight = scrHeight;
+    curPlData->display->posX = posX;
+    curPlData->display->posY = posY;
+    curPlData->camera = camera ? camera : CreateCamera();
+    pipelinesData.insert(plData);
+}
+
+
 void Game::Initialize()
 {
-    display = new WinDisplay();
-    inputDevice = new InputDevice(&GetGame());
-    if (!display || !inputDevice) return;
-    display->WindowInit();
-    
-    CreateDeviceAndSwapChain();
-    CreateTargetViewAndViewport();
-    CreateDepthStencilView();
+    if (pipelinesData.isEmpty()) AddWindow();
 
-    CreateCamera();
+    inputDevice = new InputDevice(&GetGame());
+    if (!GetDisplay() || !inputDevice) return;
+
+    for (auto plData : pipelinesData)
+    {
+        curPlData = plData;
+        curPlData->display->WindowInit();
+        CreateDeviceAndSwapChain();
+        CreateTargetViewAndViewport();
+        CreateDepthStencilView();
+    }
+
     for (const auto Comp : gameComponents)
     {
         Comp->Initialize();
@@ -109,36 +137,42 @@ void Game::Input(bool& isExitRequested)
 
 void Game::Update()
 {
-    curTime = std::chrono::steady_clock::now();
-    float deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(curTime - PrevTime).count() / 1000000.0f;
-    PrevTime = curTime;
 
-    totalTime += deltaTime;
-    frameCount++;
-
-    if (totalTime > 1.0f)
+    for (auto plData : pipelinesData)
     {
-        float fps = frameCount / totalTime;
+        curPlData = plData;
 
-        totalTime -= 1.0f;
+        curTime = std::chrono::steady_clock::now();
+        float deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(curTime - PrevTime).count() / 1000000.0f;
+        PrevTime = curTime;
 
-        WCHAR text[256];
-        swprintf_s(text, TEXT("FPS: %f"), fps);
-        SetWindowText(display->hWnd, text);
+        totalTime += deltaTime;
+        frameCount++;
 
-        frameCount = 0;
-    }
+        if (totalTime > 1.0f)
+        {
+            float fps = frameCount / totalTime;
 
-    DetectOverlapped();
+            totalTime -= 1.0f;
 
-    for (const auto Comp : gameComponents)
-    {
-        Comp->Update(deltaTime);
-    }
-    
-    for (const auto Obj : gameObjects)
-    {
-        Obj->Update(deltaTime);
+            WCHAR text[256];
+            swprintf_s(text, TEXT("FPS: %f"), fps);
+            SetWindowText(GetDisplay()->hWnd, text);
+
+            frameCount = 0;
+        }
+
+        DetectOverlapped();
+
+        for (const auto Comp : gameComponents)
+        {
+            Comp->Update(deltaTime);
+        }
+
+        for (const auto Obj : gameObjects)
+        {
+            Obj->Update(deltaTime);
+        }
     }
 }
 
@@ -168,54 +202,62 @@ void Game::DetectOverlapped()
 
 void Game::Render()
 {
-    float color[] = {0.0f, 0.0f, 0.0f, 1.0f};
-    context->ClearState();
-    context->ClearRenderTargetView(renderTargetView, color);
-    context->ClearDepthStencilView( depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0 );
-    context->OMSetRenderTargets(1, &renderTargetView, depthStencilView);
-    context->RSSetViewports(1, &viewport);
 
-    for (const auto Comp : gameComponents)
+    for (auto plData : pipelinesData)
     {
-        Comp->Draw();
-    }
-    for (const auto Obj : gameObjects)
-    {
-        Obj->Draw();
-    }
+        curPlData = plData;
 
-    swapChain->Present(1, /*DXGI_PRESENT_DO_NOT_WAIT*/ 0);
+        float color[] = {0.0f, 0.0f, 0.0f, 1.0f};
+        curPlData->context->ClearState();
+        curPlData->context->ClearRenderTargetView(curPlData->renderTargetView, color);
+        curPlData->context->ClearDepthStencilView(curPlData->depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+        curPlData->context->OMSetRenderTargets(1, &curPlData->renderTargetView, curPlData->depthStencilView);
+        curPlData->context->RSSetViewports(1, &curPlData->viewport);
+
+        for (const auto Comp : gameComponents)
+        {
+            Comp->Draw();
+        }
+        for (const auto Obj : gameObjects)
+        {
+            Obj->Draw();
+        }
+
+        curPlData->swapChain->Present(1, /*DXGI_PRESENT_DO_NOT_WAIT*/ 0);
+    }
 }
 
 void Game::CreateDeviceAndSwapChain()
 {
-    swapDesc.BufferCount = 2;
-    swapDesc.BufferDesc.Width = display->screenWidth;
-    swapDesc.BufferDesc.Height = display->screenHeight;
-    swapDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    swapDesc.BufferDesc.RefreshRate.Numerator = 60;
-    swapDesc.BufferDesc.RefreshRate.Denominator = 1;
-    swapDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-    swapDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-    swapDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    swapDesc.OutputWindow = display->hWnd;
-    swapDesc.Windowed = true;
-    swapDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD; // DXGI_SWAP_EFFECT_FLIP_DISCARD
-    swapDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH; // DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH
-    swapDesc.SampleDesc.Count = 1;
-    swapDesc.SampleDesc.Quality = 0;
+    curPlData->swapDesc.BufferCount = 2;
+    curPlData->swapDesc.BufferDesc.Width = GetDisplay()->screenWidth;
+    curPlData->swapDesc.BufferDesc.Height = GetDisplay()->screenHeight;
+    curPlData->swapDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    curPlData->swapDesc.BufferDesc.RefreshRate.Numerator = 60;
+    curPlData->swapDesc.BufferDesc.RefreshRate.Denominator = 1;
+    curPlData->swapDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+    curPlData->swapDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+    curPlData->swapDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    curPlData->swapDesc.OutputWindow = GetDisplay()->hWnd;
+    curPlData->swapDesc.Windowed = true;
+    curPlData->swapDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;     // DXGI_SWAP_EFFECT_FLIP_DISCARD
+    curPlData->swapDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH; // DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH
+    curPlData->swapDesc.SampleDesc.Count = 1;
+    curPlData->swapDesc.SampleDesc.Quality = 0;
 
     D3D_FEATURE_LEVEL featureLevel[] = {D3D_FEATURE_LEVEL_11_1};
     auto res = D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE,
         nullptr, D3D11_CREATE_DEVICE_DEBUG,
         featureLevel, 1,
-        D3D11_SDK_VERSION, &swapDesc,
-        &swapChain, &device, nullptr,
-        &context);
+        D3D11_SDK_VERSION, &(curPlData->swapDesc),
+        &(curPlData->swapChain), &(curPlData->device), nullptr,
+        &(curPlData->context));
 
     if (FAILED(res))
     {
         // Well, that was unexpected
+
+        curPlData->swapChain->Release();
     }
 }
 
@@ -223,42 +265,41 @@ void Game::CreateTargetViewAndViewport()
 {
     HRESULT res;
     ID3D11Texture2D* backTex;
-    res = swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backTex); // __uuidof(ID3D11Texture2D)
-    res = device->CreateRenderTargetView(backTex, nullptr, &renderTargetView);
+    res = curPlData->swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backTex); // __uuidof(ID3D11Texture2D)
+    res = curPlData->device->CreateRenderTargetView(backTex, nullptr, &curPlData->renderTargetView);
 
-    viewport = {};
-    viewport.Width = static_cast<float>(display->screenWidth);
-    viewport.Height = static_cast<float>(display->screenHeight);
-    viewport.TopLeftX = 0;
-    viewport.TopLeftY = 0;
-    viewport.MinDepth = 0;
-    viewport.MaxDepth = 1.0f;
+    curPlData->viewport = {};
+    curPlData->viewport.Width = static_cast<float>(curPlData->display->screenWidth);
+    curPlData->viewport.Height = static_cast<float>(curPlData->display->screenHeight);
+    curPlData->viewport.TopLeftX = 0;
+    curPlData->viewport.TopLeftY = 0;
+    curPlData->viewport.MinDepth = 0;
+    curPlData->viewport.MaxDepth = 1.0f;
 }
 
 void Game::CreateDepthStencilView()
-{    
+{
     HRESULT res;
-    
-    D3D11_TEXTURE2D_DESC descDepth;    
-    ZeroMemory( &descDepth, sizeof(descDepth) );
-    descDepth.Width = static_cast<float>(display->screenWidth);;         
-    descDepth.Height = static_cast<float>(display->screenHeight);;   
-    descDepth.MipLevels = 1;           
+
+    D3D11_TEXTURE2D_DESC descDepth;
+    ZeroMemory(&descDepth, sizeof(descDepth));
+    descDepth.Width = static_cast<float>(curPlData->display->screenWidth);
+    descDepth.Height = static_cast<float>(curPlData->display->screenHeight);
+    descDepth.MipLevels = 1;
     descDepth.ArraySize = 1;
     descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT; // DXGI_FORMAT_D24_UNORM_S8_UINT
     descDepth.SampleDesc.Count = 1;
     descDepth.SampleDesc.Quality = 0;
     descDepth.Usage = D3D11_USAGE_DEFAULT;
-    descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;         
+    descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
     descDepth.CPUAccessFlags = 0;
     descDepth.MiscFlags = 0;
-    res = device->CreateTexture2D( &descDepth, nullptr, &depthStencil );
+    res = curPlData->device->CreateTexture2D(&descDepth, nullptr, &curPlData->depthStencil);
 
-    
-    D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;        
-    ZeroMemory( &descDSV, sizeof(descDSV) );
-    descDSV.Format = descDepth.Format;        
+    D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
+    ZeroMemory(&descDSV, sizeof(descDSV));
+    descDSV.Format = descDepth.Format;
     descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
     descDSV.Texture2D.MipSlice = 0;
-    res = device->CreateDepthStencilView( depthStencil, &descDSV, &depthStencilView );
+    res = curPlData->device->CreateDepthStencilView(curPlData->depthStencil, &descDSV, &curPlData->depthStencilView);
 }

@@ -7,6 +7,15 @@ class SpringArmComponent;
 class SceneComponent;
 using namespace DirectX::SimpleMath;
 
+enum class ViewType : uint8_t
+{
+    Perspective,
+    OrtFree,
+    OrtXOZ,
+    OrtYOZ,
+    OrtXOY,    
+};
+
 class Camera : public Object
 {
 public:
@@ -42,6 +51,7 @@ public:
     void OnKeyUp(Keys key);
     void OnMouse(const MouseMoveEventArgs& mouseData);
 
+    ViewType viewType;
     Vector3 initPosition;
     Vector3 initRotation;
 protected:

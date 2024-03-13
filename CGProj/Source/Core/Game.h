@@ -4,11 +4,29 @@
 #include "../Utils/Array/Array.h"
 
 #include "../Core/Object.h"
+#include "../Game/Camera.h"
 
+enum class ViewType : uint8_t;
 class Camera;
 class Object;
 class InputDevice;
 class WinDisplay;
+
+struct PipelineData
+{
+    WinDisplay* display;
+    Microsoft::WRL::ComPtr<ID3D11Device> device;
+    ID3D11DeviceContext* context;
+    IDXGISwapChain* swapChain;
+    DXGI_SWAP_CHAIN_DESC swapDesc;
+
+    ID3D11RenderTargetView* renderTargetView;
+    D3D11_VIEWPORT viewport;
+
+    ID3D11Texture2D* depthStencil;
+    ID3D11DepthStencilView* depthStencilView;
+    Camera* camera;
+};
 
 class Game
 {
@@ -27,25 +45,18 @@ public:
     void DetectOverlapped();
 
     float GetTotalTime() const { return totalTime; }
-    WinDisplay* display;
-    Microsoft::WRL::ComPtr<ID3D11Device> device;
-    ID3D11DeviceContext* context;
-    IDXGISwapChain* swapChain;
-    DXGI_SWAP_CHAIN_DESC swapDesc;
+    Camera* CreateCamera(ViewType ViewType = ViewType::Perspective);
 
-    ID3D11RenderTargetView* renderTargetView;
-    D3D11_VIEWPORT viewport;
+    ID3D11DeviceContext* GetContext() const { return curPlData->context; }
+    Microsoft::WRL::ComPtr<ID3D11Device> GetDevice() const { return curPlData->device; }
+    WinDisplay* GetDisplay() const { return curPlData->display; }
+    Camera* GetCamera() const { return curPlData->camera; }
+    InputDevice* GetInputDevice() const { return inputDevice; }
 
-    ID3D11Texture2D* depthStencil;
-    ID3D11DepthStencilView* depthStencilView;
 
-    Array<Object*> gameObjects;
-    Array<GameComponent*> gameComponents;
+    //PipelineData plData;
 
-    Camera* camera;
-    InputDevice* inputDevice;
-
-    void CreateCamera();
+    void AddWindow(int32_t scrWidth = -1, int32_t scrHeight = -1, int32_t posX = -1, int32_t posY = -1, Camera* camera = nullptr);
 
     template <typename T>
     T* CreateObject()
@@ -64,18 +75,23 @@ public:
     T* CreateComponent()
     {
         if (const auto nComp = reinterpret_cast<GameComponent*>(new T()))
-        {            
+        {
             gameComponents.insert(nComp);
             nComp->Owner = nullptr;
             return reinterpret_cast<T*>(nComp);
         }
-        return nullptr;        
+        return nullptr;
     }
 
 protected:
-    //D3D_FEATURE_LEVEL featureLevel;
-
+    //D3D_FEATURE_LEVEL featureLevel;    
+    InputDevice* inputDevice;
+    PipelineData* curPlData;
     explicit Game();
+
+    Array<Object*> gameObjects;
+    Array<GameComponent*> gameComponents;
+    Array<PipelineData*> pipelinesData;
 
     std::chrono::time_point<std::chrono::steady_clock> PrevTime;
     std::chrono::time_point<std::chrono::steady_clock> curTime;

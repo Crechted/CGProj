@@ -16,12 +16,12 @@ InputDevice::InputDevice(Game* inGame)
     Rid[0].usUsagePage = 0x01;
     Rid[0].usUsage = 0x02;
     Rid[0].dwFlags = 0; // adds HID mouse and also ignores legacy mouse messages
-    Rid[0].hwndTarget = game->display->hWnd;
+    Rid[0].hwndTarget = game->GetDisplay()->hWnd;
 
     Rid[1].usUsagePage = 0x01;
     Rid[1].usUsage = 0x06;
     Rid[1].dwFlags = 0; // adds HID keyboard and also ignores legacy keyboard messages
-    Rid[1].hwndTarget = game->display->hWnd;
+    Rid[1].hwndTarget = game->GetDisplay()->hWnd;
 
     if (!RegisterRawInputDevices(Rid, 2, sizeof(Rid[0])))
     {
@@ -93,7 +93,7 @@ void InputDevice::HandleMouse(RAWINPUT* rawInput)
 
     POINT p;
     GetCursorPos(&p);
-    ScreenToClient(game->display->hWnd, &p);
+    ScreenToClient(game->GetDisplay()->hWnd, &p);
 
     MousePosition = Vector2(p.x, p.y);
     MouseOffset = Vector2(rawInput->data.mouse.lLastX, rawInput->data.mouse.lLastY);

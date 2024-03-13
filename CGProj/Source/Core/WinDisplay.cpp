@@ -16,26 +16,7 @@ WinDisplay::~WinDisplay()
 
 LRESULT WinDisplay::WindowProcedure(HWND handlerWindow, uint32_t message, UINT_PTR uintParam, LONG_PTR intParam)
 {
-    return Game::GetGame().inputDevice->HandleInput(handlerWindow, message, uintParam, intParam);
-}
-
-LRESULT CALLBACK WndProc(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam)
-{
-    switch (umessage)
-    {
-        case WM_KEYDOWN:
-        {
-            // If a key is pressed send it to the input object so it can record that state.
-            std::cout << "Key: " << static_cast<unsigned int>(wparam) << std::endl;
-
-            if (static_cast<unsigned int>(wparam) == 27) PostQuitMessage(0);
-            return 0;
-        }
-        default:
-        {
-            return DefWindowProc(hwnd, umessage, wparam, lparam);
-        }
-    }
+    return Game::GetGame().GetInputDevice()->HandleInput(handlerWindow, message, uintParam, intParam);
 }
 
 
@@ -60,16 +41,16 @@ void WinDisplay::WindowInit()
     // Register the window class.
     RegisterClassEx(&wc);
 
-    screenWidth = 1000;
-    screenHeight = 1000;
+    screenWidth = screenWidth > 0 ? screenWidth : 1000;
+    screenHeight = screenHeight > 0 ? screenHeight : 1000;
 
     RECT windowRect = {0, 0, static_cast<LONG>(screenWidth), static_cast<LONG>(screenHeight)};
     AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, FALSE);
 
     auto dwStyle = WS_SYSMENU | WS_CAPTION | WS_MINIMIZEBOX | WS_THICKFRAME;
 
-    auto posX = (GetSystemMetrics(SM_CXSCREEN) - screenWidth) / 2;
-    auto posY = (GetSystemMetrics(SM_CYSCREEN) - screenHeight) / 2;
+    posX = posX > 0 ? posX : (GetSystemMetrics(SM_CXSCREEN) - screenWidth) / 2;
+    posY = posY > 0 ? posY : (GetSystemMetrics(SM_CYSCREEN) - screenHeight) / 2;
 
     hWnd = CreateWindowEx(WS_EX_APPWINDOW, applicationName, applicationName, dwStyle, posX, posY, windowRect.right - windowRect.left,
         windowRect.bottom - windowRect.top, nullptr, nullptr, hInstance, nullptr);

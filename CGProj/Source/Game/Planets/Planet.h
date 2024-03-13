@@ -19,7 +19,7 @@ public:
     Keys keyToPoses = Keys::None;
     
     void AddSputnik(Planet* dirPlanet, float OrbitRadius);
-    void AddSputnik(float OrbitRadius);
+    void AddSputnik(float OrbitRadius, Keys keyToPos = Keys::None);
 
 protected:
     void OnKeyDown(Keys key);

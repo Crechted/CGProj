@@ -26,9 +26,9 @@ void MovementComponent::Initialize()
     if (!sceneComp && !SearchSceneComponent()) return;
     if (!game || !sceneComp) return;
     Reload();
-    game->inputDevice->KeyDownDelegate.AddRaw(this, &MovementComponent::OnKeyDown);
-    game->inputDevice->KeyUpDelegate.AddRaw(this, &MovementComponent::OnKeyUp);
-    game->inputDevice->MouseMoveDelegate.AddRaw(this, &MovementComponent::OnMouseMove);
+    game->GetInputDevice()->KeyDownDelegate.AddRaw(this, &MovementComponent::OnKeyDown);
+    game->GetInputDevice()->KeyUpDelegate.AddRaw(this, &MovementComponent::OnKeyUp);
+    game->GetInputDevice()->MouseMoveDelegate.AddRaw(this, &MovementComponent::OnMouseMove);
 }
 
 void MovementComponent::Reload()
@@ -49,12 +49,12 @@ void MovementComponent::HandleInputByKey()
     if (!sceneComp) return;
 
     delLocation = Vector3(0.0);
-    if (game->inputDevice->IsKeyDown(inputForward)) delLocation += sceneComp->GetForward() * speed;
-    if (game->inputDevice->IsKeyDown(inputRight)) delLocation += sceneComp->GetRight() * speed;
-    if (game->inputDevice->IsKeyDown(inputUp)) delLocation += sceneComp->GetGlobalUp() * speed;
-    if (game->inputDevice->IsKeyDown(inputBackward)) delLocation += -sceneComp->GetForward() * speed;
-    if (game->inputDevice->IsKeyDown(inputLeft)) delLocation += -sceneComp->GetRight() * speed;
-    if (game->inputDevice->IsKeyDown(inputDown)) delLocation += -sceneComp->GetGlobalUp() * speed;
+    if (game->GetInputDevice()->IsKeyDown(inputForward)) delLocation += sceneComp->GetForward() * speed;
+    if (game->GetInputDevice()->IsKeyDown(inputRight)) delLocation += sceneComp->GetRight() * speed;
+    if (game->GetInputDevice()->IsKeyDown(inputUp)) delLocation += sceneComp->GetGlobalUp() * speed;
+    if (game->GetInputDevice()->IsKeyDown(inputBackward)) delLocation += -sceneComp->GetForward() * speed;
+    if (game->GetInputDevice()->IsKeyDown(inputLeft)) delLocation += -sceneComp->GetRight() * speed;
+    if (game->GetInputDevice()->IsKeyDown(inputDown)) delLocation += -sceneComp->GetGlobalUp() * speed;
 }
 
 void MovementComponent::CalcOffset(float timeTick)
@@ -94,7 +94,7 @@ void MovementComponent::OnMouseMove(const MouseMoveEventArgs& mouseEvent)
 {
     if (!sceneComp) return;
 
-    if (game->inputDevice->IsKeyDown(Keys::LeftShift)) return;
+    if (game->GetInputDevice()->IsKeyDown(Keys::LeftShift)) return;
     delRotation.x = /*(1.0f-fmod(sceneComp->Forward().z, 1.0f)) * */-mouseEvent.Offset.y * sensitive;
     //delRotation.z = fmod(sceneComp->Forward().z, 1.0f)*mouseEvent.Offset.y * sensitive;
     delRotation.y = -mouseEvent.Offset.x * sensitive;

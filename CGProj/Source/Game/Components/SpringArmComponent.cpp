@@ -3,6 +3,7 @@
 #include "../Camera.h"
 #include "../../Core/Game.h"
 #include "../../Core/Input/InputDevice.h"
+#include "../../Utils/Types.h"
 
 SpringArmComponent::SpringArmComponent()
 {
@@ -11,8 +12,8 @@ SpringArmComponent::SpringArmComponent()
 void SpringArmComponent::Initialize()
 {
     SceneComponent::Initialize();
-    game->inputDevice->KeyDownDelegate.AddRaw(this, &SpringArmComponent::OnKeyDown);
-    game->inputDevice->KeyUpDelegate.AddRaw(this, &SpringArmComponent::OnKeyUp);
+    game->GetInputDevice()->KeyDownDelegate.AddRaw(this, &SpringArmComponent::OnKeyDown);
+    game->GetInputDevice()->KeyUpDelegate.AddRaw(this, &SpringArmComponent::OnKeyUp);
 }
 
 void SpringArmComponent::Detach()
@@ -21,7 +22,13 @@ void SpringArmComponent::Detach()
     auto worldLoc = worldMat.Translation();
     parentComponent = nullptr;
     SetLocation(worldLoc);
-    SetRotation(initRotation);    
+    
+    auto euler = worldMat.ToEuler();
+    auto pitch = DegreeFromRadians(euler.x);
+    auto yaw = DegreeFromRadians(euler.y);
+    auto roll = initRotation.z;
+    SetRotation(Vector3(pitch, yaw, roll));
+    
     springLenght = 0.0f;
 }
 

@@ -27,7 +27,7 @@ void Pong::AddWall(Game* game, WallType type)
     const auto wall = new Wall(type);
     wall->pong = this;
     wall->Initialize();
-    game->gameObjects.insert(wall);
+   // game->gameObjects.insert(wall);
 }
 
 void Pong::AddWall(Game* game, WallType type, Vector3 center,
@@ -40,7 +40,7 @@ void Pong::AddWall(Game* game, WallType type, Vector3 center,
     wall->extends = extends;
     wall->color = Color;
     wall->Initialize();
-    game->gameObjects.insert(wall);
+   // game->gameObjects.insert(wall);
 }
 
 void Pong::AddRacket(Game* game, bool isAI, float speed, Vector3 center, Vector3 extends, Vector3 Color, Keys up, Keys down, Keys left, Keys right)
@@ -54,7 +54,7 @@ void Pong::AddRacket(Game* game, bool isAI, float speed, Vector3 center, Vector3
     racket->moveComp->inputLeft = left;
     racket->moveComp->inputRight = right;
     racket->moveComp->speed = speed;
-    game->gameObjects.insert(racket);
+   // game->gameObjects.insert(racket);
 }
 
 void Pong::AddRacket(Game* game, bool isAI, float speed)
@@ -64,7 +64,7 @@ void Pong::AddRacket(Game* game, bool isAI, float speed)
     racket->pong = this;
     racket->Initialize();
     racket->moveComp->speed = speed;
-    game->gameObjects.insert(racket);
+   // game->gameObjects.insert(racket);
 }
 
 void Pong::AddBall(Game* game, Vector3 center, Vector3 extends, Vector3 Color, float speed)
@@ -73,7 +73,7 @@ void Pong::AddBall(Game* game, Vector3 center, Vector3 extends, Vector3 Color, f
     ball->pong = this;
     ball->Initialize();
     ball->moveComp->speed = speed;
-    game->gameObjects.insert(ball);
+   // game->gameObjects.insert(ball);
 }
 
 void Pong::IncreaseScoreByWall(WallType wall)

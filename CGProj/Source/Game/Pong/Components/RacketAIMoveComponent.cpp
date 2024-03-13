@@ -21,12 +21,12 @@ void RacketAIMoveComponent::Update(float timeTick)
 void RacketAIMoveComponent::GetBall()
 {
     if (!game) return;
-    for (const auto Obj : game->gameObjects)
+    /*for (const auto Obj : game->gameObjects)
     {
         if (const auto oBall = dynamic_cast<Ball*>(Obj))
         {
             ball = oBall;
             return;
         }
-    }
+    }*/
 }

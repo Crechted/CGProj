@@ -37,9 +37,9 @@ void Camera::Initialize()
 {
     Object::Initialize();
     scale = initScale;
-    game->inputDevice->KeyDownDelegate.AddRaw(this, &Camera::OnKeyDown);
-    game->inputDevice->KeyUpDelegate.AddRaw(this, &Camera::OnKeyUp);
-    game->inputDevice->MouseMoveDelegate.AddRaw(this, &Camera::OnMouse);
+    game->GetInputDevice()->KeyDownDelegate.AddRaw(this, &Camera::OnKeyDown);
+    game->GetInputDevice()->KeyUpDelegate.AddRaw(this, &Camera::OnKeyUp);
+    game->GetInputDevice()->MouseMoveDelegate.AddRaw(this, &Camera::OnMouse);
 
     UpdateViewMatrix();
     UpdateProjMatrix();

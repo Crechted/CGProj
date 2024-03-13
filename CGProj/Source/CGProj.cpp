@@ -2,7 +2,6 @@
 #include "Game/Camera.h"
 #include "Game/Components/SphereComponent.h"
 #include "Game/Objects/Grids.h"
-#include "Game/Objects/Sphere.h"
 #include "Game/Planets/Planet.h"
 #include "Game/Planets/Components/PlanetMoveComponent.h"
 
@@ -12,9 +11,11 @@ int main()
     Game* game = &Game::GetGame();
     //game->CreateComponent<SceneComponent>();
     auto grids = game->CreateObject<Grids>();
+    game->AddWindow();
+    //game->AddWindow();
     
-    game->CreateCamera();
-    /*game->camera->initPosition = Vector3(0.0f, 0.0f, 0.5f);
+    /*game->CreateCamera();
+    game->camera->initPosition = Vector3(0.0f, 0.0f, 0.5f);
     game->camera->initRotation = Vector3(-30.0f, 45.0f, 0.0f);*/
 
     Planet* planet = game->CreateObject<Planet>();
@@ -49,7 +50,7 @@ int main()
     planet3->keyToPoses = Keys::D3;
     //planet3->meshComponent->drawDown = false;
     //planet3->meshComponent->drawUp = false;
-    planet3->AddSputnik(2.0f);
+    planet3->AddSputnik(2.0f, Keys::D4);
     
     game->Initialize();    
     game->Run();

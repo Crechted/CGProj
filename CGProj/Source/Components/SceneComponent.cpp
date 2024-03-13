@@ -23,12 +23,12 @@ void SceneComponent::Initialize()
     constBufDesc.StructureByteStride = 0;
     constBufDesc.ByteWidth = sizeof(ViewData);
 
-    game->device->CreateBuffer(&constBufDesc, nullptr, &constantBuffer);
+    game->GetDevice()->CreateBuffer(&constBufDesc, nullptr, &constantBuffer);
 }
 
 void SceneComponent::Draw()
 {
-    game->context->VSSetConstantBuffers(0, 1, &constantBuffer);
+    game->GetContext()->VSSetConstantBuffers(0, 1, &constantBuffer);
 }
 
 void SceneComponent::Reload()
@@ -41,15 +41,11 @@ void SceneComponent::Reload()
 
 void SceneComponent::UpdateTransformMatrix()
 {
-    //mTransform = Matrix();
     const float pitch = RadiansFromDegree(transform.rotate.x);
     const float yaw = RadiansFromDegree(transform.rotate.y);
     const float roll = RadiansFromDegree(transform.rotate.z);
     mTransform = Matrix::CreateFromYawPitchRoll(yaw, pitch, roll);    
     mTransform.Translation(GetLocation());
-    /*const auto forw = GetLocation()+GetForward();
-    const auto up = GetLocation()+GetUp();
-    mTransform = Matrix::CreateWorld(GetLocation(), forw , up);*/
     mTransform *= mTransform.CreateScale(GetScale());
 }
 
@@ -62,7 +58,7 @@ void SceneComponent::Update(float timeTick)
 void SceneComponent::UpdateConstantBuffer()
 {
     D3D11_MAPPED_SUBRESOURCE res = {};
-    game->context->Map(constantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
+    game->GetContext()->Map(constantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
 
     auto Res = GetWorldMatrix();
     /*printf(" Position: posX=%04.4f posY:%04.4f posZ:%04.4f\n",
@@ -74,14 +70,14 @@ void SceneComponent::UpdateConstantBuffer()
     {
         Res.Transpose(),
         //Matrix::CreateWorld(Res.Translation(), Res.Forward(), Res.Up()).Transpose(),
-        Matrix(game->camera->mView).Transpose(),
-        Matrix(game->camera->mProj).Transpose(),
+        Matrix(game->GetCamera()->mView).Transpose(),
+        Matrix(game->GetCamera()->mProj).Transpose(),
     };
 
     auto dataPtr = reinterpret_cast<float*>(res.pData);
     memcpy(dataPtr, &data, sizeof(ViewData));
 
-    game->context->Unmap(constantBuffer, 0);
+    game->GetContext()->Unmap(constantBuffer, 0);
 }
 
 void SceneComponent::DestroyResource()

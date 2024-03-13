@@ -7,8 +7,8 @@
 void Movement2DComponent::Initialize()
 {
     if (!game) return;
-    game->inputDevice->KeyDownDelegate.AddRaw(this, &Movement2DComponent::OnKeyDown);
-    game->inputDevice->KeyUpDelegate.AddRaw(this, &Movement2DComponent::OnKeyUp);
+    game->GetInputDevice()->KeyDownDelegate.AddRaw(this, &Movement2DComponent::OnKeyDown);
+    game->GetInputDevice()->KeyUpDelegate.AddRaw(this, &Movement2DComponent::OnKeyUp);
 
     CreateConstBuffer();
 }
@@ -55,12 +55,12 @@ void Movement2DComponent::CreateConstBuffer()
     constBufDesc.StructureByteStride = 0;
     constBufDesc.ByteWidth = sizeof(ConstData);
 
-    game->device->CreateBuffer(&constBufDesc, nullptr, &constantBuffer);
+    game->GetDevice()->CreateBuffer(&constBufDesc, nullptr, &constantBuffer);
 }
 
 void Movement2DComponent::SetConstBuffer()
 {
-    game->context->VSSetConstantBuffers(0, 1, &constantBuffer);
+    game->GetContext()->VSSetConstantBuffers(0, 1, &constantBuffer);
 }
 
 void Movement2DComponent::CalcOffset(float timeTick)
@@ -72,7 +72,7 @@ void Movement2DComponent::CalcOffset(float timeTick)
 void Movement2DComponent::UpdateConstBuffer(float timeTick)
 {
     D3D11_MAPPED_SUBRESOURCE res = {};
-    game->context->Map(constantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
+    game->GetContext()->Map(constantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
 
     CalcOffset(timeTick);
     ConstData data =
@@ -84,5 +84,5 @@ void Movement2DComponent::UpdateConstBuffer(float timeTick)
     auto dataPtr = reinterpret_cast<float*>(res.pData);
     memcpy(dataPtr, &data, sizeof(ConstData));
 
-    game->context->Unmap(constantBuffer, 0);
+    game->GetContext()->Unmap(constantBuffer, 0);
 }
