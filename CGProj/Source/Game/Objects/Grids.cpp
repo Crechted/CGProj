@@ -10,13 +10,22 @@ Grids::Grids()
 {
     sceneComp = CreateComponent<SceneComponent>();
     coordAxis = CreateComponent<TriangleComponent>();
-    grids = CreateComponent<TriangleComponent>();
+    grid = CreateComponent<TriangleComponent>();
 }
 
 void Grids::Initialize()
 {
     coordAxis->topology = D3D_PRIMITIVE_TOPOLOGY_LINELIST;
 
+    CreateCoordinates();
+
+    CreateGrid();
+
+    Object::Initialize();
+}
+
+void Grids::CreateCoordinates()
+{
     int32_t pointNum = 8;
     coordAxis->SetPoints(new DirectX::XMFLOAT4[pointNum]
     {
@@ -27,71 +36,30 @@ void Grids::Initialize()
     }, pointNum);
     int32_t idxCount = 6;
     coordAxis->SetIndexes(new int32_t[idxCount]{0, 1, 0, 2, 0, 3}, idxCount);
+}
 
-    grids->topology = D3D_PRIMITIVE_TOPOLOGY_LINELIST;
-
-    //pointNum = numLineOnSide * 2 * 2 * 2;
-    pointNum = 44 * 2;
-    /*auto points = new DirectX::XMFLOAT4[pointNum];
-    for (int32_t i = 0; i < pointNum; i++)
+void Grids::CreateGrid()
+{
+    grid->topology = D3D_PRIMITIVE_TOPOLOGY_LINELIST;
+    auto color = DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+    for (int32_t i = 0; i < numLineOnSide; i++)
     {
-        points[i] = i % 2 == 0
-                        ? DirectX::XMFLOAT4(cellSize * numLineOnSide * (i - numLineOnSide / 2), 0.0f,
-                            cellSize * numLineOnSide * (i - numLineOnSide / 2), 1.0f)
-                        : DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-    }*/
-    grids->SetPoints(new DirectX::XMFLOAT4[pointNum]
+        for (int32_t j = 0; j < numLineOnSide; j++)
+        {
+            float x = cellSize*(i - numLineOnSide / 2);
+            float z = cellSize*(j - numLineOnSide / 2);
+            grid->AddPoint(DirectX::XMFLOAT4(x, 0.0f, z, 1.0f), color);
+        }
+    }
+    for (int32_t i = 0; i < numLineOnSide; i++)
     {
-        DirectX::XMFLOAT4(-cellSize * 5, 0.0f, -cellSize * 5, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(cellSize * 5, 0.0f, -cellSize * 5, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(-cellSize * 5, 0.0f, -cellSize * 4, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(cellSize * 5, 0.0f, -cellSize * 4, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(-cellSize * 5, 0.0f, -cellSize * 3, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(cellSize * 5, 0.0f, -cellSize * 3, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(-cellSize * 5, 0.0f, -cellSize * 2, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(cellSize * 5, 0.0f, -cellSize * 2, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(-cellSize * 5, 0.0f, -cellSize * 1, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(cellSize * 5, 0.0f, -cellSize * 1, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(-cellSize * 5, 0.0f, 0, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(cellSize * 5, 0.0f, 0, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(-cellSize * 5, 0.0f, cellSize * 1, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(cellSize * 5, 0.0f, cellSize * 1, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(-cellSize * 5, 0.0f, cellSize * 2, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(cellSize * 5, 0.0f, cellSize * 2, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(-cellSize * 5, 0.0f, cellSize * 3, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(cellSize * 5, 0.0f, cellSize * 3, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(-cellSize * 5, 0.0f, cellSize * 4, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(cellSize * 5, 0.0f, cellSize * 4, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(-cellSize * 5, 0.0f, cellSize * 5, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(cellSize * 5, 0.0f, cellSize * 5, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+        grid->AddIndex(i * numLineOnSide);
+        grid->AddIndex((i + 1) * numLineOnSide - 1);
+    }
 
-        DirectX::XMFLOAT4(-cellSize * 5, 0.0f, -cellSize * 5, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(-cellSize * 5, 0.0f, cellSize * 5, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(-cellSize * 4, 0.0f, -cellSize * 5, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(-cellSize * 4, 0.0f, -cellSize * 5, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(-cellSize * 3, 0.0f, cellSize * 5, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(-cellSize * 3, 0.0f, -cellSize * 5, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(-cellSize * 2, 0.0f, cellSize * 5, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(-cellSize * 2, 0.0f, -cellSize * 5, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(-cellSize * 1, 0.0f, cellSize * 5, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(-cellSize * 1, 0.0f, -cellSize * 5, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(-cellSize * 0, 0.0f, cellSize * 5, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(cellSize * 0, 0.0f, -cellSize * 5, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(cellSize * 1, 0.0f, cellSize * 5, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(cellSize * 1, 0.0f, -cellSize * 5, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(cellSize * 2, 0.0f, cellSize * 5, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(cellSize * 2, 0.0f, -cellSize * 5, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(cellSize * 3, 0.0f, cellSize * 5, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(cellSize * 3, 0.0f, -cellSize * 5, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(cellSize * 4, 0.0f, cellSize * 5, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(cellSize * 4, 0.0f, -cellSize * 5, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(cellSize * 5, 0.0f, cellSize * 5, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(cellSize * 5, 0.0f, -cellSize * 5, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-    }, pointNum);
-    idxCount = 44;
-    grids->SetIndexes(new int32_t[idxCount]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-        22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43},
-        idxCount);
-
-    Object::Initialize();
+    for (int32_t i = 0; i < numLineOnSide; i++)
+    {
+        grid->AddIndex(i);
+        grid->AddIndex(numLineOnSide * (numLineOnSide - 1) + i);
+    }
 }

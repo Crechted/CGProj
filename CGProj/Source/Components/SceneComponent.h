@@ -21,24 +21,11 @@ struct Transform
     Vector3 scale;
 };
 
-static constexpr float PI = 3.14159265f;
-
-static float RadiansFromDegree(float deg)
-{
-    return deg * PI / 180;
-}
-
-static float DegreeFromRadians(float rad)
-{
-    return rad * 180 / PI;
-}
-
 class SceneComponent : public GameComponent
 {
 public:
     SceneComponent();
-    SceneComponent* parentComponent; /*
-    Array<SceneComponent*> childComponents;*/
+    /*Array<SceneComponent*> childComponents;*/
 
     void Initialize() override;
     void Draw() override;
@@ -72,14 +59,16 @@ public:
 
     const Matrix& GetWorldMatrix();
 
+    void AttachTo(SceneComponent* par) {parentComponent = par;}
 
     Vector3 initPosition = Vector3(0.0f);
     Vector3 initRotation = Vector3(0.0f);
     Vector3 initScale = Vector3(1.0f);
 
-protected:
-    Matrix mTransform;
+protected:    
+    SceneComponent* parentComponent;
     Transform transform;
+    Matrix mTransform;
 
     ID3D11Buffer* constantBuffer;
     D3D11_BUFFER_DESC constBufDesc;

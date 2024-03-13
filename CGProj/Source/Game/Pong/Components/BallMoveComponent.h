@@ -1,5 +1,5 @@
 #pragma once
-#include "../../../Components/Movement2DComponent.h"
+#include "Movement2DComponent.h"
 
 class BallMoveComponent : public Movement2DComponent
 {

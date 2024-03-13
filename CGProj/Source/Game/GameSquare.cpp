@@ -1,6 +1,6 @@
 #include "GameSquare.h"
 
-#include "../Components/Movement2DComponent.h"
+#include "../Game/Pong/Components/Movement2DComponent.h"
 #include "../Components/TriangleComponent.h"
 #include "../Core/Game.h"
 

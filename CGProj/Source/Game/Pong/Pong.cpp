@@ -1,6 +1,6 @@
 #include "Pong.h"
 
-#include "../../Components/Movement2DComponent.h"
+#include "Components/Movement2DComponent.h"
 #include "../../Core/Game.h"
 #include "Objects/Ball.h"
 #include "Objects/Racket.h"

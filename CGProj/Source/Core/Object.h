@@ -15,6 +15,7 @@ public:
         Object::Destroy();
     }
 
+    virtual void Reload();
     virtual void Initialize();
 
     virtual void Update(float timeTick);

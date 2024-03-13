@@ -41,7 +41,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam)
 
 void WinDisplay::WindowInit()
 {
-    applicationName = L"My3DApp";
+    applicationName = L"CGProj";
     hInstance = GetModuleHandle(nullptr);
 
     wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
@@ -49,9 +49,9 @@ void WinDisplay::WindowInit()
     wc.cbClsExtra = 0;
     wc.cbWndExtra = 0;
     wc.hInstance = hInstance;
-    wc.hIcon = LoadIcon(nullptr, IDI_WINLOGO);
+    wc.hIcon = LoadIcon(nullptr, IDI_WINLOGO); // IDI_WINLOGO
     wc.hIconSm = wc.hIcon;
-    wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
+    wc.hCursor = LoadCursor(nullptr, IDC_ARROW); // IDC_NO IDC_ARROW
     wc.hbrBackground = static_cast<HBRUSH>(GetStockObject(BLACK_BRUSH));
     wc.lpszMenuName = nullptr;
     wc.lpszClassName = applicationName;
@@ -60,8 +60,8 @@ void WinDisplay::WindowInit()
     // Register the window class.
     RegisterClassEx(&wc);
 
-    screenWidth = 800;
-    screenHeight = 800;
+    screenWidth = 1000;
+    screenHeight = 1000;
 
     RECT windowRect = {0, 0, static_cast<LONG>(screenWidth), static_cast<LONG>(screenHeight)};
     AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, FALSE);
@@ -78,5 +78,5 @@ void WinDisplay::WindowInit()
     SetForegroundWindow(hWnd);
     SetFocus(hWnd);
 
-    ShowCursor(true);
+    ShowCursor(false);
 }

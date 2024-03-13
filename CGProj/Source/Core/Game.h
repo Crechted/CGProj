@@ -4,8 +4,8 @@
 #include "../Utils/Array/Array.h"
 
 #include "../Core/Object.h"
-#include "../Game/Camera.h"
 
+class Camera;
 class Object;
 class InputDevice;
 class WinDisplay;
@@ -36,6 +36,9 @@ public:
     ID3D11RenderTargetView* renderTargetView;
     D3D11_VIEWPORT viewport;
 
+    ID3D11Texture2D* depthStencil;
+    ID3D11DepthStencilView* depthStencilView;
+
     Array<Object*> gameObjects;
     Array<GameComponent*> gameComponents;
 
@@ -45,7 +48,7 @@ public:
     void CreateCamera();
 
     template <typename T>
-    T* CreateObjects()
+    T* CreateObject()
     {
         T* newObj = new T();
         if (const auto nGObj = reinterpret_cast<Object*>(newObj))
@@ -66,8 +69,7 @@ public:
             nComp->Owner = nullptr;
             return reinterpret_cast<T*>(nComp);
         }
-        return nullptr;
-        
+        return nullptr;        
     }
 
 protected:
@@ -84,4 +86,5 @@ protected:
 
     void CreateDeviceAndSwapChain();
     void CreateTargetViewAndViewport();
+    void CreateDepthStencilView();
 };

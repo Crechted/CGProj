@@ -2,7 +2,7 @@
 #include "../../Core/Object.h"
 
 class PlanetMoveComponent;
-class BoxComponent;
+class SphereComponent;
 
 class Planet : public Object
 {
@@ -11,9 +11,16 @@ public:
     Planet();
 
     void Initialize() override;
-    BoxComponent* meshComponent;
+    SphereComponent* meshComponent;
     PlanetMoveComponent* moveComp;
 
+    Planet* parentPlanet = nullptr;
+
+    Keys keyToPoses = Keys::None;
+    
     void AddSputnik(Planet* dirPlanet, float OrbitRadius);
     void AddSputnik(float OrbitRadius);
+
+protected:
+    void OnKeyDown(Keys key);
 };

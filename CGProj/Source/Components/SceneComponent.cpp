@@ -1,6 +1,8 @@
 ﻿#include "SceneComponent.h"
 
 #include "../Core/Game.h"
+#include "../Game/Camera.h"
+#include "../Utils/Types.h"
 
 SceneComponent::SceneComponent()
 {
@@ -12,6 +14,7 @@ void SceneComponent::Initialize()
     transform.location = initPosition;
     transform.rotate = initRotation;
     transform.scale = initScale;
+    UpdateTransformMatrix();
 
     constBufDesc.Usage = D3D11_USAGE_DYNAMIC;
     constBufDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -38,7 +41,7 @@ void SceneComponent::Reload()
 
 void SceneComponent::UpdateTransformMatrix()
 {
-    mTransform = Matrix();
+    //mTransform = Matrix();
     const float pitch = RadiansFromDegree(transform.rotate.x);
     const float yaw = RadiansFromDegree(transform.rotate.y);
     const float roll = RadiansFromDegree(transform.rotate.z);
@@ -123,9 +126,7 @@ const Matrix& SceneComponent::GetWorldMatrix()
     while (rootComponent)
     {
         Res *= rootComponent->mTransform;
-        //Res *= Matrix::CreateTranslation(-Res.Translation());
         rootComponent = rootComponent->parentComponent;
     }
-    //Res *= Matrix::CreateTranslation(-Res.Translation());
-    return Res/* * Matrix::CreateTranslation(-Res.Translation())*/;
+    return Res;
 }

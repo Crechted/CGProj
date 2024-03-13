@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <thread>
 
-//#include "Array.h"
+#include "Array.h"
 
 template <typename T>
 Array<T>::Array(const Array& array) : size_(array.size_), lenght_(array.lenght_)
@@ -36,6 +36,7 @@ Array<T>& Array<T>::operator=(Array&& other)
     other.toValidNull();
     return *this;
 }
+
 
 template <typename T>
 int Array<T>::insert(const T& value)

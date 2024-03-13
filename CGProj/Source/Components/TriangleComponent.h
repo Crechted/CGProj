@@ -2,7 +2,7 @@
 #include <d3d11.h>
 #include <directxmath.h>
 #include "GameComponent.h"
-#include "Inc/SimpleMath.h"
+#include "../Utils/Array/Array.h"
 
 
 class Movement2DComponent;
@@ -19,30 +19,33 @@ public:
     void Reload() override;
     void Update(float timeTick) override;
 
-    void SetPoints(DirectX::XMFLOAT4* pts, int32_t count)
-    {
-        points = pts;
-        countPoints = count;
-    };
+    int32_t GetNumPoints() const {return points.size();}
+    void AddPoint(DirectX::XMFLOAT4 point, DirectX::XMFLOAT4 color);
+    void SetPoints(const Array<DirectX::XMFLOAT4>& pts) { points = pts; }
+    void SetPoints(DirectX::XMFLOAT4* pts, int32_t count);
 
-    void SetIndexes(int32_t* ids, int32_t count)
-    {
-        indexes = ids;
-        idxCount = count;
-    };
     
-    
+    int32_t GetNumIndexes() const {return indexes.size();}
+    void AddIndex(int32_t idx);
+    void SetIndexes(const Array<int32_t>& idxs) { indexes = idxs; }
+    void SetIndexes(int32_t* idxs, int32_t count);
+
+
     ID3D11RasterizerState* rastState;
     ID3D11InputLayout* layout;
     ID3DBlob* vertexBC;
     ID3DBlob* pixelBC;
     ID3D11VertexShader* vertexShader;
     ID3D11PixelShader* pixelShader;
-    UINT idxCount = 6;
 
+    //UINT idxCount = 6;
     UINT numElements = 2;
 
     D3D11_PRIMITIVE_TOPOLOGY topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+    D3D11_CULL_MODE cullMode = D3D11_CULL_NONE;
+    D3D11_FILL_MODE fillMode = D3D11_FILL_SOLID;
+    bool isAntialiasedLine = false;
 
 private:
     bool CompileVertexBC();
@@ -64,12 +67,12 @@ private:
     ID3D11Buffer* vb;
     ID3D11Buffer* ib;
 
-    DirectX::XMFLOAT4* points;
-    int32_t countPoints;
+    Array<DirectX::XMFLOAT4> points;
+    //int32_t countPoints;
 
-    int32_t* indexes;
+    Array<int32_t> indexes;
 
-    
+
     UINT* strides;
     UINT* offsets;
     float totalTime = 0;

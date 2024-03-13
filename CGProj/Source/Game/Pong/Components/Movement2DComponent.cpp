@@ -1,6 +1,7 @@
 #include "Movement2DComponent.h"
-#include "../Core/Game.h"
-#include "../Core/Input/InputDevice.h"
+
+#include "../../../Core/Game.h"
+#include "../../../Core/Input/InputDevice.h"
 #include "Inc/SimpleMath.h"
 
 void Movement2DComponent::Initialize()

@@ -12,8 +12,12 @@ public:
     Grids();
     SceneComponent* sceneComp;
     TriangleComponent* coordAxis;
-    TriangleComponent* grids;
+    TriangleComponent* grid;
 
     float cellSize = 1.0f;
-    int32_t numLineOnSide = 40;
+    int32_t numLineOnSide = 21;
+
+private:
+    void CreateCoordinates();
+    void CreateGrid();
 };

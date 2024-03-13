@@ -34,7 +34,7 @@ void TriangleComponent::Initialize()
 
     CreateIndexBuffer();
 
-    CreateAndSetRasterizerState();    
+    CreateAndSetRasterizerState();
 }
 
 void TriangleComponent::DestroyResource()
@@ -47,7 +47,7 @@ void TriangleComponent::Draw()
 {
     if (!game)
         return;
-    
+
     game->context->RSSetState(rastState);
 
     game->context->IASetInputLayout(layout);
@@ -56,9 +56,8 @@ void TriangleComponent::Draw()
     game->context->IASetVertexBuffers(0, 1, &vb, strides, offsets);
     game->context->VSSetShader(vertexShader, nullptr, 0);
     game->context->PSSetShader(pixelShader, nullptr, 0);
-    
 
-    game->context->DrawIndexed(idxCount, 0, 0);
+    game->context->DrawIndexed(indexes.size(), 0, 0);
 }
 
 void TriangleComponent::Reload()
@@ -68,6 +67,34 @@ void TriangleComponent::Reload()
 void TriangleComponent::Update(float timeTick)
 {
     totalTime = game->GetTotalTime();
+}
+
+void TriangleComponent::AddPoint(DirectX::XMFLOAT4 point, DirectX::XMFLOAT4 color)
+{
+    points.insert(point);
+    points.insert(color);
+}
+
+void TriangleComponent::AddIndex(int32_t idx)
+{
+    indexes.insert(idx);
+}
+
+void TriangleComponent::SetPoints(DirectX::XMFLOAT4* pts, int32_t count)
+{
+    for (int32_t i = 0; i < count; i++)
+    {
+        points.insert(pts[i]);
+    }
+}
+
+void TriangleComponent::SetIndexes(int32_t* idxs, int32_t count)
+{
+    for (int32_t i = 0; i < count; i++)
+    {
+        indexes.insert(idxs[i]);
+    }
+    
 }
 
 bool TriangleComponent::CompileVertexBC()
@@ -137,14 +164,14 @@ void TriangleComponent::CreateLayout()
 
 void TriangleComponent::CreateVertexBuffer()
 {
-    vertexBufDesc.Usage = D3D11_USAGE_DEFAULT;
-    vertexBufDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    vertexBufDesc.Usage = D3D11_USAGE_DEFAULT;          // D3D11_USAGE_DEFAULT
+    vertexBufDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER; // D3D11_BIND_VERTEX_BUFFER
     vertexBufDesc.CPUAccessFlags = 0;
-    vertexBufDesc.MiscFlags = 0;
+    vertexBufDesc.MiscFlags = 0; // 0
     vertexBufDesc.StructureByteStride = 0;
-    vertexBufDesc.ByteWidth = sizeof(DirectX::XMFLOAT4) * countPoints;
+    vertexBufDesc.ByteWidth = sizeof(DirectX::XMFLOAT4) * points.size();
 
-    vertexData.pSysMem = points;
+    vertexData.pSysMem = &points[0];
     vertexData.SysMemPitch = 0;
     vertexData.SysMemSlicePitch = 0;
 
@@ -158,10 +185,10 @@ void TriangleComponent::CreateIndexBuffer()
     indexBufDesc.CPUAccessFlags = 0;
     indexBufDesc.MiscFlags = 0;
     indexBufDesc.StructureByteStride = 0;
-    indexBufDesc.ByteWidth = sizeof(int32_t) * idxCount;
+    indexBufDesc.ByteWidth = sizeof(int32_t) * indexes.size();
 
     D3D11_SUBRESOURCE_DATA indexData = {};
-    indexData.pSysMem = indexes;
+    indexData.pSysMem = &indexes[0];
     indexData.SysMemPitch = 0;
     indexData.SysMemSlicePitch = 0;
 
@@ -174,10 +201,10 @@ void TriangleComponent::CreateAndSetRasterizerState()
     offsets = new UINT[1]{0};
 
     CD3D11_RASTERIZER_DESC rastDesc = {};
-    rastDesc.CullMode = D3D11_CULL_NONE;
-    rastDesc.FillMode = D3D11_FILL_SOLID;
+    rastDesc.CullMode = cullMode;  // D3D11_CULL_NONE
+    rastDesc.FillMode = fillMode; // D3D11_FILL_SOLID
+    rastDesc.AntialiasedLineEnable = isAntialiasedLine;
 
     auto res = game->device->CreateRasterizerState(&rastDesc, &rastState);
-
     game->context->RSSetState(rastState);
 }

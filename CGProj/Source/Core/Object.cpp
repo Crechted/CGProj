@@ -8,6 +8,14 @@ Object::Object()
     game = &Game::GetGame();
 }
 
+void Object::Reload()
+{
+    for (auto gameComp : gameComponents)
+    {
+        gameComp->Reload();
+    }
+}
+
 void Object::Initialize()
 {
     for (auto gameComp : gameComponents)

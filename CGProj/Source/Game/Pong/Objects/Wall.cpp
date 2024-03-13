@@ -1,7 +1,6 @@
 ﻿#include "Wall.h"
 
-#include "../../../Components/Movement2DComponent.h"
-#include "../../../Components/TriangleComponent.h"
+#include "../Components/Movement2DComponent.h"
 
 Wall::Wall(WallType wallType)
     : type(wallType)

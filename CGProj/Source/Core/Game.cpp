@@ -13,6 +13,7 @@
 #include "../Components/GameComponent.h"
 #include "../Core/Input/InputDevice.h"
 #include "../Game/GameSquare.h"
+#include "../Game/Camera.h"
 
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxgi.lib")
@@ -22,7 +23,7 @@
 
 void Game::CreateCamera()
 {
-    camera = camera ? camera : CreateObjects<Camera>();
+    camera = camera ? camera : CreateObject<Camera>();
 }
 
 Game::Game()
@@ -41,6 +42,8 @@ Game::~Game()
 void Game::Destroy()
 {
     renderTargetView->Release();
+    depthStencil->Release();
+    depthStencilView->Release();
     swapChain->Release();
     context->Release();
     device->Release();
@@ -61,6 +64,7 @@ void Game::Initialize()
     
     CreateDeviceAndSwapChain();
     CreateTargetViewAndViewport();
+    CreateDepthStencilView();
 
     CreateCamera();
     for (const auto Comp : gameComponents)
@@ -166,8 +170,9 @@ void Game::Render()
 {
     float color[] = {0.0f, 0.0f, 0.0f, 1.0f};
     context->ClearState();
-    context->OMSetRenderTargets(1, &renderTargetView, nullptr);
     context->ClearRenderTargetView(renderTargetView, color);
+    context->ClearDepthStencilView( depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0 );
+    context->OMSetRenderTargets(1, &renderTargetView, depthStencilView);
     context->RSSetViewports(1, &viewport);
 
     for (const auto Comp : gameComponents)
@@ -195,8 +200,8 @@ void Game::CreateDeviceAndSwapChain()
     swapDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
     swapDesc.OutputWindow = display->hWnd;
     swapDesc.Windowed = true;
-    swapDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-    swapDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+    swapDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD; // DXGI_SWAP_EFFECT_FLIP_DISCARD
+    swapDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH; // DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH
     swapDesc.SampleDesc.Count = 1;
     swapDesc.SampleDesc.Quality = 0;
 
@@ -228,4 +233,32 @@ void Game::CreateTargetViewAndViewport()
     viewport.TopLeftY = 0;
     viewport.MinDepth = 0;
     viewport.MaxDepth = 1.0f;
+}
+
+void Game::CreateDepthStencilView()
+{    
+    HRESULT res;
+    
+    D3D11_TEXTURE2D_DESC descDepth;    
+    ZeroMemory( &descDepth, sizeof(descDepth) );
+    descDepth.Width = static_cast<float>(display->screenWidth);;         
+    descDepth.Height = static_cast<float>(display->screenHeight);;   
+    descDepth.MipLevels = 1;           
+    descDepth.ArraySize = 1;
+    descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT; // DXGI_FORMAT_D24_UNORM_S8_UINT
+    descDepth.SampleDesc.Count = 1;
+    descDepth.SampleDesc.Quality = 0;
+    descDepth.Usage = D3D11_USAGE_DEFAULT;
+    descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;         
+    descDepth.CPUAccessFlags = 0;
+    descDepth.MiscFlags = 0;
+    res = device->CreateTexture2D( &descDepth, nullptr, &depthStencil );
+
+    
+    D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;        
+    ZeroMemory( &descDSV, sizeof(descDSV) );
+    descDSV.Format = descDepth.Format;        
+    descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+    descDSV.Texture2D.MipSlice = 0;
+    res = device->CreateDepthStencilView( depthStencil, &descDSV, &depthStencilView );
 }

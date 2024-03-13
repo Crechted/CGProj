@@ -10,5 +10,9 @@ public:
     Box();
     void Initialize() override;
 
-    BoxComponent* boxComponent;
+    Vector3 size = Vector3(0.2f);
+    Vector3 color = Vector3(1.0f);
+
+protected:
+    TriangleComponent* triangleComp;
 };
