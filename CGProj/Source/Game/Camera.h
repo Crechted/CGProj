@@ -9,6 +9,7 @@ using namespace DirectX::SimpleMath;
 
 enum class ViewType : uint8_t
 {
+    General,
     Perspective,
     OrtFree,
     OrtXOZ,
@@ -51,7 +52,7 @@ public:
     void OnKeyUp(Keys key);
     void OnMouse(const MouseMoveEventArgs& mouseData);
 
-    ViewType viewType;
+    ViewType viewType = ViewType::Perspective;
     Vector3 initPosition;
     Vector3 initRotation;
 protected:

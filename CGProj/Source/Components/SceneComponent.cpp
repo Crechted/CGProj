@@ -24,10 +24,12 @@ void SceneComponent::Initialize()
     constBufDesc.ByteWidth = sizeof(ViewData);
 
     game->GetDevice()->CreateBuffer(&constBufDesc, nullptr, &constantBuffer);
+    buffers.insert(game->GetIdxCurrentPipeline(), constantBuffer);
 }
 
 void SceneComponent::Draw()
 {
+    constantBuffer = buffers[game->GetIdxCurrentPipeline()];
     game->GetContext()->VSSetConstantBuffers(0, 1, &constantBuffer);
 }
 
@@ -51,7 +53,12 @@ void SceneComponent::UpdateTransformMatrix()
 
 void SceneComponent::Update(float timeTick)
 {
+    constantBuffer = buffers[game->GetIdxCurrentPipeline()];
     UpdateTransformMatrix();
+    if (!game->GetContext())
+    {
+        printf("PENIS");
+    }
     UpdateConstantBuffer();
 }
 

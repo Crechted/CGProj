@@ -65,6 +65,15 @@ Game& Game::GetGame()
     return game;
 }
 
+int32_t Game::GetIdxCurrentPipeline()
+{
+    for (int32_t i = 0; i < pipelinesData.size(); i++)
+    {
+        if (pipelinesData[i] == curPlData) return i;
+    }
+    return -1;
+}
+
 void Game::AddWindow(int32_t scrWidth, int32_t scrHeight, int32_t posX, int32_t posY, Camera* camera)
 {
     auto plData = new PipelineData();
@@ -76,6 +85,13 @@ void Game::AddWindow(int32_t scrWidth, int32_t scrHeight, int32_t posX, int32_t 
     curPlData->display->posY = posY;
     curPlData->camera = camera ? camera : CreateCamera();
     pipelinesData.insert(plData);
+}
+
+void Game::AddWindow(int32_t scrWidth, int32_t scrHeight, int32_t posX, int32_t posY, ViewType vType)
+{
+    auto cam = CreateCamera();
+    cam->viewType = vType;
+    AddWindow(scrWidth, scrHeight, posX, posY, cam);
 }
 
 
@@ -93,15 +109,15 @@ void Game::Initialize()
         CreateDeviceAndSwapChain();
         CreateTargetViewAndViewport();
         CreateDepthStencilView();
-    }
 
-    for (const auto Comp : gameComponents)
-    {
-        Comp->Initialize();
-    }
-    for (const auto Obj : gameObjects)
-    {
-        Obj->Initialize();
+        for (const auto Comp : gameComponents)
+        {
+            Comp->Initialize();
+        }
+        for (const auto Obj : gameObjects)
+        {
+            Obj->Initialize();
+        }
     }
 }
 
@@ -112,9 +128,13 @@ void Game::Run()
     bool isExitRequested = false;
     while (!isExitRequested)
     {
-        Input(isExitRequested);
-        Update();
-        Render();
+        for (auto plData : pipelinesData)
+        {
+            Input(isExitRequested);
+            curPlData = plData;
+            Update();
+            Render();
+        }
     }
 
     std::cout << "End!\n";
@@ -138,42 +158,38 @@ void Game::Input(bool& isExitRequested)
 void Game::Update()
 {
 
-    for (auto plData : pipelinesData)
+    curTime = std::chrono::steady_clock::now();
+    float deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(curTime - PrevTime).count() / 1000000.0f;
+    PrevTime = curTime;
+
+    totalTime += deltaTime;
+    frameCount++;
+
+    if (totalTime > 1.0f)
     {
-        curPlData = plData;
+        float fps = frameCount / totalTime;
 
-        curTime = std::chrono::steady_clock::now();
-        float deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(curTime - PrevTime).count() / 1000000.0f;
-        PrevTime = curTime;
+        totalTime -= 1.0f;
 
-        totalTime += deltaTime;
-        frameCount++;
+        WCHAR text[256];
+        swprintf_s(text, TEXT("FPS: %f"), fps);
+        SetWindowText(GetDisplay()->hWnd, text);
 
-        if (totalTime > 1.0f)
-        {
-            float fps = frameCount / totalTime;
-
-            totalTime -= 1.0f;
-
-            WCHAR text[256];
-            swprintf_s(text, TEXT("FPS: %f"), fps);
-            SetWindowText(GetDisplay()->hWnd, text);
-
-            frameCount = 0;
-        }
-
-        DetectOverlapped();
-
-        for (const auto Comp : gameComponents)
-        {
-            Comp->Update(deltaTime);
-        }
-
-        for (const auto Obj : gameObjects)
-        {
-            Obj->Update(deltaTime);
-        }
+        frameCount = 0;
     }
+
+    DetectOverlapped();
+
+    for (const auto Comp : gameComponents)
+    {
+        Comp->Update(deltaTime);
+    }
+
+    for (const auto Obj : gameObjects)
+    {
+        Obj->Update(deltaTime);
+    }
+
 }
 
 void Game::DetectOverlapped()
@@ -203,28 +219,24 @@ void Game::DetectOverlapped()
 void Game::Render()
 {
 
-    for (auto plData : pipelinesData)
+    float color[] = {0.0f, 0.0f, 0.0f, 1.0f};
+    curPlData->context->ClearState();
+    curPlData->context->ClearRenderTargetView(curPlData->renderTargetView, color);
+    curPlData->context->ClearDepthStencilView(curPlData->depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+    curPlData->context->OMSetRenderTargets(1, &curPlData->renderTargetView, curPlData->depthStencilView);
+    curPlData->context->RSSetViewports(1, &curPlData->viewport);
+
+    for (const auto Comp : gameComponents)
     {
-        curPlData = plData;
-
-        float color[] = {0.0f, 0.0f, 0.0f, 1.0f};
-        curPlData->context->ClearState();
-        curPlData->context->ClearRenderTargetView(curPlData->renderTargetView, color);
-        curPlData->context->ClearDepthStencilView(curPlData->depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
-        curPlData->context->OMSetRenderTargets(1, &curPlData->renderTargetView, curPlData->depthStencilView);
-        curPlData->context->RSSetViewports(1, &curPlData->viewport);
-
-        for (const auto Comp : gameComponents)
-        {
-            Comp->Draw();
-        }
-        for (const auto Obj : gameObjects)
-        {
-            Obj->Draw();
-        }
-
-        curPlData->swapChain->Present(1, /*DXGI_PRESENT_DO_NOT_WAIT*/ 0);
+        Comp->Draw();
     }
+    for (const auto Obj : gameObjects)
+    {
+        Obj->Draw();
+    }
+
+    curPlData->swapChain->Present(1, /*DXGI_PRESENT_DO_NOT_WAIT*/ 0);
+
 }
 
 void Game::CreateDeviceAndSwapChain()

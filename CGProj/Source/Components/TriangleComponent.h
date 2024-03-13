@@ -7,6 +7,16 @@
 
 class Movement2DComponent;
 
+struct TriangleDrawData
+{
+    ID3D11RasterizerState* rastState;
+    ID3D11InputLayout* layout;
+    ID3D11VertexShader* vertexShader;
+    ID3D11PixelShader* pixelShader;
+    ID3D11Buffer* vertexBuffer;
+    ID3D11Buffer* indexBuffer;
+};
+
 class TriangleComponent : public GameComponent
 {
 public:
@@ -17,6 +27,7 @@ public:
     void DestroyResource() override;
     void Draw() override;
     void Reload() override;
+    void UpdateData();
     void Update(float timeTick) override;
 
     int32_t GetNumPoints() const {return points.size();}
@@ -30,14 +41,6 @@ public:
     void SetIndexes(const Array<int32_t>& idxs) { indexes = idxs; }
     void SetIndexes(int32_t* idxs, int32_t count);
 
-
-    ID3D11RasterizerState* rastState;
-    ID3D11InputLayout* layout;
-    ID3DBlob* vertexBC;
-    ID3DBlob* pixelBC;
-    ID3D11VertexShader* vertexShader;
-    ID3D11PixelShader* pixelShader;
-
     //UINT idxCount = 6;
     UINT numElements = 2;
 
@@ -47,7 +50,7 @@ public:
     D3D11_FILL_MODE fillMode = D3D11_FILL_SOLID;
     bool isAntialiasedLine = false;
 
-private:
+protected:
     bool CompileVertexBC();
     bool CompilePixelBC();
     bool CheckResCompile(ID3DBlob* errorVertexCode, const HRESULT& res, LPCWSTR pFileName);
@@ -63,17 +66,29 @@ private:
     D3D11_BUFFER_DESC indexBufDesc;
     D3D11_SUBRESOURCE_DATA vertexData;
     D3D11_SUBRESOURCE_DATA indexData;
+    
+    ID3DBlob* vertexBC;
+    ID3DBlob* pixelBC;    
+    
 
-    ID3D11Buffer* vb;
-    ID3D11Buffer* ib;
+    TriangleDrawData* curDrawData;
 
     Array<DirectX::XMFLOAT4> points;
     //int32_t countPoints;
 
     Array<int32_t> indexes;
-
+    
+    Array<TriangleDrawData*> drawsData;
 
     UINT* strides;
     UINT* offsets;
     float totalTime = 0;
+
+private:
+    ID3D11RasterizerState* rastState;
+    ID3D11InputLayout* layout;
+    ID3D11VertexShader* vertexShader;
+    ID3D11PixelShader* pixelShader;
+    ID3D11Buffer* vertexBuffer;
+    ID3D11Buffer* indexBuffer;
 };

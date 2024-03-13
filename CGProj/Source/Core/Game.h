@@ -52,11 +52,13 @@ public:
     WinDisplay* GetDisplay() const { return curPlData->display; }
     Camera* GetCamera() const { return curPlData->camera; }
     InputDevice* GetInputDevice() const { return inputDevice; }
+    int32_t GetIdxCurrentPipeline();
 
 
     //PipelineData plData;
 
-    void AddWindow(int32_t scrWidth = -1, int32_t scrHeight = -1, int32_t posX = -1, int32_t posY = -1, Camera* camera = nullptr);
+    void AddWindow(int32_t scrWidth, int32_t scrHeigh, int32_t posX, int32_t posY, Camera* camera);
+    void AddWindow(int32_t scrWidth = -1, int32_t scrHeight = -1, int32_t posX = -1, int32_t posY = -1, ViewType = ViewType::General);
 
     template <typename T>
     T* CreateObject()

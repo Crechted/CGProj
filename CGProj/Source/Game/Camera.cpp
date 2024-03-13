@@ -56,14 +56,41 @@ void Camera::Update(float timeTick)
 
 void Camera::UpdateViewMatrix()
 {
-    const auto worldMat = sceneComp->GetWorldMatrix();
-    const auto worldLoc = worldMat.Translation();
-    const auto worldUp = worldMat.Up();
-    const auto worldSpringMat = springArmComp->GetWorldMatrix();
-    const auto worldSpringLoc = worldSpringMat.Translation();
-    const auto tar = worldSpringLoc + worldSpringMat.Forward();
-    mView = Matrix::CreateLookAt(worldLoc, tar, worldUp);
+    Matrix worldMat = sceneComp->GetWorldMatrix();
+    Matrix worldSpringMat = springArmComp->GetWorldMatrix();
+    Vector3 worldSpringLoc = worldSpringMat.Translation();
+    
+    Vector3 loc, tar, up;
 
+    if (viewType == ViewType::General || viewType == ViewType::Perspective || viewType == ViewType::OrtFree)
+    {
+        loc = worldMat.Translation();
+        tar = worldSpringLoc + worldSpringMat.Forward();
+        up = worldMat.Up();
+    }
+
+    if (viewType == ViewType::OrtXOZ)
+    {
+        loc = worldMat.Translation();
+        tar = loc + Vector3(0.0f, -1.0f, 0.0f);
+        up = Vector3(-1.0f, 0.0f, 0.0f);
+    }
+
+    if (viewType == ViewType::OrtYOZ)
+    {
+        loc = worldMat.Translation();
+        tar = loc + Vector3(-1.0f, 0.0f, 0.0f);
+        up = Vector3(0.0f, 1.0f, 0.0f);
+    }
+
+    if (viewType == ViewType::OrtXOY)
+    {
+        loc = worldMat.Translation();
+        tar = loc + Vector3(0.0f, 0.0f, -1.0f);
+        up = Vector3(0.0f, 1.0f, 0.0f);
+    }
+
+    mView = Matrix::CreateLookAt(loc, tar, up);
     /*auto Res = Matrix();
     Res = worldMat;
     printf(" Position: posX=%04.4f posY:%04.4f offsetZ:%04.4f :: Rotation X=%04.4f Y=%04.4f Z=%04.4f \n",
@@ -77,14 +104,21 @@ void Camera::UpdateViewMatrix()
 
 void Camera::UpdateProjMatrix()
 {
-    mProj = isPerspective
-                ? Matrix::CreatePerspective(width * scale, height * scale, nearPlane, farPlane)
-                : Matrix::CreateOrthographic(widthOrt * scale, heightOrt * scale, nearPlane, farPlane);
+    if (viewType == ViewType::General)
+    {
+        mProj = isPerspective
+                    ? Matrix::CreatePerspective(width * scale, height * scale, nearPlane, farPlane)
+                    : Matrix::CreateOrthographic(widthOrt * scale, heightOrt * scale, nearPlane, farPlane);
+    }
+    else if (viewType == ViewType::Perspective) mProj = Matrix::CreatePerspective(width * scale, height * scale, nearPlane, farPlane);
+    else mProj = Matrix::CreateOrthographic(widthOrt * scale, heightOrt * scale, nearPlane, farPlane);
 }
 
 void Camera::OnKeyDown(Keys key)
 {
-    if (key == Keys::M) isPerspective = !isPerspective;
+    if (key == Keys::P) isPerspective = true;
+    if (key == Keys::O) isPerspective = false;
+
     if (key == Keys::R) Reload();
     if (key == Keys::OemPlus) delScale += speedScale;
     if (key == Keys::OemMinus) delScale -= speedScale;

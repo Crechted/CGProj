@@ -15,8 +15,6 @@ Grids::Grids()
 
 void Grids::Initialize()
 {
-    coordAxis->topology = D3D_PRIMITIVE_TOPOLOGY_LINELIST;
-
     CreateCoordinates();
 
     CreateGrid();
@@ -26,6 +24,7 @@ void Grids::Initialize()
 
 void Grids::CreateCoordinates()
 {
+    coordAxis->topology = D3D_PRIMITIVE_TOPOLOGY_LINELIST;
     int32_t pointNum = 8;
     coordAxis->SetPoints(new DirectX::XMFLOAT4[pointNum]
     {

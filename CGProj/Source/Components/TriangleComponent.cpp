@@ -29,12 +29,18 @@ void TriangleComponent::Initialize()
 
     CreateShaders();
     CreateLayout();
-
     CreateVertexBuffer();
-
     CreateIndexBuffer();
-
     CreateAndSetRasterizerState();
+
+    curDrawData = new TriangleDrawData();
+    curDrawData->rastState = rastState;
+    curDrawData->layout = layout;
+    curDrawData->vertexShader = vertexShader;
+    curDrawData->pixelShader = pixelShader;
+    curDrawData->vertexBuffer = vertexBuffer;
+    curDrawData->indexBuffer = indexBuffer;
+    drawsData.insert(game->GetIdxCurrentPipeline(), curDrawData);
 }
 
 void TriangleComponent::DestroyResource()
@@ -48,12 +54,12 @@ void TriangleComponent::Draw()
     if (!game)
         return;
 
+    UpdateData();
     game->GetContext()->RSSetState(rastState);
-
     game->GetContext()->IASetInputLayout(layout);
     game->GetContext()->IASetPrimitiveTopology(topology);
-    game->GetContext()->IASetIndexBuffer(ib, DXGI_FORMAT_R32_UINT, 0);
-    game->GetContext()->IASetVertexBuffers(0, 1, &vb, strides, offsets);
+    game->GetContext()->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+    game->GetContext()->IASetVertexBuffers(0, 1, &vertexBuffer, strides, offsets);
     game->GetContext()->VSSetShader(vertexShader, nullptr, 0);
     game->GetContext()->PSSetShader(pixelShader, nullptr, 0);
 
@@ -64,8 +70,20 @@ void TriangleComponent::Reload()
 {
 }
 
+void TriangleComponent::UpdateData()
+{
+    curDrawData = drawsData[game->GetIdxCurrentPipeline()];
+    rastState = curDrawData->rastState;
+    layout = curDrawData->layout;
+    vertexShader = curDrawData->vertexShader;
+    pixelShader = curDrawData->pixelShader;
+    vertexBuffer = curDrawData->vertexBuffer;
+    indexBuffer = curDrawData->indexBuffer;
+}
+
 void TriangleComponent::Update(float timeTick)
 {
+    UpdateData();
     totalTime = game->GetTotalTime();
 }
 
@@ -94,7 +112,7 @@ void TriangleComponent::SetIndexes(int32_t* idxs, int32_t count)
     {
         indexes.insert(idxs[i]);
     }
-    
+
 }
 
 bool TriangleComponent::CompileVertexBC()
@@ -175,7 +193,7 @@ void TriangleComponent::CreateVertexBuffer()
     vertexData.SysMemPitch = 0;
     vertexData.SysMemSlicePitch = 0;
 
-    game->GetDevice()->CreateBuffer(&vertexBufDesc, &vertexData, &vb);
+    game->GetDevice()->CreateBuffer(&vertexBufDesc, &vertexData, &vertexBuffer);
 }
 
 void TriangleComponent::CreateIndexBuffer()
@@ -192,7 +210,7 @@ void TriangleComponent::CreateIndexBuffer()
     indexData.SysMemPitch = 0;
     indexData.SysMemSlicePitch = 0;
 
-    game->GetDevice()->CreateBuffer(&indexBufDesc, &indexData, &ib);
+    game->GetDevice()->CreateBuffer(&indexBufDesc, &indexData, &indexBuffer);
 }
 
 void TriangleComponent::CreateAndSetRasterizerState()
@@ -201,7 +219,7 @@ void TriangleComponent::CreateAndSetRasterizerState()
     offsets = new UINT[1]{0};
 
     CD3D11_RASTERIZER_DESC rastDesc = {};
-    rastDesc.CullMode = cullMode;  // D3D11_CULL_NONE
+    rastDesc.CullMode = cullMode; // D3D11_CULL_NONE
     rastDesc.FillMode = fillMode; // D3D11_FILL_SOLID
     rastDesc.AntialiasedLineEnable = isAntialiasedLine;
 

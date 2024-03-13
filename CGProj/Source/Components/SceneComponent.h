@@ -2,6 +2,7 @@
 #include <d3d11.h>
 
 #include "GameComponent.h"
+#include "../Utils/Array/Array.h"
 #include "Inc/SimpleMath.h"
 
 
@@ -69,7 +70,8 @@ protected:
     SceneComponent* parentComponent;
     Transform transform;
     Matrix mTransform;
-
+    
+    Array<ID3D11Buffer*> buffers;
     ID3D11Buffer* constantBuffer;
     D3D11_BUFFER_DESC constBufDesc;
 
