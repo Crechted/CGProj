@@ -130,8 +130,8 @@ void Game::Run()
     {
         for (auto plData : pipelinesData)
         {
-            Input(isExitRequested);
             curPlData = plData;
+            Input(isExitRequested);
             Update();
             Render();
         }

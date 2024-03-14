@@ -20,29 +20,11 @@ void Planet::Initialize()
     game->GetInputDevice()->KeyDownDelegate.AddRaw(this, &Planet::OnKeyDown);
 }
 
-void Planet::AddSputnik(Planet* dirPlanet, float orbitRadius)
+void Planet::AddSputnik(Planet* dirPlanet)
 {
-    //irPlanet->meshComponent->AttachTo(meshComponent);
-    dirPlanet->moveComp->orbitRadius = orbitRadius;
-    dirPlanet->moveComp->isRotationAround = true;
-    dirPlanet->moveComp->rotationAroundAxis = Vector3(2.0f, 20.0f, 0.0f);
+    dirPlanet->meshComponent->attachOnlyTranslation = true;
     dirPlanet->parentPlanet = this;
-}
-
-void Planet::AddSputnik(float orbitRadius, Keys keyToPos)
-{
-    auto newPlanet = game->CreateObject<Planet>();
-    newPlanet->meshComponent->radius = orbitRadius / 10.0f;
-    newPlanet->meshComponent->initPosition = meshComponent->initPosition + Vector3(orbitRadius, orbitRadius, 0.0f);
-    newPlanet->meshComponent->drawSecondHalf = false;
-
-    newPlanet->moveComp->orbitRadius = orbitRadius;
-    newPlanet->moveComp->isRotationAround = true;
-    //newPlanet->moveComp->isMoveByDirection = true;
-    newPlanet->moveComp->rotationAroundAxis = Vector3(2.0f, 20.0f, 0.0f);
-    newPlanet->parentPlanet = this;
-
-    newPlanet->keyToPoses = keyToPos;
+    dirPlanet->meshComponent->AttachTo(meshComponent);
 }
 
 void Planet::OnKeyDown(Keys key)

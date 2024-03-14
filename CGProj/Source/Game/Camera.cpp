@@ -36,6 +36,8 @@ void Camera::Draw()
 void Camera::Initialize()
 {
     Object::Initialize();
+    springArmComp->initPosition = initPosition;
+    springArmComp->initRotation = initRotation;
     scale = initScale;
     game->GetInputDevice()->KeyDownDelegate.AddRaw(this, &Camera::OnKeyDown);
     game->GetInputDevice()->KeyUpDelegate.AddRaw(this, &Camera::OnKeyUp);

@@ -46,7 +46,7 @@ void SceneComponent::UpdateTransformMatrix()
     const float pitch = RadiansFromDegree(transform.rotate.x);
     const float yaw = RadiansFromDegree(transform.rotate.y);
     const float roll = RadiansFromDegree(transform.rotate.z);
-    mTransform = Matrix::CreateFromYawPitchRoll(yaw, pitch, roll);    
+    mTransform = Matrix::CreateFromYawPitchRoll(yaw, pitch, roll);
     mTransform.Translation(GetLocation());
     mTransform *= mTransform.CreateScale(GetScale());
 }
@@ -124,12 +124,23 @@ const Vector3& SceneComponent::GetGlobalUp() const
 
 const Matrix& SceneComponent::GetWorldMatrix()
 {
-    SceneComponent* rootComponent = this;
-    Matrix Res = Matrix();
-    while (rootComponent)
+    SceneComponent* rootComp = this;
+    Matrix Res = rootComp->mTransform;
+
+    SceneComponent* parentComp = rootComp->parentComponent;
+    while (parentComp)
     {
-        Res *= rootComponent->mTransform;
-        rootComponent = rootComponent->parentComponent;
+        if (rootComp->attachOnlyTranslation)
+        {
+            Res *= Matrix::CreateTranslation(parentComp->mTransform.Translation());
+            //return Res;
+        }
+        else
+            Res *= parentComp->mTransform;
+        
+        rootComp = parentComp;
+        parentComp = rootComp->parentComponent;
     }
+
     return Res;
 }

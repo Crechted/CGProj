@@ -66,6 +66,8 @@ public:
     Vector3 initRotation = Vector3(0.0f);
     Vector3 initScale = Vector3(1.0f);
 
+    bool attachOnlyTranslation = false;
+
 protected:    
     SceneComponent* parentComponent;
     Transform transform;

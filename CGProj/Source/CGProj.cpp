@@ -1,6 +1,7 @@
 ﻿#include "Core/Game.h"
 #include "Game/Camera.h"
 #include "Game/Components/SphereComponent.h"
+#include "Game/Components/SpringArmComponent.h"
 #include "Game/Objects/Grids.h"
 #include "Game/Planets/Planet.h"
 #include "Game/Planets/Components/PlanetMoveComponent.h"
@@ -16,45 +17,63 @@ void Create4Window(Game* game)
     game->AddWindow(size, size, offset + size + space, size + space);
 }
 
+Planet* CreatePlanet(Vector3 pos, Vector3 rot, Vector3 Scale, bool doDifCol, Vector3 col, float rad, bool isRot, Vector3 rotationAroundAxis,
+    bool drawAll, Keys keyToPos)
+{
+    Game* game = &Game::GetGame();
+    Planet* planet = game->CreateObject<Planet>();
+    planet->meshComponent->initPosition = pos;
+    planet->meshComponent->initRotation = rot;
+    planet->meshComponent->initScale = Scale;
+    planet->meshComponent->radius = rad;
+    planet->meshComponent->color = col;
+    planet->meshComponent->doDifColor = doDifCol;
+    planet->moveComp->isRotationAround = isRot;
+    planet->moveComp->rotationAroundAxis = rotationAroundAxis;
+    planet->meshComponent->drawFirstHalf = drawAll;
+    planet->keyToPoses = keyToPos;
+    return planet;
+}
+
 int main()
 {
 
     Game* game = &Game::GetGame();
     auto grids = game->CreateObject<Grids>();
+    auto camera = game->CreateCamera();
+    camera->springArmComp->initPosition = Vector3(0.0f, 2.0f, 10.0f);
+    camera->springArmComp->initRotation = Vector3(0.0f);
+    camera->movementComp->speed = 3.0f;
+    camera->springArmComp->attachOnlyTranslation = true;
+    camera->viewType = ViewType::General;
+    game->AddWindow(1000, 1000, 1200, 100, camera);
 
-    Planet* planet = game->CreateObject<Planet>();
-    planet->meshComponent->initPosition = Vector3(0.5f, 0.0f, 0.0f);
-    planet->meshComponent->radius = 0.2f;
-    planet->meshComponent->color = Vector3(1.0f, 1.0f, 0.0f);
-    planet->moveComp->rotationAroundAxis = Vector3(0.0f, 20.0f, 0.0f);
-    planet->moveComp->isRotationAround = true;
-    planet->moveComp->isMoveByDirection = true;
-    planet->meshComponent->drawFirstHalf = false;
-    planet->keyToPoses = Keys::D1;
+    Planet* planet1 = CreatePlanet(Vector3(0.0f, 2.0f, 0.0f), Vector3(0.0f), Vector3(1.0f), false, Vector3(1.0, 0.8, 0.2), 4.0f, true,
+        Vector3(0.30f, 45.0f, 0.0f), true, Keys::D1);
+    planet1->meshComponent->attachOnlyTranslation = true;
+    planet1->moveComp->speed = 1.f;
 
-    Planet* planet2 = game->CreateObject<Planet>();
-    planet2->meshComponent->initPosition = Vector3(-0.2f, 0.0f, 0.0f);
-    planet2->meshComponent->radius = 0.1f;
-    planet2->meshComponent->color = Vector3(1.0f, 0.0f, 0.0f);
-    planet2->moveComp->rotationAroundAxis = Vector3(0.0f, 50.0f, 0.0f);
-    planet2->moveComp->isRotationAround = true;
-    planet2->moveComp->isMoveByDirection = true;
-    planet2->meshComponent->doDifColor = true;
-    planet2->keyToPoses = Keys::D2;
+    Planet* planet2 = CreatePlanet(Vector3(-7.0f, 0.0f, 0.0f), Vector3(0.0f), Vector3(1.0f), false, Vector3(0.0, 1.0, 0.2), 1.0f, true,
+        Vector3(0.0f, -6.0f, 0.0f), false, Keys::D2);
+    planet2->moveComp->speed = 1.0f;
+    planet1->AddSputnik(planet2);
 
-    //planet->AddSputnik(planet2, 2.3);    
+    Planet* planet3 = CreatePlanet(Vector3(22.0f, 0.0f, 4.0f), Vector3(00.0f), Vector3(1.0f), false, Vector3(1.0, 0.4, 0.9), 1.0f, true,
+        Vector3(0.0f, 5.0f, 0.0f), false, Keys::D3);
+    planet1->AddSputnik(planet3);
+    planet3->moveComp->speed = 10.0f;
 
-    Planet* planet3 = game->CreateObject<Planet>();
-    planet3->meshComponent->initPosition = Vector3(0.2f, 1.0f, 1.0f);
-    planet3->meshComponent->initRotation = Vector3(45.0f, 0.0f, 45.0f);
-    planet3->meshComponent->color = Vector3(0.2f, 1.0f, 1.0f);
-    planet3->meshComponent->doDifColor = true;
-    planet3->moveComp->isRotationAround = true;
-    planet3->moveComp->rotationAroundAxis = Vector3(0.0f, -7.0f, 1.0f);
-    planet3->keyToPoses = Keys::D3;
-    //planet3->meshComponent->drawDown = false;
-    //planet3->meshComponent->drawUp = false;
-    planet3->AddSputnik(2.0f, Keys::D4);
+    Planet* planet4 = CreatePlanet(Vector3(7.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(0.6f), false, Vector3(0.2, 0.4, 0.9),
+        1.0f, true, Vector3(0.0f, -10.0f, 0.0f), false, Keys::D4);
+    planet4->moveComp->speed = 5.0f;
+    planet3->AddSputnik(planet4);
+    // planet4->moveComp->isMove = false;
+
+    Planet* planet5 = CreatePlanet(Vector3(00.0f, .0f, 4.5f), Vector3(0.0f, 0.0f, 00.0f), Vector3(0.2f), true, Vector3(0.2, 0.8, 0.3),
+        1.0f, true, Vector3(-0.0f, -30.0f, 00.0f), false, Keys::D5);
+    planet5->moveComp->speed = -10.f;
+    planet4->AddSputnik(planet5);
+    //planet5->moveComp->isMove = false;
 
     //Create4Window(game);
     game->Initialize();
