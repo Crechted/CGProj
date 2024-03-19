@@ -23,8 +23,10 @@
 
 Camera* Game::CreateCamera(ViewType ViewType)
 {
-    auto cam = CreateObject<Camera>();
+    //auto cam = CreateObject<Camera>();
+    auto cam = new Camera();
     cam->viewType = ViewType;
+    cameras.insert(cam);
     return cam;
 }
 
@@ -47,6 +49,10 @@ void Game::Destroy()
     for (const auto gComp : gameComponents)
     {
         delete gComp;
+    }
+    for (const auto cam : cameras)
+    {
+        delete cam;
     }
     for (auto plData : pipelinesData)
     {
@@ -74,7 +80,7 @@ int32_t Game::GetIdxCurrentPipeline()
     return -1;
 }
 
-void Game::AddWindow(int32_t scrWidth, int32_t scrHeight, int32_t posX, int32_t posY, Camera* camera)
+void Game::AddWindow(int32_t scrWidth, int32_t scrHeight, int32_t posX, int32_t posY, const Array<Camera*>& cameras)
 {
     auto plData = new PipelineData();
     curPlData = plData;
@@ -83,7 +89,8 @@ void Game::AddWindow(int32_t scrWidth, int32_t scrHeight, int32_t posX, int32_t 
     curPlData->display->screenHeight = scrHeight;
     curPlData->display->posX = posX;
     curPlData->display->posY = posY;
-    curPlData->camera = camera ? camera : CreateCamera();
+    curPlData->cameras = cameras;
+    curPlData->viewportsNum = cameras.size();
     pipelinesData.insert(plData);
 }
 
@@ -91,7 +98,9 @@ void Game::AddWindow(int32_t scrWidth, int32_t scrHeight, int32_t posX, int32_t 
 {
     auto cam = CreateCamera();
     cam->viewType = vType;
-    AddWindow(scrWidth, scrHeight, posX, posY, cam);
+    Array<Camera*> cameras{};
+    cameras.insert(cam);
+    AddWindow(scrWidth, scrHeight, posX, posY, cameras);
 }
 
 
@@ -117,6 +126,10 @@ void Game::Initialize()
         for (const auto Obj : gameObjects)
         {
             Obj->Initialize();
+        }
+        for (const auto cam : cameras)
+        {
+            cam->Initialize();
         }
     }
 }
@@ -189,6 +202,10 @@ void Game::Update()
     {
         Obj->Update(deltaTime);
     }
+    for (const auto cam : cameras)
+    {
+        cam->Update(deltaTime);
+    }
 
 }
 
@@ -218,23 +235,32 @@ void Game::DetectOverlapped()
 
 void Game::Render()
 {
-
     float color[] = {0.0f, 0.0f, 0.0f, 1.0f};
     curPlData->context->ClearState();
     curPlData->context->ClearRenderTargetView(curPlData->renderTargetView, color);
     curPlData->context->ClearDepthStencilView(curPlData->depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
     curPlData->context->OMSetRenderTargets(1, &curPlData->renderTargetView, curPlData->depthStencilView);
-    curPlData->context->RSSetViewports(1, &curPlData->viewport);
 
-    for (const auto Comp : gameComponents)
+    for (int32_t i = 0; i < curPlData->viewportsNum; i++)
     {
-        Comp->Draw();
-    }
-    for (const auto Obj : gameObjects)
-    {
-        Obj->Draw();
-    }
+        printf("%d \n", i);
+        curPlData->curViewport = i;
+        
+        curPlData->context->RSSetViewports(1, &curPlData->viewports[i]);
 
+        for (const auto Comp : gameComponents)
+        {
+            Comp->Draw();
+        }
+        for (const auto Obj : gameObjects)
+        {
+            Obj->Draw();
+        }
+        for (const auto cam : cameras)
+        {
+            cam->Draw();
+        }
+    }
     curPlData->swapChain->Present(1, /*DXGI_PRESENT_DO_NOT_WAIT*/ 0);
 
 }
@@ -268,8 +294,6 @@ void Game::CreateDeviceAndSwapChain()
     if (FAILED(res))
     {
         // Well, that was unexpected
-
-        curPlData->swapChain->Release();
     }
 }
 
@@ -280,13 +304,21 @@ void Game::CreateTargetViewAndViewport()
     res = curPlData->swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backTex); // __uuidof(ID3D11Texture2D)
     res = curPlData->device->CreateRenderTargetView(backTex, nullptr, &curPlData->renderTargetView);
 
-    curPlData->viewport = {};
-    curPlData->viewport.Width = static_cast<float>(curPlData->display->screenWidth);
-    curPlData->viewport.Height = static_cast<float>(curPlData->display->screenHeight);
-    curPlData->viewport.TopLeftX = 0;
-    curPlData->viewport.TopLeftY = 0;
-    curPlData->viewport.MinDepth = 0;
-    curPlData->viewport.MaxDepth = 1.0f;
+    uint32_t row = curPlData->viewportsNum == 1 ? 1 : 2;
+    uint32_t col = curPlData->viewportsNum / row + curPlData->viewportsNum % row;
+    float width = static_cast<float>(curPlData->display->screenWidth / col);
+    float height = static_cast<float>(curPlData->display->screenHeight / row);
+
+    for (int32_t i = 0; i < curPlData->viewportsNum; i++)
+    {
+        curPlData->viewports[i] = {};
+        curPlData->viewports[i].Width = width;
+        curPlData->viewports[i].Height = height;
+        curPlData->viewports[i].TopLeftX = (i / col) * width; //(i * col) * width;
+        curPlData->viewports[i].TopLeftY = (i % row) * height; //(i % row) * height;
+        curPlData->viewports[i].MinDepth = 0;
+        curPlData->viewports[i].MaxDepth = 1.0f;
+    }
 }
 
 void Game::CreateDepthStencilView()

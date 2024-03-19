@@ -29,7 +29,9 @@ void SceneComponent::Initialize()
 
 void SceneComponent::Draw()
 {
-    constantBuffer = buffers[game->GetIdxCurrentPipeline()];
+    constantBuffer = buffers[game->GetIdxCurrentPipeline()];    
+    //UpdateTransformMatrix();
+    UpdateConstantBuffer();
     game->GetContext()->VSSetConstantBuffers(0, 1, &constantBuffer);
 }
 
@@ -54,12 +56,8 @@ void SceneComponent::UpdateTransformMatrix()
 void SceneComponent::Update(float timeTick)
 {
     constantBuffer = buffers[game->GetIdxCurrentPipeline()];
-    UpdateTransformMatrix();
-    if (!game->GetContext())
-    {
-        printf("PENIS");
-    }
-    UpdateConstantBuffer();
+    UpdateTransformMatrix();    
+    //UpdateConstantBuffer();
 }
 
 void SceneComponent::UpdateConstantBuffer()
@@ -77,8 +75,8 @@ void SceneComponent::UpdateConstantBuffer()
     {
         Res.Transpose(),
         //Matrix::CreateWorld(Res.Translation(), Res.Forward(), Res.Up()).Transpose(),
-        Matrix(game->GetCamera()->mView).Transpose(),
-        Matrix(game->GetCamera()->mProj).Transpose(),
+        Matrix(game->GetCurCamera()->mView).Transpose(),
+        Matrix(game->GetCurCamera()->mProj).Transpose(),
     };
 
     auto dataPtr = reinterpret_cast<float*>(res.pData);

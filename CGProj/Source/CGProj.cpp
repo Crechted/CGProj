@@ -6,15 +6,37 @@
 #include "Game/Planets/Planet.h"
 #include "Game/Planets/Components/PlanetMoveComponent.h"
 
-void Create4Window(Game* game)
+void Create4Screen(Game* game, bool OnOneWindow = true)
 {
-    int32_t space = 50;
-    int32_t size = GetSystemMetrics(SM_CYSCREEN) / 2 - space;
-    int32_t offset = (GetSystemMetrics(SM_CXSCREEN) - 3 * size) / 2;
-    game->AddWindow(size, size, offset + space + 2 * size, space + size, ViewType::OrtXOY);
-    game->AddWindow(size, size, offset + space, size + space, ViewType::OrtYOZ);
-    game->AddWindow(size, size, offset + size + space, space, ViewType::OrtXOZ);
-    game->AddWindow(size, size, offset + size + space, size + space);
+    if (!OnOneWindow)
+    {
+        int32_t space = 50;
+        int32_t size = GetSystemMetrics(SM_CYSCREEN) / 2 - space;
+        int32_t offset = (GetSystemMetrics(SM_CXSCREEN) - 3 * size) / 2;
+        game->AddWindow(size, size, offset + space + 2 * size, space + size, ViewType::OrtXOY);
+        game->AddWindow(size, size, offset + space, size + space, ViewType::OrtYOZ);
+        game->AddWindow(size, size, offset + size + space, space, ViewType::OrtXOZ);
+        game->AddWindow(size, size, offset + size + space, size + space);
+    } else
+    {
+        int32_t space = 50;
+        int32_t size = GetSystemMetrics(SM_CYSCREEN) / 2 - space;
+        int32_t offset = (GetSystemMetrics(SM_CXSCREEN) - 3 * size) / 2;
+        auto cam1 = game->CreateCamera(ViewType::OrtXOY);
+        auto cam2 = game->CreateCamera(ViewType::OrtYOZ);
+        auto cam3 = game->CreateCamera(ViewType::OrtXOZ);
+        auto cam4 = game->CreateCamera(ViewType::General);
+        cam1->springArmComp->attachOnlyTranslation = true;
+        cam2->springArmComp->attachOnlyTranslation = true;
+        cam3->springArmComp->attachOnlyTranslation = true;
+        cam4->springArmComp->attachOnlyTranslation = true;
+        Array<Camera*> cameras{};
+        cameras.insert(cam1);
+        cameras.insert(cam2);
+        cameras.insert(cam3);
+        cameras.insert(cam4);
+        game->AddWindow(-1, -1, -1, -1, cameras);
+    }
 }
 
 Planet* CreatePlanet(Vector3 pos, Vector3 rot, Vector3 Scale, bool doDifCol, Vector3 col, float rad, bool isRot, Vector3 rotationAroundAxis,
@@ -40,14 +62,17 @@ int main()
 
     Game* game = &Game::GetGame();
     auto grids = game->CreateObject<Grids>();
+
     auto camera = game->CreateCamera();
     camera->springArmComp->initPosition = Vector3(0.0f, 2.0f, 10.0f);
     camera->springArmComp->initRotation = Vector3(0.0f);
     camera->movementComp->speed = 3.0f;
     camera->springArmComp->attachOnlyTranslation = true;
     camera->viewType = ViewType::General;
-    game->AddWindow(1000, 1000, 1200, 100, camera);
-
+    Array<Camera*> cameras{};
+    cameras.insert(camera);
+    //game->AddWindow(-1, -1, -1, -1, cameras);
+    
     Planet* planet1 = CreatePlanet(Vector3(0.0f, 2.0f, 0.0f), Vector3(0.0f), Vector3(1.0f), false, Vector3(1.0, 0.8, 0.2), 4.0f, true,
         Vector3(0.30f, 45.0f, 0.0f), true, Keys::D1);
     planet1->meshComponent->attachOnlyTranslation = true;
@@ -75,7 +100,7 @@ int main()
     planet4->AddSputnik(planet5);
     //planet5->moveComp->isMove = false;
 
-    //Create4Window(game);
+    Create4Screen(game);
     game->Initialize();
     game->Run();
     return 0;

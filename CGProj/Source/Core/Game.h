@@ -21,11 +21,14 @@ struct PipelineData
     DXGI_SWAP_CHAIN_DESC swapDesc;
 
     ID3D11RenderTargetView* renderTargetView;
-    D3D11_VIEWPORT viewport;
+
+    Array<D3D11_VIEWPORT> viewports;
+    Array<Camera*> cameras;
+    uint32_t viewportsNum = 1;
+    uint32_t curViewport = 0;
 
     ID3D11Texture2D* depthStencil;
     ID3D11DepthStencilView* depthStencilView;
-    Camera* camera;
 };
 
 class Game
@@ -50,14 +53,15 @@ public:
     ID3D11DeviceContext* GetContext() const { return curPlData->context; }
     Microsoft::WRL::ComPtr<ID3D11Device> GetDevice() const { return curPlData->device; }
     WinDisplay* GetDisplay() const { return curPlData->display; }
-    Camera* GetCamera() const { return curPlData->camera; }
+    Camera* GetCurCamera() const { return curPlData->cameras[curPlData->curViewport]; }
+    Array<Camera*>& GetCamerasOnViewport() const { return curPlData->cameras; }
     InputDevice* GetInputDevice() const { return inputDevice; }
     int32_t GetIdxCurrentPipeline();
 
 
     //PipelineData plData;
 
-    void AddWindow(int32_t scrWidth, int32_t scrHeigh, int32_t posX, int32_t posY, Camera* camera);
+    void AddWindow(int32_t scrWidth, int32_t scrHeigh, int32_t posX, int32_t posY,  const Array<Camera*>& cameras);
     void AddWindow(int32_t scrWidth = -1, int32_t scrHeight = -1, int32_t posX = -1, int32_t posY = -1, ViewType = ViewType::General);
 
     template <typename T>
@@ -92,6 +96,7 @@ protected:
     explicit Game();
 
     Array<Object*> gameObjects;
+    Array<Camera*> cameras;
     Array<GameComponent*> gameComponents;
     Array<PipelineData*> pipelinesData;
 

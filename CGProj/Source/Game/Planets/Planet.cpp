@@ -31,9 +31,12 @@ void Planet::OnKeyDown(Keys key)
 {
     if(key == keyToPoses)
     {
-        game->GetCamera()->springArmComp->AttachTo(meshComponent);
-        game->GetCamera()->springArmComp->SetLocation(Vector3(0.0f));        
-        game->GetCamera()->springArmComp->SetRotation(Vector3(0.0f));
-        game->GetCamera()->springArmComp->springLenght = meshComponent->radius*4.0f;
+        for (const auto camera : game->GetCamerasOnViewport())
+        {
+            camera->springArmComp->AttachTo(meshComponent);
+            camera->springArmComp->SetLocation(Vector3(0.0f));        
+            camera->springArmComp->SetRotation(Vector3(0.0f));
+            camera->springArmComp->springLenght = meshComponent->radius*4.0f;
+        }
     }
 }
