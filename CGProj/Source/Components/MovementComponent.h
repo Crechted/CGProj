@@ -33,6 +33,7 @@ public:
     Vector3 delRotation;
 
 protected:
+    SceneComponent* parentScene = nullptr;
     virtual void HandleInputByKey();
     virtual void CalcOffset(float timeTick);
     virtual void OnKeyDown(Keys key);

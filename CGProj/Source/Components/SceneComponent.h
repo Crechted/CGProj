@@ -68,6 +68,7 @@ public:
 
     bool attachOnlyTranslation = false;
 
+    SceneComponent* GetParentComponent() const {return parentComponent;}
 protected:    
     SceneComponent* parentComponent;
     Transform transform;

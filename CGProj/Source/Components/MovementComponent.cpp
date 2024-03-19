@@ -47,27 +47,29 @@ void MovementComponent::Update(float timeTick)
 void MovementComponent::HandleInputByKey()
 {
     if (!sceneComp) return;
+    auto curScene = sceneComp->GetParentComponent() ? sceneComp->GetParentComponent() : sceneComp;
 
     delLocation = Vector3(0.0);
-    if (game->GetInputDevice()->IsKeyDown(inputForward)) delLocation += sceneComp->GetForward() * speed;
-    if (game->GetInputDevice()->IsKeyDown(inputRight)) delLocation += sceneComp->GetRight() * speed;
-    if (game->GetInputDevice()->IsKeyDown(inputUp)) delLocation += sceneComp->GetGlobalUp() * speed;
-    if (game->GetInputDevice()->IsKeyDown(inputBackward)) delLocation += -sceneComp->GetForward() * speed;
-    if (game->GetInputDevice()->IsKeyDown(inputLeft)) delLocation += -sceneComp->GetRight() * speed;
-    if (game->GetInputDevice()->IsKeyDown(inputDown)) delLocation += -sceneComp->GetGlobalUp() * speed;
+    if (game->GetInputDevice()->IsKeyDown(inputForward)) delLocation += curScene->GetForward() * speed;
+    if (game->GetInputDevice()->IsKeyDown(inputRight)) delLocation += curScene->GetRight() * speed;
+    if (game->GetInputDevice()->IsKeyDown(inputUp)) delLocation += curScene->GetGlobalUp() * speed;
+    if (game->GetInputDevice()->IsKeyDown(inputBackward)) delLocation += -curScene->GetForward() * speed;
+    if (game->GetInputDevice()->IsKeyDown(inputLeft)) delLocation += -curScene->GetRight() * speed;
+    if (game->GetInputDevice()->IsKeyDown(inputDown)) delLocation += -curScene->GetGlobalUp() * speed;
 }
 
 void MovementComponent::CalcOffset(float timeTick)
 {
     if (!sceneComp) return;
+    auto curScene = sceneComp->GetParentComponent() ? sceneComp->GetParentComponent() : sceneComp;
 
-    if (sceneComp->GetRotation().x >= 89 && delRotation.x > 0 || sceneComp->GetRotation().x <= -89 && delRotation.x < 0)
+    if (curScene->GetRotation().x >= 89 && delRotation.x > 0 || curScene->GetRotation().x <= -89 && delRotation.x < 0)
     {
         delRotation.x = 0;
     }
 
-    sceneComp->AddRotation(delRotation * timeTick);
-    sceneComp->AddLocation(delLocation * timeTick);
+    curScene->AddRotation(delRotation * timeTick);
+    curScene->AddLocation(delLocation * timeTick);
     delRotation = Vector3(0.0);
 
     /*printf(" Rotation: Pitch=%04.4f Yaw:%04.4f Roll:%04.4f\n",

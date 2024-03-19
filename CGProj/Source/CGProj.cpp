@@ -17,7 +17,8 @@ void Create4Screen(Game* game, bool OnOneWindow = true)
         game->AddWindow(size, size, offset + space, size + space, ViewType::OrtYOZ);
         game->AddWindow(size, size, offset + size + space, space, ViewType::OrtXOZ);
         game->AddWindow(size, size, offset + size + space, size + space);
-    } else
+    }
+    else
     {
         int32_t space = 50;
         int32_t size = GetSystemMetrics(SM_CYSCREEN) / 2 - space;
@@ -62,17 +63,18 @@ int main()
 
     Game* game = &Game::GetGame();
     auto grids = game->CreateObject<Grids>();
-
+    grids->numLineOnSide = 41;
+    
     auto camera = game->CreateCamera();
     camera->springArmComp->initPosition = Vector3(0.0f, 2.0f, 10.0f);
     camera->springArmComp->initRotation = Vector3(0.0f);
     camera->movementComp->speed = 3.0f;
-    camera->springArmComp->attachOnlyTranslation = true;
+    camera->springArmComp->attachOnlyTranslation = false;
     camera->viewType = ViewType::General;
     Array<Camera*> cameras{};
     cameras.insert(camera);
-    //game->AddWindow(-1, -1, -1, -1, cameras);
-    
+    game->AddWindow(-1, -1, -1, -1, cameras);
+
     Planet* planet1 = CreatePlanet(Vector3(0.0f, 2.0f, 0.0f), Vector3(0.0f), Vector3(1.0f), false, Vector3(1.0, 0.8, 0.2), 4.0f, true,
         Vector3(0.30f, 45.0f, 0.0f), true, Keys::D1);
     planet1->meshComponent->attachOnlyTranslation = true;
@@ -86,7 +88,7 @@ int main()
     Planet* planet3 = CreatePlanet(Vector3(22.0f, 0.0f, 4.0f), Vector3(00.0f), Vector3(1.0f), false, Vector3(1.0, 0.4, 0.9), 1.0f, true,
         Vector3(0.0f, 5.0f, 0.0f), false, Keys::D3);
     planet1->AddSputnik(planet3);
-    planet3->moveComp->speed = 10.0f;
+    planet3->moveComp->speed = -10.0f;
 
     Planet* planet4 = CreatePlanet(Vector3(7.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 0.0f), Vector3(0.6f), false, Vector3(0.2, 0.4, 0.9),
         1.0f, true, Vector3(0.0f, -10.0f, 0.0f), false, Keys::D4);
@@ -98,9 +100,14 @@ int main()
         1.0f, true, Vector3(-0.0f, -30.0f, 00.0f), false, Keys::D5);
     planet5->moveComp->speed = -10.f;
     planet4->AddSputnik(planet5);
+
+    Planet* planet6 = CreatePlanet(Vector3(00.0f, 4.5f, 4.5f), Vector3(45.0f, 0.0f, 0.0f), Vector3(0.2f), true, Vector3(0.2, 0.8, 0.3),
+        1.0f, true, Vector3(-0.0f, 10.0f, 00.0f), true, Keys::D6);
+    planet6->moveComp->speed = -4.f;
+    planet3->AddSputnik(planet6);
     //planet5->moveComp->isMove = false;
 
-    Create4Screen(game);
+    //Create4Screen(game);
     game->Initialize();
     game->Run();
     return 0;
