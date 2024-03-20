@@ -69,7 +69,7 @@ int main()
     camera->springArmComp->initPosition = Vector3(0.0f, 2.0f, 10.0f);
     camera->springArmComp->initRotation = Vector3(0.0f);
     camera->movementComp->speed = 3.0f;
-    camera->springArmComp->attachOnlyTranslation = false;
+    camera->springArmComp->attachOnlyTranslation = true;
     camera->viewType = ViewType::General;
     Array<Camera*> cameras{};
     cameras.insert(camera);
