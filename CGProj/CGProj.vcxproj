@@ -133,10 +133,12 @@
     <ClInclude Include="Libs\Inc\WICTextureLoader.h" />
     <ClInclude Include="Libs\Inc\XboxDDSTextureLoader.h" />
     <ClInclude Include="Source\Components\GameComponent.h" />
+    <ClInclude Include="Source\Components\MeshComponent.h" />
     <ClInclude Include="Source\Components\MovementComponent.h" />
     <ClInclude Include="Source\Components\SceneComponent.h" />
     <ClInclude Include="Source\Core\Input\InputDevice.h" />
     <ClInclude Include="Source\Core\Input\Keys.h" />
+    <ClInclude Include="Source\Core\MeshImporter.h" />
     <ClInclude Include="Source\Core\Object.h" />
     <ClInclude Include="Source\Core\WinDisplay.h" />
     <ClInclude Include="Source\Game\Camera.h" />
@@ -163,15 +165,16 @@
     <ClInclude Include="Source\Utils\Array\Array.h" />
     <ClInclude Include="Source\Utils\Array\Array.hpp" />
     <ClInclude Include="Source\Components\TriangleComponent.h" />
-    <ClInclude Include="Source\Utils\Keys.h" />
     <ClInclude Include="Source\Utils\Types.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\CGProj.cpp" />
     <ClCompile Include="Source\Components\GameComponent.cpp" />
+    <ClCompile Include="Source\Components\MeshComponent.cpp" />
     <ClCompile Include="Source\Components\MovementComponent.cpp" />
     <ClCompile Include="Source\Components\SceneComponent.cpp" />
     <ClCompile Include="Source\Core\Input\InputDevice.cpp" />
+    <ClCompile Include="Source\Core\MeshImporter.cpp" />
     <ClCompile Include="Source\Core\Object.cpp" />
     <ClCompile Include="Source\Core\WinDisplay.cpp" />
     <ClCompile Include="Source\Game\Camera.cpp" />
@@ -431,6 +434,8 @@
     <Content Include="Libs\Assimp\include\assimp\config.h.in" />
     <Content Include="Libs\DirectXTK.lib" />
     <Content Include="Libs\DirectXTK.pdb" />
+    <Content Include="Meshes\AnyConv.com__Piram.obj" />
+    <Content Include="Meshes\Piram.glb" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

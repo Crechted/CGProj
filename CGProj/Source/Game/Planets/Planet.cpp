@@ -1,10 +1,10 @@
 #include "Planet.h"
 
-#include "../Camera.h"
-#include "..\..\Core\Engine.h"
-#include "../../Core/Input/InputDevice.h"
-#include "../Components/SphereComponent.h"
-#include "../Components/SpringArmComponent.h"
+#include "Game/Camera.h"
+#include "Core/Engine.h"
+#include "Core/Input/InputDevice.h"
+#include "Game/Components/SphereComponent.h"
+#include "Game/Components/SpringArmComponent.h"
 #include "Components/PlanetMoveComponent.h"
 
 Planet::Planet()

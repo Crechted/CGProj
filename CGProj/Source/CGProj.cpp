@@ -1,6 +1,5 @@
-﻿#include "assimp/DefaultLogger.hpp"
-#include "assimp/Importer.hpp"
-#include "Core/Engine.h"
+﻿#include "Core/Engine.h"
+#include "Core/MeshImporter.h"
 #include "Game/Camera.h"
 #include "Game/Components/SphereComponent.h"
 #include "Game/Components/SpringArmComponent.h"
@@ -62,6 +61,30 @@ Planet* CreatePlanet(Vector3 pos, Vector3 rot, Vector3 Scale, bool doDifCol, Vec
 
 int main()
 {
+    Engine* game = &Engine::GetInstance();
+
+    auto grids = game->CreateObject<Grids>();
+    grids->numLineOnSide = 41;
+
+    auto camera = game->CreateCamera();
+    camera->springArmComp->initPosition = Vector3(0.0f, 2.0f, 10.0f);
+    camera->springArmComp->initRotation = Vector3(0.0f);
+    camera->movementComp->speed = 3.0f;
+    camera->springArmComp->attachOnlyTranslation = true;
+    camera->viewType = ViewType::General;
+    Array<Camera*> cameras{};
+    cameras.insert(camera);
+    game->AddWindow(-1, -1, -1, -1, cameras);
+
+    game->Initialize();
+    game->Run();
+    MeshImporter imp;
+    imp.ImportMesh("Meshes/AnyConv.com__Piram.obj");
+    return 0;
+}
+
+
+/*
 
     Engine* game = &Engine::GetInstance();
 
@@ -114,5 +137,4 @@ int main()
     //Create4Screen(game);
     game->Initialize();
     game->Run();
-    return 0;
-}
+    */

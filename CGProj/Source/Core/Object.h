@@ -1,7 +1,7 @@
 #pragma once
 #include "../Utils/Delegates.h"
 #include "../Utils/Array/Array.h"
-#include "../Components/MovementComponent.h"
+#include "Components/GameComponent.h"
 
 class GameComponent;
 class Engine;

@@ -1,5 +1,6 @@
 #pragma once
-#include "../../Core/Object.h"
+#include "Core/Object.h"
+#include "Core/Input/Keys.h"
 
 class PlanetMoveComponent;
 class SphereComponent;

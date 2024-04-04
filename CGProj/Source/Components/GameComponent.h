@@ -1,4 +1,5 @@
 #pragma once
+#include "Utils/Array/Array.h"
 
 class Object;
 class Engine;
@@ -10,12 +11,26 @@ public:
 
     virtual ~GameComponent();
 
-    virtual void Initialize() = 0;
+    virtual void Initialize();
     virtual void DestroyResource();
-    virtual void Draw() {}
-    virtual void Reload(){}    
-    virtual void Update(float timeTick) = 0;
+    virtual void Draw();
+    virtual void Reload();    
+    virtual void Update(float timeTick);
 
+    template<typename T>
+    T* CreateComponent()
+    {
+        if (const auto newComp = dynamic_cast<GameComponent*>(new T()))
+        {
+            newComp->Owner = Owner;            
+            gameComponents.insert(newComp);
+            return dynamic_cast<T*>(newComp);
+        }
+        return nullptr;  
+    }
+
+    Array<GameComponent*> gameComponents;
+    
     Object* Owner;
     Engine* engInst;
 };
