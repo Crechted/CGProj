@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-#include "Game.h"
+#include "Engine.h"
 #include "../Core/Input/InputDevice.h"
 
 WinDisplay::WinDisplay()
@@ -16,7 +16,7 @@ WinDisplay::~WinDisplay()
 
 LRESULT WinDisplay::WindowProcedure(HWND handlerWindow, uint32_t message, UINT_PTR uintParam, LONG_PTR intParam)
 {
-    return Game::GetGame().GetInputDevice()->HandleInput(handlerWindow, message, uintParam, intParam);
+    return Engine::GetInstance().GetInputDevice()->HandleInput(handlerWindow, message, uintParam, intParam);
 }
 
 

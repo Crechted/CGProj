@@ -1,12 +1,12 @@
 #include "BoxComponent.h"
 
 #include "../../Components/TriangleComponent.h"
-#include "../../Core/Game.h"
+#include "../../Core/Engine.h"
 #include "../Objects/Box.h"
 
 BoxComponent::BoxComponent()
 {
-    game = game ? game : &Game::GetGame();
+    engInst = engInst ? engInst : &Engine::GetInstance();
     box = new Box();
 }
 

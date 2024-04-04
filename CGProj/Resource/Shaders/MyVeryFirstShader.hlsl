@@ -42,6 +42,7 @@ PS_IN VSMain(VS_IN input)
     output.pos = mul(output.pos, viewData.mView);
     output.pos = mul(output.pos, viewData.mProj);
     output.col = input.col;
+    //output.col = abs(sin(viewData.color));
 
     return output;
 }

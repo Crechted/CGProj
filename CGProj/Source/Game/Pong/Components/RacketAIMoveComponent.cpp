@@ -1,11 +1,11 @@
 #include "RacketAIMoveComponent.h"
 
-#include "../../../Core/Game.h"
+#include "..\..\..\Core\Engine.h"
 #include "../Objects/Ball.h"
 
 void RacketAIMoveComponent::Initialize()
 {
-    if (!game) return;
+    if (!engInst) return;
 
     CreateConstBuffer();
 }
@@ -20,8 +20,8 @@ void RacketAIMoveComponent::Update(float timeTick)
 
 void RacketAIMoveComponent::GetBall()
 {
-    if (!game) return;
-    /*for (const auto Obj : game->gameObjects)
+    if (!engInst) return;
+    /*for (const auto Obj : engInst->gameObjects)
     {
         if (const auto oBall = dynamic_cast<Ball*>(Obj))
         {

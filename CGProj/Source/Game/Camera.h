@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "../Components/MovementComponent.h"
 #include "../Core/Object.h"
-#include "Inc/SimpleMath.h"
+#include "SimpleMath.h"
 
 class SpringArmComponent;
 class SceneComponent;

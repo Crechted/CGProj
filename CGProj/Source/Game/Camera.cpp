@@ -2,7 +2,7 @@
 
 #include "../Components/MovementComponent.h"
 #include "../Components/SceneComponent.h"
-#include "../Core/Game.h"
+#include "..\Core\Engine.h"
 #include "../Core/Input/InputDevice.h"
 #include "Components/SpringArmComponent.h"
 
@@ -39,9 +39,9 @@ void Camera::Initialize()
     springArmComp->initPosition = initPosition;
     springArmComp->initRotation = initRotation;
     scale = initScale;
-    game->GetInputDevice()->KeyDownDelegate.AddRaw(this, &Camera::OnKeyDown);
-    game->GetInputDevice()->KeyUpDelegate.AddRaw(this, &Camera::OnKeyUp);
-    game->GetInputDevice()->MouseMoveDelegate.AddRaw(this, &Camera::OnMouse);
+    engInst->GetInputDevice()->KeyDownDelegate.AddRaw(this, &Camera::OnKeyDown);
+    engInst->GetInputDevice()->KeyUpDelegate.AddRaw(this, &Camera::OnKeyUp);
+    engInst->GetInputDevice()->MouseMoveDelegate.AddRaw(this, &Camera::OnMouse);
 
     UpdateViewMatrix();
     UpdateProjMatrix();

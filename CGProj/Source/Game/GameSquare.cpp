@@ -2,7 +2,7 @@
 
 #include "../Game/Pong/Components/Movement2DComponent.h"
 #include "../Components/TriangleComponent.h"
-#include "../Core/Game.h"
+#include "..\Core\Engine.h"
 
 
 using namespace DirectX::SimpleMath;

@@ -1,12 +1,11 @@
 ﻿#pragma once
 
 #include "GameComponent.h"
-#include "../Core/Input/Keys.h"
-#include "Inc/SimpleMath.h"
+#include "SimpleMath.h"
+#include "Core/Input/Keys.h"
 
 class SceneComponent;
 struct MouseMoveEventArgs;
-using namespace DirectX::SimpleMath;
 
 class MovementComponent : public GameComponent
 {
@@ -14,7 +13,11 @@ public:
     bool SearchSceneComponent();
     void Initialize() override;
     void Reload() override;
-    void Draw() override {}
+
+    void Draw() override
+    {
+    }
+
     void Update(float timeTick) override;
 
     SceneComponent* sceneComp;
@@ -23,14 +26,15 @@ public:
     Keys inputBackward = Keys::S;
     Keys inputLeft = Keys::A;
     Keys inputRight = Keys::D;
-    Keys inputUp = Keys::Space;
-    Keys inputDown = Keys::C;
+    Keys inputUp = Keys::E;
+    Keys inputDown = Keys::Q;
 
     float speed = 1.0;
     float sensitive = 10.0;
-    
-    Vector3 delLocation;
-    Vector3 delRotation;
+
+
+    DirectX::SimpleMath::Vector3 delLocation;
+    DirectX::SimpleMath::Vector3 delRotation;
 
 protected:
     SceneComponent* parentScene = nullptr;

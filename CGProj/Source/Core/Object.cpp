@@ -1,11 +1,11 @@
 #include "Object.h"
 
-#include "Game.h"
+#include "Engine.h"
 #include "../Components/GameComponent.h"
 
 Object::Object()
 {
-    game = &Game::GetGame();
+    engInst = &Engine::GetInstance();
 }
 
 void Object::Reload()

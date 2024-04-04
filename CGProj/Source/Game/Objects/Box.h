@@ -1,6 +1,7 @@
 #pragma once
 #include "../../Core/Object.h"
 
+using namespace DirectX::SimpleMath;
 class BoxComponent;
 class TriangleComponent;
 

@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "../../Utils/Delegates.h"
-#include "Inc/SimpleMath.h"
+#include "SimpleMath.h"
 #include <unordered_set>
 #include "Keys.h"
 
@@ -11,7 +11,7 @@ struct MouseMoveEventArgs
     int32_t WheelDelta;
 };
 
-class Game;
+class Engine;
 
 class InputDevice
 {
@@ -24,7 +24,7 @@ public:
     MulticastDelegate<Keys> KeyDownDelegate;
     MulticastDelegate<Keys> KeyUpDelegate;
 
-    InputDevice(Game* inGame);
+    InputDevice(Engine* inEng);
     ~InputDevice();
 
     void AddPressedKey(Keys key);
@@ -35,7 +35,7 @@ public:
     LONG_PTR CALLBACK HandleInput(HWND handlerWindow, uint32_t message, UINT_PTR uintParam, LONG_PTR intParam);
 
 protected:
-    Game* game;
+    Engine* engineInst;
     std::unordered_set<Keys>* keys;
     uint32_t inputBuffer_[32]{};
 

@@ -1,10 +1,10 @@
 #pragma once
-#include "../../Core/Game.h"
+#include "../../Core/Engine.h"
 #include "../../Core/Input/Keys.h"
-#include "Inc/SimpleMath.h"
+#include "SimpleMath.h"
 #include "Objects/Wall.h"
 
-class Game;
+class Engine;
 
 class Pong
 {
@@ -12,24 +12,24 @@ public:
     Pong(bool leftIsAI = false, bool rightIsAI = false)
         : leftIsAI(leftIsAI), rightIsAI(rightIsAI)
     {
-        game = &Game::GetGame();
+        engInst = &Engine::GetInstance();
     }
 
     void Initialize();
     void Run();
 
-    void AddWall(Game* game, WallType type);
+    void AddWall(Engine* engInst, WallType type);
     
-    void AddWall(Game* game, WallType type, Vector3 center,
+    void AddWall(Engine* engInst, WallType type, Vector3 center,
        Vector3 extends = {0.97f, 0.02f, 0.5f},
        Vector3 Color = {1.f, 1.f, 1.f});
 
 
-    void AddRacket(Game* game, bool isAI,float speed, Vector3 center, Vector3 extends, Vector3 Color,
+    void AddRacket(Engine* engInst, bool isAI,float speed, Vector3 center, Vector3 extends, Vector3 Color,
         Keys up = Keys::W, Keys down = Keys::S, Keys left = Keys::A, Keys right = Keys::D);
-    void AddRacket(Game* game, bool isAI = false, float speed = 1.0);
+    void AddRacket(Engine* engInst, bool isAI = false, float speed = 1.0);
 
-    void AddBall(Game* game, Vector3 center = {0.f, 0.f, 0.f},
+    void AddBall(Engine* engInst, Vector3 center = {0.f, 0.f, 0.f},
         Vector3 extends = {1.f, 1.f, 1.f},
         Vector3 Color = {1.f, 1.f, 1.f},
         float speed = 1.0);
@@ -41,6 +41,6 @@ public:
     bool rightIsAI;
 
 protected:
-    Game* game;
+    Engine* engInst;
     //D3D_FEATURE_LEVEL featureLevel;
 };

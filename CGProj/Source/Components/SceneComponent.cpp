@@ -1,12 +1,12 @@
 ﻿#include "SceneComponent.h"
 
-#include "../Core/Game.h"
+#include "..\Core\Engine.h"
 #include "../Game/Camera.h"
 #include "../Utils/Types.h"
 
 SceneComponent::SceneComponent()
 {
-    game = &Game::GetGame();
+    engInst = &Engine::GetInstance();
 }
 
 void SceneComponent::Initialize()
@@ -23,16 +23,16 @@ void SceneComponent::Initialize()
     constBufDesc.StructureByteStride = 0;
     constBufDesc.ByteWidth = sizeof(ViewData);
 
-    game->GetDevice()->CreateBuffer(&constBufDesc, nullptr, &constantBuffer);
-    buffers.insert(game->GetIdxCurrentPipeline(), constantBuffer);
+    engInst->GetDevice()->CreateBuffer(&constBufDesc, nullptr, &constantBuffer);
+    buffers.insert(engInst->GetIdxCurrentPipeline(), constantBuffer);
 }
 
 void SceneComponent::Draw()
 {
-    constantBuffer = buffers[game->GetIdxCurrentPipeline()];    
+    constantBuffer = buffers[engInst->GetIdxCurrentPipeline()];    
     //UpdateTransformMatrix();
     UpdateConstantBuffer();
-    game->GetContext()->VSSetConstantBuffers(0, 1, &constantBuffer);
+    engInst->GetContext()->VSSetConstantBuffers(0, 1, &constantBuffer);
 }
 
 void SceneComponent::Reload()
@@ -55,7 +55,7 @@ void SceneComponent::UpdateTransformMatrix()
 
 void SceneComponent::Update(float timeTick)
 {
-    constantBuffer = buffers[game->GetIdxCurrentPipeline()];
+    constantBuffer = buffers[engInst->GetIdxCurrentPipeline()];
     UpdateTransformMatrix();    
     //UpdateConstantBuffer();
 }
@@ -63,7 +63,7 @@ void SceneComponent::Update(float timeTick)
 void SceneComponent::UpdateConstantBuffer()
 {
     D3D11_MAPPED_SUBRESOURCE res = {};
-    game->GetContext()->Map(constantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
+    engInst->GetContext()->Map(constantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
 
     auto Res = GetWorldMatrix();
     /*printf(" Position: posX=%04.4f posY:%04.4f posZ:%04.4f\n",
@@ -75,14 +75,14 @@ void SceneComponent::UpdateConstantBuffer()
     {
         Res.Transpose(),
         //Matrix::CreateWorld(Res.Translation(), Res.Forward(), Res.Up()).Transpose(),
-        Matrix(game->GetCurCamera()->mView).Transpose(),
-        Matrix(game->GetCurCamera()->mProj).Transpose(),
+        Matrix(engInst->GetCurCamera()->mView).Transpose(),
+        Matrix(engInst->GetCurCamera()->mProj).Transpose(),
     };
 
     auto dataPtr = reinterpret_cast<float*>(res.pData);
     memcpy(dataPtr, &data, sizeof(ViewData));
 
-    game->GetContext()->Unmap(constantBuffer, 0);
+    engInst->GetContext()->Unmap(constantBuffer, 0);
 }
 
 void SceneComponent::DestroyResource()
@@ -120,7 +120,7 @@ const Vector3& SceneComponent::GetGlobalUp() const
     return Vector3(0.0f, 1.0f, 0.0f);
 }
 
-const Matrix& SceneComponent::GetWorldMatrix()
+Matrix SceneComponent::GetWorldMatrix()
 {
     SceneComponent* rootComp = this;
     Matrix Res = rootComp->mTransform;

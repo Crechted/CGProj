@@ -1,36 +1,36 @@
 #include "Pong.h"
 
 #include "Components/Movement2DComponent.h"
-#include "../../Core/Game.h"
+#include "..\..\Core\Engine.h"
 #include "Objects/Ball.h"
 #include "Objects/Racket.h"
 
 void Pong::Initialize()
 {
-    game->Initialize();
-    AddRacket(game, rightIsAI, 1.5, {0.9, 0.0, 0.5}, {0.015, 0.15, 0.2}, {1.0, 1.0, 1.0}, Keys::Up, Keys::Down, Keys::Left, Keys::Right);
-    AddRacket(game, leftIsAI, 1.0, {-0.9, -0.0, 0.5}, {0.015, 0.15, 0.2}, {1.0, 0.0, 0.0});
-    AddBall(game, {0.0, 0.0, 0.5}, {0.02, 0.02, 0.2}, {1.0, 1.0, 1.0}, 2.0);
-    AddWall(game, WallType::Up, {0.0, 0.5, 0.5});
-    AddWall(game, WallType::Down, {0.0, -0.5, 0.5});
-    AddWall(game, WallType::Left);
-    AddWall(game, WallType::Right);
+    engInst->Initialize();
+    AddRacket(engInst, rightIsAI, 1.5, {0.9, 0.0, 0.5}, {0.015, 0.15, 0.2}, {1.0, 1.0, 1.0}, Keys::Up, Keys::Down, Keys::Left, Keys::Right);
+    AddRacket(engInst, leftIsAI, 1.0, {-0.9, -0.0, 0.5}, {0.015, 0.15, 0.2}, {1.0, 0.0, 0.0});
+    AddBall(engInst, {0.0, 0.0, 0.5}, {0.02, 0.02, 0.2}, {1.0, 1.0, 1.0}, 2.0);
+    AddWall(engInst, WallType::Up, {0.0, 0.5, 0.5});
+    AddWall(engInst, WallType::Down, {0.0, -0.5, 0.5});
+    AddWall(engInst, WallType::Left);
+    AddWall(engInst, WallType::Right);
 }
 
 void Pong::Run()
 {
-    game->Run();
+    engInst->Run();
 }
 
-void Pong::AddWall(Game* game, WallType type)
+void Pong::AddWall(Engine* engInst, WallType type)
 {
     const auto wall = new Wall(type);
     wall->pong = this;
     wall->Initialize();
-   // game->gameObjects.insert(wall);
+   // engInst->gameObjects.insert(wall);
 }
 
-void Pong::AddWall(Game* game, WallType type, Vector3 center,
+void Pong::AddWall(Engine* engInst, WallType type, Vector3 center,
         Vector3 extends,
         Vector3 Color)
 {
@@ -40,10 +40,10 @@ void Pong::AddWall(Game* game, WallType type, Vector3 center,
     wall->extends = extends;
     wall->color = Color;
     wall->Initialize();
-   // game->gameObjects.insert(wall);
+   // engInst->gameObjects.insert(wall);
 }
 
-void Pong::AddRacket(Game* game, bool isAI, float speed, Vector3 center, Vector3 extends, Vector3 Color, Keys up, Keys down, Keys left, Keys right)
+void Pong::AddRacket(Engine* engInst, bool isAI, float speed, Vector3 center, Vector3 extends, Vector3 Color, Keys up, Keys down, Keys left, Keys right)
 {
     const auto racket = new Racket(center, extends, Color);
     racket->isAI = isAI;
@@ -54,26 +54,26 @@ void Pong::AddRacket(Game* game, bool isAI, float speed, Vector3 center, Vector3
     racket->moveComp->inputLeft = left;
     racket->moveComp->inputRight = right;
     racket->moveComp->speed = speed;
-   // game->gameObjects.insert(racket);
+   // engInst->gameObjects.insert(racket);
 }
 
-void Pong::AddRacket(Game* game, bool isAI, float speed)
+void Pong::AddRacket(Engine* engInst, bool isAI, float speed)
 {
     const auto racket = new Racket();
     racket->isAI = isAI;
     racket->pong = this;
     racket->Initialize();
     racket->moveComp->speed = speed;
-   // game->gameObjects.insert(racket);
+   // engInst->gameObjects.insert(racket);
 }
 
-void Pong::AddBall(Game* game, Vector3 center, Vector3 extends, Vector3 Color, float speed)
+void Pong::AddBall(Engine* engInst, Vector3 center, Vector3 extends, Vector3 Color, float speed)
 {
     const auto ball = new Ball(center, extends, Color);
     ball->pong = this;
     ball->Initialize();
     ball->moveComp->speed = speed;
-   // game->gameObjects.insert(ball);
+   // engInst->gameObjects.insert(ball);
 }
 
 void Pong::IncreaseScoreByWall(WallType wall)

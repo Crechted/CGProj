@@ -1,7 +1,7 @@
 #include "Planet.h"
 
 #include "../Camera.h"
-#include "../../Core/Game.h"
+#include "..\..\Core\Engine.h"
 #include "../../Core/Input/InputDevice.h"
 #include "../Components/SphereComponent.h"
 #include "../Components/SpringArmComponent.h"
@@ -17,7 +17,7 @@ Planet::Planet()
 void Planet::Initialize()
 {
     Object::Initialize();
-    game->GetInputDevice()->KeyDownDelegate.AddRaw(this, &Planet::OnKeyDown);
+    engInst->GetInputDevice()->KeyDownDelegate.AddRaw(this, &Planet::OnKeyDown);
 }
 
 void Planet::AddSputnik(Planet* dirPlanet)
@@ -31,7 +31,7 @@ void Planet::OnKeyDown(Keys key)
 {
     if(key == keyToPoses)
     {
-        for (const auto camera : game->GetCamerasOnViewport())
+        for (const auto camera : engInst->GetCamerasOnViewport())
         {
             camera->springArmComp->AttachTo(meshComponent);
             camera->springArmComp->SetLocation(Vector3(0.0f));        

@@ -2,9 +2,8 @@
 #include <d3d11.h>
 
 #include "GameComponent.h"
+#include "SimpleMath.h"
 #include "../Utils/Array/Array.h"
-#include "Inc/SimpleMath.h"
-
 
 using namespace DirectX::SimpleMath;
 
@@ -58,7 +57,7 @@ public:
 
     const Vector3& GetGlobalUp() const;
 
-    const Matrix& GetWorldMatrix();
+    Matrix GetWorldMatrix();
 
     void AttachTo(SceneComponent* par) {parentComponent = par;}
 
@@ -77,5 +76,4 @@ protected:
     Array<ID3D11Buffer*> buffers;
     ID3D11Buffer* constantBuffer;
     D3D11_BUFFER_DESC constBufDesc;
-
 };

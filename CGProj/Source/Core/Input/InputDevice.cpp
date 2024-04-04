@@ -1,13 +1,13 @@
 ﻿#include "InputDevice.h"
 #include <iostream>
-#include "../../Core/Game.h"
+#include "../Engine.h"
 #include "../../Core/WinDisplay.h"
-#include "Inc/SimpleMath.h"
+#include "SimpleMath.h"
 
 using  namespace DirectX::SimpleMath;
 
-InputDevice::InputDevice(Game* inGame)
-    : game(inGame)
+InputDevice::InputDevice(Engine* inEng)
+    : engineInst(inEng)
 {
     keys = new std::unordered_set<Keys>();
 
@@ -16,12 +16,12 @@ InputDevice::InputDevice(Game* inGame)
     Rid[0].usUsagePage = 0x01;
     Rid[0].usUsage = 0x02;
     Rid[0].dwFlags = 0; // adds HID mouse and also ignores legacy mouse messages
-    Rid[0].hwndTarget = game->GetDisplay()->hWnd;
+    Rid[0].hwndTarget = engineInst->GetDisplay()->hWnd;
 
     Rid[1].usUsagePage = 0x01;
     Rid[1].usUsage = 0x06;
     Rid[1].dwFlags = 0; // adds HID keyboard and also ignores legacy keyboard messages
-    Rid[1].hwndTarget = game->GetDisplay()->hWnd;
+    Rid[1].hwndTarget = engineInst->GetDisplay()->hWnd;
 
     if (!RegisterRawInputDevices(Rid, 2, sizeof(Rid[0])))
     {
@@ -65,7 +65,7 @@ void InputDevice::HanleKey(RAWINPUT* rawInput)
     if (rawInput->data.keyboard.MakeCode == 42) key = Keys::LeftShift;
     if (rawInput->data.keyboard.MakeCode == 54) key = Keys::RightShift;
 
-    if (rawInput->data.keyboard.Flags & RI_KEY_BREAK)
+    if (rawInput->data.keyboard.Flags & true)
     {
         if (keys->count(key)) RemovePressedKey(key);
     }
@@ -93,7 +93,7 @@ void InputDevice::HandleMouse(RAWINPUT* rawInput)
 
     POINT p;
     GetCursorPos(&p);
-    ScreenToClient(game->GetDisplay()->hWnd, &p);
+    ScreenToClient(engineInst->GetDisplay()->hWnd, &p);
 
     MousePosition = Vector2(p.x, p.y);
     MouseOffset = Vector2(rawInput->data.mouse.lLastX, rawInput->data.mouse.lLastY);

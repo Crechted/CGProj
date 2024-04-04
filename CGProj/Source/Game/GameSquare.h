@@ -2,7 +2,7 @@
 #include <DirectXCollision.h>
 
 #include "../Core/Object.h"
-#include "Inc/SimpleMath.h"
+#include "SimpleMath.h"
 
 using namespace DirectX::SimpleMath;
 class TriangleComponent;

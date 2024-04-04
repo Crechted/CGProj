@@ -1,4 +1,6 @@
-﻿#include "Core/Game.h"
+﻿#include "assimp/DefaultLogger.hpp"
+#include "assimp/Importer.hpp"
+#include "Core/Engine.h"
 #include "Game/Camera.h"
 #include "Game/Components/SphereComponent.h"
 #include "Game/Components/SpringArmComponent.h"
@@ -6,7 +8,7 @@
 #include "Game/Planets/Planet.h"
 #include "Game/Planets/Components/PlanetMoveComponent.h"
 
-void Create4Screen(Game* game, bool OnOneWindow = true)
+void Create4Screen(Engine* game, bool OnOneWindow = true)
 {
     if (!OnOneWindow)
     {
@@ -43,7 +45,7 @@ void Create4Screen(Game* game, bool OnOneWindow = true)
 Planet* CreatePlanet(Vector3 pos, Vector3 rot, Vector3 Scale, bool doDifCol, Vector3 col, float rad, bool isRot, Vector3 rotationAroundAxis,
     bool drawAll, Keys keyToPos)
 {
-    Game* game = &Game::GetGame();
+    Engine* game = &Engine::GetInstance();
     Planet* planet = game->CreateObject<Planet>();
     planet->meshComponent->initPosition = pos;
     planet->meshComponent->initRotation = rot;
@@ -61,10 +63,11 @@ Planet* CreatePlanet(Vector3 pos, Vector3 rot, Vector3 Scale, bool doDifCol, Vec
 int main()
 {
 
-    Game* game = &Game::GetGame();
+    Engine* game = &Engine::GetInstance();
+
     auto grids = game->CreateObject<Grids>();
     grids->numLineOnSide = 41;
-    
+
     auto camera = game->CreateCamera();
     camera->springArmComp->initPosition = Vector3(0.0f, 2.0f, 10.0f);
     camera->springArmComp->initRotation = Vector3(0.0f);
@@ -73,7 +76,7 @@ int main()
     camera->viewType = ViewType::General;
     Array<Camera*> cameras{};
     cameras.insert(camera);
-    game->AddWindow(-1, -1, -1, -1, cameras);
+    //game->AddWindow(-1, -1, -1, -1, cameras);
 
     Planet* planet1 = CreatePlanet(Vector3(0.0f, 2.0f, 0.0f), Vector3(0.0f), Vector3(1.0f), false, Vector3(1.0, 0.8, 0.2), 4.0f, true,
         Vector3(0.30f, 45.0f, 0.0f), true, Keys::D1);
@@ -107,6 +110,7 @@ int main()
     planet3->AddSputnik(planet6);
     //planet5->moveComp->isMove = false;
 
+    printf("%f", Vector3::Zero.x);
     //Create4Screen(game);
     game->Initialize();
     game->Run();

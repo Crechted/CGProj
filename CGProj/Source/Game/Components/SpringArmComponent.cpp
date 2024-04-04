@@ -1,7 +1,7 @@
 #include "SpringArmComponent.h"
 
 #include "../Camera.h"
-#include "../../Core/Game.h"
+#include "..\..\Core\Engine.h"
 #include "../../Core/Input/InputDevice.h"
 #include "../../Utils/Types.h"
 
@@ -12,8 +12,8 @@ SpringArmComponent::SpringArmComponent()
 void SpringArmComponent::Initialize()
 {
     SceneComponent::Initialize();
-    game->GetInputDevice()->KeyDownDelegate.AddRaw(this, &SpringArmComponent::OnKeyDown);
-    game->GetInputDevice()->KeyUpDelegate.AddRaw(this, &SpringArmComponent::OnKeyUp);
+    engInst->GetInputDevice()->KeyDownDelegate.AddRaw(this, &SpringArmComponent::OnKeyDown);
+    engInst->GetInputDevice()->KeyUpDelegate.AddRaw(this, &SpringArmComponent::OnKeyUp);
 }
 
 void SpringArmComponent::Detach()

@@ -1,6 +1,6 @@
 #pragma once
 #include "../../Core/Object.h"
-
+using namespace DirectX::SimpleMath;
 class TriangleComponent;
 
 class Sphere : public Object

@@ -1,8 +1,8 @@
 #include "Sphere.h"
 
-#include "../../Components/TriangleComponent.h"
-#include "../../Core/Game.h"
-#include "../../Utils/Types.h"
+#include "Components/TriangleComponent.h"
+#include "Core/Engine.h"
+#include "Utils/Types.h"
 
 Sphere::Sphere()
 {

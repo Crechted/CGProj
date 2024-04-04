@@ -2,7 +2,7 @@
 
 #include "../Planet.h"
 #include "../../../Components/SceneComponent.h"
-#include "../../../Core/Game.h"
+#include "..\..\..\Core\Engine.h"
 #include "../../Components/SphereComponent.h"
 
 void PlanetMoveComponent::Update(float timeTick)
@@ -14,7 +14,7 @@ void PlanetMoveComponent::Initialize()
 {
     MovementComponent::Initialize();
     if (!sceneComp && !SearchSceneComponent()) return;
-    if (!game || !sceneComp) return;
+    if (!engInst || !sceneComp) return;
     ownerPlanet = reinterpret_cast<Planet*>(Owner);
     Reload();
 }
@@ -27,7 +27,6 @@ void PlanetMoveComponent::HandleInputByKey()
 void PlanetMoveComponent::CalcOffset(float timeTick)
 {
     if (!sceneComp) return;
-
     if ( isMove && ownerPlanet && ownerPlanet->parentPlanet)
     {
         auto parentScene = ownerPlanet->parentPlanet->meshComponent;
@@ -39,6 +38,7 @@ void PlanetMoveComponent::CalcOffset(float timeTick)
         gravityVelocity.Normalize();
         auto velocity = gravityVelocity.Cross(sceneComp->GetUp());
         sceneComp->AddLocation(velocity * speed * timeTick);
+        
         /*printf(" Gravity: X=%04.4f Y:%04.4f Z:%04.4f\n",
             velocity.x,
             velocity.y,

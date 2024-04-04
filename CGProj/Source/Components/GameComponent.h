@@ -1,7 +1,7 @@
 #pragma once
 
 class Object;
-class Game;
+class Engine;
 
 class GameComponent
 {
@@ -17,5 +17,5 @@ public:
     virtual void Update(float timeTick) = 0;
 
     Object* Owner;
-    Game* game;
+    Engine* engInst;
 };

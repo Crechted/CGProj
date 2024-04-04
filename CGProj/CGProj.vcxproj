@@ -19,6 +19,119 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Libs\Assimp\include\assimp\aabb.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\ai_assert.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\anim.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\AssertHandler.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\Base64.hpp" />
+    <ClInclude Include="Libs\Assimp\include\assimp\BaseImporter.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\Bitmap.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\BlobIOSystem.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\ByteSwapper.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\camera.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\cexport.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\cfileio.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\cimport.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\ColladaMetaData.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\color4.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\color4.inl" />
+    <ClInclude Include="Libs\Assimp\include\assimp\commonMetaData.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\Compiler\poppack1.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\Compiler\pstdint.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\Compiler\pushpack1.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\config.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\CreateAnimMesh.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\DefaultIOStream.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\DefaultIOSystem.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\DefaultLogger.hpp" />
+    <ClInclude Include="Libs\Assimp\include\assimp\defs.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\Exceptional.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\Exporter.hpp" />
+    <ClInclude Include="Libs\Assimp\include\assimp\fast_atof.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\GenericProperty.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\GltfMaterial.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\Hash.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\Importer.hpp" />
+    <ClInclude Include="Libs\Assimp\include\assimp\importerdesc.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\IOStream.hpp" />
+    <ClInclude Include="Libs\Assimp\include\assimp\IOStreamBuffer.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\IOSystem.hpp" />
+    <ClInclude Include="Libs\Assimp\include\assimp\light.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\LineSplitter.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\LogAux.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\Logger.hpp" />
+    <ClInclude Include="Libs\Assimp\include\assimp\LogStream.hpp" />
+    <ClInclude Include="Libs\Assimp\include\assimp\material.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\material.inl" />
+    <ClInclude Include="Libs\Assimp\include\assimp\MathFunctions.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\matrix3x3.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\matrix3x3.inl" />
+    <ClInclude Include="Libs\Assimp\include\assimp\matrix4x4.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\matrix4x4.inl" />
+    <ClInclude Include="Libs\Assimp\include\assimp\MemoryIOWrapper.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\mesh.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\metadata.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\NullLogger.hpp" />
+    <ClInclude Include="Libs\Assimp\include\assimp\ObjMaterial.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\ParsingUtils.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\pbrmaterial.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\port\AndroidJNI\AndroidJNIIOSystem.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\port\AndroidJNI\BundledAssetIOSystem.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\postprocess.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\Profiler.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\ProgressHandler.hpp" />
+    <ClInclude Include="Libs\Assimp\include\assimp\qnan.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\quaternion.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\quaternion.inl" />
+    <ClInclude Include="Libs\Assimp\include\assimp\RemoveComments.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\scene.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\SceneCombiner.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\SGSpatialSort.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\SkeletonMeshBuilder.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\SmallVector.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\SmoothingGroups.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\SmoothingGroups.inl" />
+    <ClInclude Include="Libs\Assimp\include\assimp\SpatialSort.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\StandardShapes.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\StreamReader.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\StreamWriter.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\StringComparison.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\StringUtils.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\Subdivision.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\texture.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\TinyFormatter.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\types.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\vector2.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\vector2.inl" />
+    <ClInclude Include="Libs\Assimp\include\assimp\vector3.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\vector3.inl" />
+    <ClInclude Include="Libs\Assimp\include\assimp\version.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\Vertex.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\XmlParser.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\XMLTools.h" />
+    <ClInclude Include="Libs\Assimp\include\assimp\ZipArchiveIOSystem.h" />
+    <ClInclude Include="Libs\Inc\Audio.h" />
+    <ClInclude Include="Libs\Inc\BufferHelpers.h" />
+    <ClInclude Include="Libs\Inc\CommonStates.h" />
+    <ClInclude Include="Libs\Inc\DDSTextureLoader.h" />
+    <ClInclude Include="Libs\Inc\DirectXHelpers.h" />
+    <ClInclude Include="Libs\Inc\Effects.h" />
+    <ClInclude Include="Libs\Inc\GamePad.h" />
+    <ClInclude Include="Libs\Inc\GeometricPrimitive.h" />
+    <ClInclude Include="Libs\Inc\GraphicsMemory.h" />
+    <ClInclude Include="Libs\Inc\Keyboard.h" />
+    <ClInclude Include="Libs\Inc\Model.h" />
+    <ClInclude Include="Libs\Inc\Mouse.h" />
+    <ClInclude Include="Libs\Inc\PostProcess.h" />
+    <ClInclude Include="Libs\Inc\PrimitiveBatch.h" />
+    <ClInclude Include="Libs\Inc\ScreenGrab.h" />
+    <ClInclude Include="Libs\Inc\SimpleMath.h" />
+    <ClInclude Include="Libs\Inc\SimpleMath.inl" />
+    <ClInclude Include="Libs\Inc\SpriteBatch.h" />
+    <ClInclude Include="Libs\Inc\SpriteFont.h" />
+    <ClInclude Include="Libs\Inc\VertexTypes.h" />
+    <ClInclude Include="Libs\Inc\WICTextureLoader.h" />
+    <ClInclude Include="Libs\Inc\XboxDDSTextureLoader.h" />
     <ClInclude Include="Source\Components\GameComponent.h" />
     <ClInclude Include="Source\Components\MovementComponent.h" />
     <ClInclude Include="Source\Components\SceneComponent.h" />
@@ -46,7 +159,7 @@
     <ClInclude Include="Source\Game\Pong\Objects\Wall.h" />
     <ClInclude Include="Source\Game\Pong\Pong.h" />
     <ClInclude Include="Source\Utils\Delegates.h" />
-    <ClInclude Include="Source\Core\Game.h" />
+    <ClInclude Include="Source\Core\Engine.h" />
     <ClInclude Include="Source\Utils\Array\Array.h" />
     <ClInclude Include="Source\Utils\Array\Array.hpp" />
     <ClInclude Include="Source\Components\TriangleComponent.h" />
@@ -142,7 +255,6 @@
       <DisableAnalyzeExternal>false</DisableAnalyzeExternal>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;_UNICODE;UNICODE;</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>../DirectXTK-main</AdditionalIncludeDirectories>
       <LinkCompiled>true</LinkCompiled>
     </ClCompile>
     <ClCompile Include="Source\Game\Pong\Components\RacketAIMoveComponent.cpp" />
@@ -217,7 +329,6 @@
       <DisableAnalyzeExternal>false</DisableAnalyzeExternal>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;_UNICODE;UNICODE;</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>../DirectXTK-main</AdditionalIncludeDirectories>
       <LinkCompiled>true</LinkCompiled>
     </ClCompile>
     <ClCompile Include="Source\Game\Pong\Objects\PongObject.cpp" />
@@ -291,13 +402,12 @@
       <DisableAnalyzeExternal>false</DisableAnalyzeExternal>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;_UNICODE;UNICODE;</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>../DirectXTK-main</AdditionalIncludeDirectories>
       <LinkCompiled>true</LinkCompiled>
     </ClCompile>
     <ClCompile Include="Source\Game\Pong\Objects\Wall.cpp" />
     <ClCompile Include="Source\Game\Pong\Pong.cpp" />
     <ClCompile Include="Source\Utils\Delegates.cpp" />
-    <ClCompile Include="Source\Core\Game.cpp" />
+    <ClCompile Include="Source\Core\Engine.cpp" />
     <ClCompile Include="Source\Components\TriangleComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -314,6 +424,13 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Source\Utils\lib\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Libs\Assimp\assimp-vc142-mtd.lib" />
+    <Content Include="Libs\Assimp\include\assimp\.editorconfig" />
+    <Content Include="Libs\Assimp\include\assimp\config.h.in" />
+    <Content Include="Libs\DirectXTK.lib" />
+    <Content Include="Libs\DirectXTK.pdb" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -385,7 +502,6 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../../DirectXTK-main</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -414,11 +530,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>../DirectXTK-main</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)CGProj/Source/;$(SolutionDir)CGProj\Libs\Inc\;$(SolutionDir)CGProj\Libs\Assimp\include\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)\CGProj\Libs;$(SolutionDir)\CGProj\Libs\Assimp</AdditionalLibraryDirectories>
+      <AdditionalDependencies>assimp-vc142-mtd.lib;DirectXTK.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -429,12 +547,15 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(SolutionDir)CGProj/Source/;$(SolutionDir)CGProj\Libs\Inc\;$(SolutionDir)CGProj\Libs\Assimp\include\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)\CGProj\Libs;$(SolutionDir)\CGProj\Libs\Assimp</AdditionalLibraryDirectories>
+      <AdditionalDependencies>assimp-vc142-mtd.lib;DirectXTK.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

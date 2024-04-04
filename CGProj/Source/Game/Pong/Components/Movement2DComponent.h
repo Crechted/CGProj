@@ -1,8 +1,8 @@
 #pragma once
 #include <d3d11.h>
-#include <DirectXMath.h>
+//#include <DirectXMath.h>
 
-#include "Inc/SimpleMath.h"
+#include "SimpleMath.h"
 #include "../../../Components/GameComponent.h"
 #include "../../../Core/Input/Keys.h"
 

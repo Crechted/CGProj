@@ -1,10 +1,10 @@
 #include "SphereComponent.h"
-#include "../../Core/Game.h"
+#include "..\..\Core\Engine.h"
 #include "../Objects/Sphere.h"
 
 SphereComponent::SphereComponent()
 {
-    game = game ? game : &Game::GetGame();
+    engInst = engInst ? engInst : &Engine::GetInstance();
     sphere = new Sphere();
 }
 

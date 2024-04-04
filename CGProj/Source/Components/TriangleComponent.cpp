@@ -6,12 +6,12 @@
 #include <d3d.h>
 #include <d3dcompiler.h>
 
-#include "../Core/Game.h"
+#include "../Core/Engine.h"
 #include "../Core/Windisplay.h"
-
 
 TriangleComponent::TriangleComponent()
 {
+    
 }
 
 TriangleComponent::~TriangleComponent()
@@ -40,7 +40,7 @@ void TriangleComponent::Initialize()
     curDrawData->pixelShader = pixelShader;
     curDrawData->vertexBuffer = vertexBuffer;
     curDrawData->indexBuffer = indexBuffer;
-    drawsData.insert(game->GetIdxCurrentPipeline(), curDrawData);
+    drawsData.insert(engInst->GetIdxCurrentPipeline(), curDrawData);
 }
 
 void TriangleComponent::DestroyResource()
@@ -51,19 +51,19 @@ void TriangleComponent::DestroyResource()
 
 void TriangleComponent::Draw()
 {
-    if (!game)
+    if (!engInst)
         return;
 
     UpdateData();
-    game->GetContext()->RSSetState(rastState);
-    game->GetContext()->IASetInputLayout(layout);
-    game->GetContext()->IASetPrimitiveTopology(topology);
-    game->GetContext()->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-    game->GetContext()->IASetVertexBuffers(0, 1, &vertexBuffer, strides, offsets);
-    game->GetContext()->VSSetShader(vertexShader, nullptr, 0);
-    game->GetContext()->PSSetShader(pixelShader, nullptr, 0);
+    engInst->GetContext()->RSSetState(rastState);
+    engInst->GetContext()->IASetInputLayout(layout);
+    engInst->GetContext()->IASetPrimitiveTopology(topology);
+    engInst->GetContext()->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+    engInst->GetContext()->IASetVertexBuffers(0, 1, &vertexBuffer, strides, offsets);
+    engInst->GetContext()->VSSetShader(vertexShader, nullptr, 0);
+    engInst->GetContext()->PSSetShader(pixelShader, nullptr, 0);
 
-    game->GetContext()->DrawIndexed(indexes.size(), 0, 0);
+    engInst->GetContext()->DrawIndexed(indexes.size(), 0, 0);
 }
 
 void TriangleComponent::Reload()
@@ -72,7 +72,7 @@ void TriangleComponent::Reload()
 
 void TriangleComponent::UpdateData()
 {
-    curDrawData = drawsData[game->GetIdxCurrentPipeline()];
+    curDrawData = drawsData[engInst->GetIdxCurrentPipeline()];
     rastState = curDrawData->rastState;
     layout = curDrawData->layout;
     vertexShader = curDrawData->vertexShader;
@@ -84,7 +84,7 @@ void TriangleComponent::UpdateData()
 void TriangleComponent::Update(float timeTick)
 {
     UpdateData();
-    totalTime = game->GetTotalTime();
+    totalTime = engInst->GetTotalTime();
 }
 
 void TriangleComponent::AddPoint(DirectX::XMFLOAT4 point, DirectX::XMFLOAT4 color)
@@ -155,7 +155,7 @@ bool TriangleComponent::CheckResCompile(ID3DBlob* errorVertexCode, const HRESULT
         // If there was  nothing in the error message then it simply could not find the shader file itself.
         else
         {
-            MessageBox(game->GetDisplay()->hWnd, pFileName, L"Missing Shader File", MB_OK);
+            MessageBox(engInst->GetDisplay()->hWnd, pFileName, L"Missing Shader File", MB_OK);
         }
 
         return false;
@@ -165,8 +165,8 @@ bool TriangleComponent::CheckResCompile(ID3DBlob* errorVertexCode, const HRESULT
 
 void TriangleComponent::CreateShaders()
 {
-    game->GetDevice()->CreateVertexShader(vertexBC->GetBufferPointer(), vertexBC->GetBufferSize(), nullptr, &vertexShader);
-    game->GetDevice()->CreatePixelShader(pixelBC->GetBufferPointer(), pixelBC->GetBufferSize(), nullptr, &pixelShader);
+    engInst->GetDevice()->CreateVertexShader(vertexBC->GetBufferPointer(), vertexBC->GetBufferSize(), nullptr, &vertexShader);
+    engInst->GetDevice()->CreatePixelShader(pixelBC->GetBufferPointer(), pixelBC->GetBufferSize(), nullptr, &pixelShader);
 }
 
 void TriangleComponent::CreateLayout()
@@ -176,7 +176,7 @@ void TriangleComponent::CreateLayout()
         D3D11_INPUT_ELEMENT_DESC{"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT,
                                  D3D11_INPUT_PER_VERTEX_DATA, 0}};
 
-    game->GetDevice()->CreateInputLayout(inputElements, numElements, vertexBC->GetBufferPointer(), vertexBC->GetBufferSize(),
+    engInst->GetDevice()->CreateInputLayout(inputElements, numElements, vertexBC->GetBufferPointer(), vertexBC->GetBufferSize(),
         &layout);
 }
 
@@ -193,7 +193,7 @@ void TriangleComponent::CreateVertexBuffer()
     vertexData.SysMemPitch = 0;
     vertexData.SysMemSlicePitch = 0;
 
-    game->GetDevice()->CreateBuffer(&vertexBufDesc, &vertexData, &vertexBuffer);
+    engInst->GetDevice()->CreateBuffer(&vertexBufDesc, &vertexData, &vertexBuffer);
 }
 
 void TriangleComponent::CreateIndexBuffer()
@@ -210,7 +210,7 @@ void TriangleComponent::CreateIndexBuffer()
     indexData.SysMemPitch = 0;
     indexData.SysMemSlicePitch = 0;
 
-    game->GetDevice()->CreateBuffer(&indexBufDesc, &indexData, &indexBuffer);
+    engInst->GetDevice()->CreateBuffer(&indexBufDesc, &indexData, &indexBuffer);
 }
 
 void TriangleComponent::CreateAndSetRasterizerState()
@@ -223,6 +223,6 @@ void TriangleComponent::CreateAndSetRasterizerState()
     rastDesc.FillMode = fillMode; // D3D11_FILL_SOLID
     rastDesc.AntialiasedLineEnable = isAntialiasedLine;
 
-    auto res = game->GetDevice()->CreateRasterizerState(&rastDesc, &rastState);
-    game->GetContext()->RSSetState(rastState);
+    auto res = engInst->GetDevice()->CreateRasterizerState(&rastDesc, &rastState);
+    engInst->GetContext()->RSSetState(rastState);
 }

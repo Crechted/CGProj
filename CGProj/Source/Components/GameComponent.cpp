@@ -1,9 +1,9 @@
 ﻿#include "GameComponent.h"
-#include "../Core/Game.h"
+#include "..\Core\Engine.h"
 
 GameComponent::GameComponent()
 {
-    game = &Game::GetGame();
+    engInst = &Engine::GetInstance();
 }
 
 GameComponent::~GameComponent()
