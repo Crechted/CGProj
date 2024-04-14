@@ -1,9 +1,14 @@
-﻿#include "Core/Engine.h"
-#include "Core/MeshImporter.h"
+﻿#include "Core/Components/MeshComponent.h"
+#include "Core/Engine.h"
+#include "Utils/MeshImporter.h"
+#include "Core/Objects/Mesh.h"
 #include "Game/Camera.h"
+#include "Game/Components/DrawSphereComponent.h"
 #include "Game/Components/SphereComponent.h"
 #include "Game/Components/SpringArmComponent.h"
+#include "Game/Objects/Box.h"
 #include "Game/Objects/Grids.h"
+#include "Game/Objects/SkySphere.h"
 #include "Game/Planets/Planet.h"
 #include "Game/Planets/Components/PlanetMoveComponent.h"
 
@@ -66,20 +71,32 @@ int main()
     auto grids = game->CreateObject<Grids>();
     grids->numLineOnSide = 41;
 
-    auto camera = game->CreateCamera();
-    camera->springArmComp->initPosition = Vector3(0.0f, 2.0f, 10.0f);
+    //auto camera = game->CreateCamera();
+    auto camera = game->CreateObject<Camera>();
+    camera->springArmComp->initPosition = Vector3(10.0f, 2.0f, 10.0f);
     camera->springArmComp->initRotation = Vector3(0.0f);
     camera->movementComp->speed = 3.0f;
     camera->springArmComp->attachOnlyTranslation = true;
     camera->viewType = ViewType::General;
     Array<Camera*> cameras{};
     cameras.insert(camera);
+    //game->AddCamera(camera);
     game->AddWindow(-1, -1, -1, -1, cameras);
 
+    //const auto mesh = game->CreateObject<Mesh>("Resource/Meshes/Piram.obj");
+    //mesh->initPosition = Vector3(24.0f, -140.0f, -75.0f);
+
+    auto mesh = game->CreateObject<Mesh>("Resource/Meshes/GunLow2.fbx");
+    mesh->SetCollisionVisibility(true);
+    auto box = game->CreateObject<Box>(nullptr, Vector3(2.0f, 2.0f, 0.0f), Vector3(0.2, 0.1, 0.2));
+    auto spher = game->CreateComponent<SphereComponent>(L"Resource/Textures/Golova2.jpg", Vector3(4.0f, 2.0f, 0.0f));
+    spher->GetMesh()->SetCollisionVisibility(true);
+    box->SetCollisionVisibility(true);
+    //sphere->GetMesh()->SetTexture(L"Resource/Textures/sky.jpeg");
+    //sphere->initPosition = Vector3(1.0f, 1.0f, 0.0f);
     game->Initialize();
     game->Run();
-    MeshImporter imp;
-    imp.ImportMesh("Meshes/AnyConv.com__Piram.obj");
+    
     return 0;
 }
 

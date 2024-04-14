@@ -1,8 +1,8 @@
 #include "GameSquare.h"
 
-#include "../Game/Pong/Components/Movement2DComponent.h"
-#include "../Components/TriangleComponent.h"
-#include "..\Core\Engine.h"
+#include "Game/Pong/Components/Movement2DComponent.h"
+#include "Core/Components/DrawComponent.h"
+#include "Core/Engine.h"
 
 
 using namespace DirectX::SimpleMath;
@@ -15,13 +15,13 @@ GameSquare::GameSquare(Vector3 center, Vector3 extends, Vector3 color)
 void GameSquare::CreateComponents()
 {
     moveComp = CreateComponent<Movement2DComponent>();
-    boxSprite = CreateComponent<TriangleComponent>();
+    boxSprite = CreateComponent<DrawComponent>();
 }
 
 void GameSquare::Initialize()
 {
-    beginOverlapped.AddRaw(this, &GameSquare::OnBeginOverlapped);
-    endOverlapped.AddRaw(this, &GameSquare::OnEndOverlapped);
+    //beginOverlapped.AddRaw(this, &GameSquare::OnBeginOverlapped);
+    //endOverlapped.AddRaw(this, &GameSquare::OnEndOverlapped);
     CreateComponents();
     InitPoints();
     if (boxSprite) boxSprite->Initialize();
@@ -33,7 +33,7 @@ void GameSquare::Initialize()
 
 void GameSquare::InitPoints()
 {
-    boxSprite->SetPoints(new DirectX::XMFLOAT4[8]
+    boxSprite->SetVertices(new DirectX::XMFLOAT4[8]
     {
         DirectX::XMFLOAT4(center.x + extends.x, center.y + extends.y, 0.5f, 1.0f),
         DirectX::XMFLOAT4(color.x, color.y, color.z, 1.0f),

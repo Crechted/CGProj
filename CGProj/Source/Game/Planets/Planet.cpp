@@ -3,13 +3,13 @@
 #include "Game/Camera.h"
 #include "Core/Engine.h"
 #include "Core/Input/InputDevice.h"
-#include "Game/Components/SphereComponent.h"
+#include "Game/Components/DrawSphereComponent.h"
 #include "Game/Components/SpringArmComponent.h"
 #include "Components/PlanetMoveComponent.h"
 
 Planet::Planet()
 {
-    meshComponent = CreateComponent<SphereComponent>();
+    meshComponent = CreateComponent<DrawSphereComponent>();
     moveComp = CreateComponent<PlanetMoveComponent>();
     moveComp->sceneComp = meshComponent;
 }

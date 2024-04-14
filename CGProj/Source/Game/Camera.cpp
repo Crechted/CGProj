@@ -1,9 +1,9 @@
 ﻿#include "Camera.h"
 
-#include "../Components/MovementComponent.h"
-#include "../Components/SceneComponent.h"
-#include "..\Core\Engine.h"
-#include "../Core/Input/InputDevice.h"
+#include "Core/Components/MovementComponent.h"
+#include "Core/Components/SceneComponent.h"
+#include "Core/Engine.h"
+#include "Core/Input/InputDevice.h"
 #include "Components/SpringArmComponent.h"
 
 Camera::Camera(Vector3 initPosition, Vector3 initRotation)

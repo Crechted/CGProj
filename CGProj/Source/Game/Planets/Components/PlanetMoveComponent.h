@@ -1,5 +1,5 @@
 #pragma once
-#include "../../../Components/MovementComponent.h"
+#include "Core/Components/MovementComponent.h"
 
 class Planet;
 

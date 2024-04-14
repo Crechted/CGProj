@@ -1,7 +1,7 @@
 #pragma once
-#include "../Utils/Delegates.h"
-#include "../Utils/Array/Array.h"
-#include "Components/GameComponent.h"
+#include "Utils/Delegates.h"
+#include "Utils/Array/Array.h"
+#include "Core/Components/GameComponent.h"
 
 class GameComponent;
 class Engine;
@@ -18,6 +18,10 @@ public:
     virtual void Reload();
     virtual void Initialize();
 
+    virtual void PreDraw();
+    virtual void Draw();
+    virtual void Render();
+    virtual void Destroy();
     virtual void Update(float timeTick);
 
     template<typename T>
@@ -33,12 +37,7 @@ public:
     }
 
     Array<GameComponent*> gameComponents;
-    virtual void Draw();
-
-    virtual void Destroy();
 
     //Array<Object*> overlappedObjects;
-    MulticastDelegate<Object*> beginOverlapped; 
-    MulticastDelegate<Object*> endOverlapped; 
     Engine* engInst;
 };

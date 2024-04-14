@@ -2,26 +2,24 @@
 #include <d3d11.h>
 #include <directxmath.h>
 #include "GameComponent.h"
-#include "../Utils/Array/Array.h"
+#include "Utils/Array/Array.h"
 
 
+struct TriangleDrawData;
+struct VertexNoTex;
 class Movement2DComponent;
 
-struct TriangleDrawData
+struct D3DMinVertex
 {
-    ID3D11RasterizerState* rastState;
-    ID3D11InputLayout* layout;
-    ID3D11VertexShader* vertexShader;
-    ID3D11PixelShader* pixelShader;
-    ID3D11Buffer* vertexBuffer;
-    ID3D11Buffer* indexBuffer;
+    DirectX::XMFLOAT4 pos;
+    DirectX::XMFLOAT4 col;
 };
 
-class TriangleComponent : public GameComponent
+class DrawComponent : public GameComponent
 {
 public:
-    TriangleComponent();
-    ~TriangleComponent();
+    DrawComponent();
+    ~DrawComponent();
 
     void Initialize() override;
     void DestroyResource() override;
@@ -30,10 +28,12 @@ public:
     void UpdateData();
     void Update(float timeTick) override;
 
-    int32_t GetNumPoints() const {return points.size();}
-    void AddPoint(DirectX::XMFLOAT4 point, DirectX::XMFLOAT4 color);
-    void SetPoints(const Array<DirectX::XMFLOAT4>& pts) { points = pts; }
-    void SetPoints(DirectX::XMFLOAT4* pts, int32_t count);
+    int32_t GetNumVertices() const {return vertices.size();}
+    void AddVertex(const VertexNoTex& vertex);
+    void AddVertex(const DirectX::XMFLOAT4& pos, const DirectX::XMFLOAT4& col);
+    void SetVertices(const Array<VertexNoTex>& verts);
+    void SetVertices(const Array<DirectX::XMFLOAT4>& pts);
+    void SetVertices(DirectX::XMFLOAT4* pts, int32_t count);
 
     
     int32_t GetNumIndexes() const {return indexes.size();}
@@ -73,8 +73,8 @@ protected:
 
     TriangleDrawData* curDrawData;
 
-    Array<DirectX::XMFLOAT4> points;
-    //int32_t countPoints;
+    //Array<DirectX::XMFLOAT4> vertices;
+    Array<D3DMinVertex> vertices;
 
     Array<int32_t> indexes;
     
@@ -83,7 +83,10 @@ protected:
     UINT* strides;
     UINT* offsets;
     float totalTime = 0;
-
+    
+    LPCWSTR pFileName = L"./Resource/Shaders/DrawShader.hlsl";
+    LPSTR VSname = (LPSTR)"VSMain";
+    LPSTR PSname = (LPSTR)"PSMain";
 private:
     ID3D11RasterizerState* rastState;
     ID3D11InputLayout* layout;
@@ -92,3 +95,4 @@ private:
     ID3D11Buffer* vertexBuffer;
     ID3D11Buffer* indexBuffer;
 };
+

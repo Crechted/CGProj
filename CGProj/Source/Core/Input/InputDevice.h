@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "../../Utils/Delegates.h"
+#include "Utils/Delegates.h"
 #include "SimpleMath.h"
 #include <unordered_set>
 #include "Keys.h"

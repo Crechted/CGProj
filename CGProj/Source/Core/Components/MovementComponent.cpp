@@ -1,8 +1,8 @@
 ﻿#include "MovementComponent.h"
 
 #include "SceneComponent.h"
-#include "../Core/Engine.h"
-#include "../Core/Input/InputDevice.h"
+#include "Core/Engine.h"
+#include "Core/Input/InputDevice.h"
 
 
 bool MovementComponent::SearchSceneComponent()
@@ -11,7 +11,7 @@ bool MovementComponent::SearchSceneComponent()
     {
         for (const auto comp : Owner->gameComponents)
         {
-            if (const auto sceneC = reinterpret_cast<SceneComponent*>(comp))
+            if (const auto sceneC = dynamic_cast<SceneComponent*>(comp))
             {
                 sceneComp = sceneC;
                 return true;

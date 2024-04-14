@@ -1,6 +1,6 @@
 #pragma once
 #include "PongObject.h"
-#include "../../GameSquare.h"
+#include "Game/GameSquare.h"
 
 class Racket : public PongObject
 {

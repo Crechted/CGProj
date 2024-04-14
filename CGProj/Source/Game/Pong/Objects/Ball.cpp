@@ -2,9 +2,9 @@
 
 #include "Racket.h"
 #include "Wall.h"
-#include "../Pong.h"
-#include "../../../Components/TriangleComponent.h"
-#include "../Components/BallMoveComponent.h"
+#include "Game/Pong/Pong.h"
+#include "Core/Components/DrawComponent.h"
+#include "Game/Pong/Components/BallMoveComponent.h"
 
 using namespace DirectX::SimpleMath;
 
@@ -19,7 +19,7 @@ Ball::Ball(Vector3 center, Vector3 extends, Vector3 color)
 void Ball::CreateComponents()
 {
     moveComp = CreateComponent<BallMoveComponent>();
-    boxSprite = CreateComponent<TriangleComponent>();
+    boxSprite = CreateComponent<DrawComponent>();
 }
 
 

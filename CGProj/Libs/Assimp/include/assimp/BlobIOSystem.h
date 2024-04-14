@@ -111,7 +111,7 @@ public:
         memcpy(buffer + cursor, pvBuffer, pSize);
         cursor += pSize;
 
-        file_size = std::max(file_size, cursor);
+        file_size = max(file_size, cursor);
         return pCount;
     }
 
@@ -138,7 +138,7 @@ public:
             Grow(cursor);
         }
 
-        file_size = std::max(cursor, file_size);
+        file_size = max(cursor, file_size);
 
         return AI_SUCCESS;
     }
@@ -167,7 +167,7 @@ private:
         // since this heavily depends on the heap implementation
         // and other factors as well, i'll just go with 1.5 since
         // it is quicker to compute).
-        size_t new_size = std::max(initial, std::max(need, cur_size + (cur_size >> 1)));
+        size_t new_size = max(initial, max(need, cur_size + (cur_size >> 1)));
 
         const uint8_t *const old = buffer;
         buffer = new uint8_t[new_size];

@@ -5,14 +5,16 @@
 #include "Array.h"
 
 template <typename T>
-Array<T>::Array(const Array& array) : size_(array.size_), lenght_(array.lenght_)
+Array<T>::Array(const Array& array)
+    : size_(array.size_), lenght_(array.lenght_)
 {
     validateArray();
     copyFromTo(array.array_, array_);
 }
 
 template <typename T>
-Array<T>::Array(Array&& other) : size_(other.size_), lenght_(other.lenght_), array_(other.array_)
+Array<T>::Array(Array&& other)
+    : size_(other.size_), lenght_(other.lenght_), array_(other.array_)
 {
     other.toValidNull();
 }
@@ -98,9 +100,18 @@ void Array<T>::remove(int index)
 }
 
 template <typename T>
+void Array<T>::clear()
+{
+    for (int32_t i = 0; i < lenght_;)
+    {
+        remove(i);
+    }
+}
+
+template <typename T>
 const T& Array<T>::operator[](int index) const
 {
-    validateArray();
+    //validateArray();
     //if (index < 0 || index >= lenght_) return &T();
     return array_[index];
 }

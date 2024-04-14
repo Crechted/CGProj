@@ -1,8 +1,8 @@
 #pragma once
-#include "../../Core/Object.h"
+#include "Core/Objects/Object.h"
 
+class DrawComponent;
 class SceneComponent;
-class TriangleComponent;
 
 class Grids : public Object
 {
@@ -11,8 +11,8 @@ public:
     void Initialize() override;
     Grids();
     SceneComponent* sceneComp;
-    TriangleComponent* coordAxis;
-    TriangleComponent* grid;
+    DrawComponent* coordAxis;
+    DrawComponent* grid;
 
     float cellSize = 1.0f;
     int32_t numLineOnSide = 21;

@@ -1,6 +1,6 @@
 ﻿#pragma once
-#include "../Components/MovementComponent.h"
-#include "../Core/Object.h"
+#include "Core/Components/MovementComponent.h"
+#include "Core/Objects/Object.h"
 #include "SimpleMath.h"
 
 class SpringArmComponent;
@@ -39,15 +39,15 @@ public:
     float widthOrt = 2.0f;
     float heightOrt = 2.0f;
     float nearPlane = 0.01f;
-    float farPlane = 100.0f;
+    float farPlane = 100000.0f;
 
     float initScale = 1.0f;
     float speedScale = 1.0f;
     bool isPerspective = true;
     SceneComponent* sceneComp;
     MovementComponent* movementComp;
-
     SpringArmComponent* springArmComp;
+    
     void OnKeyDown(Keys key);
     void OnKeyUp(Keys key);
     void OnMouse(const MouseMoveEventArgs& mouseData);

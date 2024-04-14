@@ -13,7 +13,9 @@ public:
 
     virtual void Initialize();
     virtual void DestroyResource();
+    virtual void PreDraw();
     virtual void Draw();
+    virtual void Render();
     virtual void Reload();    
     virtual void Update(float timeTick);
 

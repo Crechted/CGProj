@@ -3,8 +3,8 @@
 //#include <DirectXMath.h>
 
 #include "SimpleMath.h"
-#include "../../../Components/GameComponent.h"
-#include "../../../Core/Input/Keys.h"
+#include "Core/Components/GameComponent.h"
+#include "Core/Input/Keys.h"
 
 enum class Keys;
 

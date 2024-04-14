@@ -1,49 +1,71 @@
 #include "Sphere.h"
 
-#include "Components/TriangleComponent.h"
-#include "Core/Engine.h"
+#include "Core/Components/SceneComponent.h"
 #include "Utils/Types.h"
+using namespace DirectX::SimpleMath;
 
-Sphere::Sphere()
+Sphere::Sphere(const wchar_t* pathTex, Vector3 position, float radius, int32_t sliceCount, int32_t stackCount, bool drawFirstHalf,
+    bool drawSecondHalf,
+    bool drawUp, bool drawDown)
+    : radius(radius)
+      //, initPos(position)
+      , sliceCount(sliceCount)
+      , stackCount(stackCount)
+      , drawFirstHalf(drawFirstHalf)
+      , drawSecondHalf(drawSecondHalf)
+      , drawUp(drawUp)
+      , drawDown(drawDown)
 {
-    triangleComp = CreateComponent<TriangleComponent>();
+    if (sceneComp) sceneComp->initPosition = position;
+    initPathTex = pathTex;
 }
 
 void Sphere::Initialize()
 {
-    //triangleComp->topology = D3D_PRIMITIVE_TOPOLOGY_LINELIST;
+    InitSphere();
+    maxAABB = sceneComp->GetLocation() + Vector3(radius);
+    minAABB = sceneComp->GetLocation() - Vector3(radius);
+    Mesh::Initialize();
+}
 
-    auto defColor = DirectX::XMFLOAT4(color.x, color.y, color.z, 1.0f);
-
+void Sphere::InitSphere()
+{
     auto phiStep = Pi / stackCount;
     auto thetaStep = 2.0f * Pi / sliceCount;
 
-    auto curCol = doDifColor ? DirectX::XMFLOAT4(radius, radius, 0.0f, 1.0f) : defColor;
-    triangleComp->AddPoint(DirectX::XMFLOAT4(0.0f, radius, 0.0f, 1.0f), curCol);
+    AddVertex(Vertex{DirectX::XMFLOAT4(initPos.x, initPos.y + radius, initPos.z, 1.0f),
+                     DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
+                     DirectX::XMFLOAT2(0.5f, 0.0f)});
+
     for (int i = 1; i <= stackCount - 1; i++)
     {
         auto phi = i * phiStep;
         for (int j = 0; j <= sliceCount; j++)
         {
             auto theta = j * thetaStep;
-            auto p = Vector3(
-                radius * sin(phi) * cos(theta),
-                radius * cos(phi),
-                radius * sin(phi) * sin(theta)
+            auto pos = Vector4(
+                initPos.x + radius * sin(phi) * cos(theta),
+                initPos.y + radius * cos(phi),
+                initPos.z + radius * sin(phi) * sin(theta),
+                1.0f
                 );
-            curCol = doDifColor ? DirectX::XMFLOAT4(p.x, p.y, p.z, 1.0f) : defColor;
-            triangleComp->AddPoint(DirectX::XMFLOAT4(p.x, p.y, p.z, 1.0f), curCol);
+            //var t = new Vector3(-radius*MathF.Sin(phi)*MathF.Sin(theta), 0, radius*MathF.Sin(phi)*MathF.Cos(theta)); - tangent
+            auto norm = pos;
+            norm.Normalize();
+            auto tex = Vector2(1.0f - theta / (Pi * 2), phi / Pi);
+            AddVertex(Vertex{pos, norm, tex});
         }
     }
-    curCol = doDifColor ? DirectX::XMFLOAT4(radius, -radius, 0.0f, 1.0f) : defColor;
-    triangleComp->AddPoint(DirectX::XMFLOAT4(0.0f, -radius, 0.0f, 1.0f), curCol);
+    AddVertex(Vertex{DirectX::XMFLOAT4(initPos.x, initPos.y - radius, initPos.z, 1.0f),
+                     DirectX::XMFLOAT4(0.0f, -1.0f, 0.0f, 1.0f),
+                     DirectX::XMFLOAT2(0.5f, 1.0f)});
 
     if (drawUp)
         for (int i = 1; i <= sliceCount; i++)
         {
-            triangleComp->AddIndex(0);
-            triangleComp->AddIndex(i + 1);
-            triangleComp->AddIndex(i);
+            AddIndex(0);
+            AddIndex(i);
+            AddIndex(i + 1);
         }
 
     auto baseIndex = 1;
@@ -54,30 +76,28 @@ void Sphere::Initialize()
         {
             if (drawFirstHalf)
             {
-                triangleComp->AddIndex(baseIndex + (i + 1) * ringVertexCount + j);
-                triangleComp->AddIndex(baseIndex + i * ringVertexCount + j);
-                triangleComp->AddIndex(baseIndex + i * ringVertexCount + j + 1);
+                AddIndex(baseIndex + (i + 1) * ringVertexCount + j);
+                AddIndex(baseIndex + i * ringVertexCount + j);
+                AddIndex(baseIndex + i * ringVertexCount + j + 1);
             }
             if (drawSecondHalf)
             {
-                triangleComp->AddIndex(baseIndex + (i + 1) * ringVertexCount + j);
-                triangleComp->AddIndex(baseIndex + (i + 1) * ringVertexCount + j + 1);
-                triangleComp->AddIndex(baseIndex + i * ringVertexCount + j + 1);
+                AddIndex(baseIndex + (i + 1) * ringVertexCount + j);
+                AddIndex(baseIndex + (i + 1) * ringVertexCount + j + 1);
+                AddIndex(baseIndex + i * ringVertexCount + j + 1);
             }
         }
     }
 
     if (drawDown)
     {
-        auto southPoleIndex = triangleComp->GetNumPoints() / 2 - 1;
+        auto southPoleIndex = GetNumVertices() - 1;
         baseIndex = southPoleIndex - ringVertexCount;
         for (int i = 0; i < sliceCount; i++)
         {
-            triangleComp->AddIndex(southPoleIndex);
-            triangleComp->AddIndex(baseIndex + i + 1);
-            triangleComp->AddIndex(baseIndex + i);
+            AddIndex(southPoleIndex);
+            AddIndex(baseIndex + i);
+            AddIndex(baseIndex + i + 1);
         }
     }
-
-    Object::Initialize();
 }

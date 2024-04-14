@@ -1,7 +1,7 @@
 #include "Object.h"
 
-#include "Engine.h"
-#include "../Components/GameComponent.h"
+#include "Core/Engine.h"
+#include "Core/Components/GameComponent.h"
 
 Object::Object()
 {
@@ -24,11 +24,11 @@ void Object::Initialize()
     }
 }
 
-void Object::Update(float timeTick)
+void Object::PreDraw()
 {
     for (auto gameComp : gameComponents)
     {
-        gameComp->Update(timeTick);
+        gameComp->PreDraw();
     }
 }
 
@@ -37,6 +37,20 @@ void Object::Draw()
     for (auto gameComp : gameComponents)
     {
         gameComp->Draw();
+    }
+}
+
+void Object::Render()
+{
+    PreDraw();
+    Draw();
+}
+
+void Object::Update(float timeTick)
+{
+    for (auto gameComp : gameComponents)
+    {
+        gameComp->Update(timeTick);
     }
 }
 

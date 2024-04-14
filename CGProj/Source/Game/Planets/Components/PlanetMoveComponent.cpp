@@ -1,9 +1,9 @@
 #include "PlanetMoveComponent.h"
 
-#include "../Planet.h"
-#include "../../../Components/SceneComponent.h"
-#include "..\..\..\Core\Engine.h"
-#include "../../Components/SphereComponent.h"
+#include "Game/Planets/Planet.h"
+#include "Core/Components/SceneComponent.h"
+#include "Core/Engine.h"
+#include "Game/Components/DrawSphereComponent.h"
 
 void PlanetMoveComponent::Update(float timeTick)
 {

@@ -40,6 +40,7 @@ public:
     int32_t insert(T&& value);
     int32_t insert(int32_t index, T&& value);
     void remove(int32_t index);
+    void clear();
     const T& operator[](int32_t index) const;
     T& operator[](int32_t index);
     int32_t size() const;
@@ -50,9 +51,13 @@ public:
 
     Iterator iterator() { return Iterator(array_, lenght_, false); }
     Iterator begin() { return iterator(); }
-    ConstIterator iterator() const { return ConstIterator(array_, lenght_, false); }
+    Iterator iterator() const { return Iterator(array_, lenght_, false); }
+    //ConstIterator iterator() const { return ConstIterator(array_, lenght_, false); }
+    Iterator begin() const { return iterator(); }
     Iterator reverseIterator() { return Iterator(array_, lenght_, true); }
     Iterator end() { return Iterator(array_, lenght_, false, lenght_); }
+    Iterator end() const { return Iterator(array_, lenght_, false, lenght_); }
+    //ConstIterator end() const { return ConstIterator(array_, lenght_, false, lenght_); }
     ConstIterator reverseIterator() const { return ConstIterator(array_, lenght_, true); }
 
 private:

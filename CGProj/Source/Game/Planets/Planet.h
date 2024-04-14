@@ -1,9 +1,9 @@
 #pragma once
-#include "Core/Object.h"
+#include "Core/Objects/Object.h"
 #include "Core/Input/Keys.h"
 
 class PlanetMoveComponent;
-class SphereComponent;
+class DrawSphereComponent;
 
 class Planet : public Object
 {
@@ -12,7 +12,7 @@ public:
     Planet();
 
     void Initialize() override;
-    SphereComponent* meshComponent;
+    DrawSphereComponent* meshComponent;
     PlanetMoveComponent* moveComp;
 
     Planet* parentPlanet = nullptr;

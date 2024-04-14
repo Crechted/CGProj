@@ -1,12 +1,11 @@
 ﻿#include "SceneComponent.h"
 
-#include "..\Core\Engine.h"
-#include "../Game/Camera.h"
-#include "../Utils/Types.h"
+#include "Core/Engine.h"
+#include "Game/Camera.h"
+#include "Utils/Types.h"
 
-SceneComponent::SceneComponent()
+SceneComponent::SceneComponent(SceneComponent* parentComp, Vector3 position, Vector3 rotation, Vector3 scale) : parentComponent(parentComp), initPosition(position), initRotation(rotation), initScale(scale)
 {
-    engInst = &Engine::GetInstance();
 }
 
 void SceneComponent::Initialize()
@@ -25,14 +24,21 @@ void SceneComponent::Initialize()
 
     engInst->GetDevice()->CreateBuffer(&constBufDesc, nullptr, &constantBuffer);
     buffers.insert(engInst->GetIdxCurrentPipeline(), constantBuffer);
+    GameComponent::Initialize();
+}
+
+void SceneComponent::PreDraw()
+{
+    GameComponent::PreDraw();
+    constantBuffer = buffers[engInst->GetIdxCurrentPipeline()];
+    //UpdateTransformMatrix();
+    UpdateConstantBuffer();
+    engInst->GetContext()->VSSetConstantBuffers(0, 1, &constantBuffer);
 }
 
 void SceneComponent::Draw()
 {
-    constantBuffer = buffers[engInst->GetIdxCurrentPipeline()];    
-    //UpdateTransformMatrix();
-    UpdateConstantBuffer();
-    engInst->GetContext()->VSSetConstantBuffers(0, 1, &constantBuffer);
+    GameComponent::Draw();
 }
 
 void SceneComponent::Reload()
@@ -55,8 +61,9 @@ void SceneComponent::UpdateTransformMatrix()
 
 void SceneComponent::Update(float timeTick)
 {
+    GameComponent::Update(timeTick);
     constantBuffer = buffers[engInst->GetIdxCurrentPipeline()];
-    UpdateTransformMatrix();    
+    UpdateTransformMatrix();
     //UpdateConstantBuffer();
 }
 
@@ -74,7 +81,6 @@ void SceneComponent::UpdateConstantBuffer()
     ViewData data =
     {
         Res.Transpose(),
-        //Matrix::CreateWorld(Res.Translation(), Res.Forward(), Res.Up()).Transpose(),
         Matrix(engInst->GetCurCamera()->mView).Transpose(),
         Matrix(engInst->GetCurCamera()->mProj).Transpose(),
     };
@@ -88,7 +94,21 @@ void SceneComponent::UpdateConstantBuffer()
 void SceneComponent::DestroyResource()
 {
     GameComponent::DestroyResource();
-    constantBuffer->Release();
+    if (constantBuffer) constantBuffer->Release();
+}
+
+const Vector3& SceneComponent::GetWorldLocation() const
+{
+    return GetWorldMatrix().Translation();
+}
+
+const Vector3& SceneComponent::GetWorldRotation() const
+{
+    const auto euler = GetWorldMatrix().ToEuler();
+    const auto pitch = DegreeFromRadians(euler.x);
+    const auto yaw = DegreeFromRadians(euler.y);
+    const auto roll = DegreeFromRadians(euler.z);
+    return Vector3(pitch, yaw, roll);
 }
 
 const Vector3& SceneComponent::GetForward() const
@@ -120,12 +140,12 @@ const Vector3& SceneComponent::GetGlobalUp() const
     return Vector3(0.0f, 1.0f, 0.0f);
 }
 
-Matrix SceneComponent::GetWorldMatrix()
+Matrix SceneComponent::GetWorldMatrix() const
 {
-    SceneComponent* rootComp = this;
+    const SceneComponent* rootComp = this;
     Matrix Res = rootComp->mTransform;
 
-    SceneComponent* parentComp = rootComp->parentComponent;
+    const SceneComponent* parentComp = rootComp->parentComponent;
     while (parentComp)
     {
         if (rootComp->attachOnlyTranslation)
@@ -135,7 +155,7 @@ Matrix SceneComponent::GetWorldMatrix()
         }
         else
             Res *= parentComp->mTransform;
-        
+
         rootComp = parentComp;
         parentComp = rootComp->parentComponent;
     }

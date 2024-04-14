@@ -9,11 +9,12 @@
 #include <d3dcompiler.h>
 #include <chrono>
 
-#include "Object.h"
-#include "../Components/GameComponent.h"
-#include "../Core/Input/InputDevice.h"
-#include "../Game/GameSquare.h"
-#include "../Game/Camera.h"
+#include "Core/Objects/Object.h"
+#include "Components/GameComponent.h"
+#include "Core/Input/InputDevice.h"
+#include "Game/GameSquare.h"
+#include "Game/Camera.h"
+#include "Objects/Mesh.h"
 
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxgi.lib")
@@ -28,6 +29,11 @@ Camera* Engine::CreateCamera(ViewType ViewType)
     cam->viewType = ViewType;
     cameras.insert(cam);
     return cam;
+}
+
+void Engine::AddCamera(Camera* otherCam)
+{
+    if (otherCam) cameras.insert(otherCam);
 }
 
 Engine::Engine()
@@ -213,21 +219,21 @@ void Engine::DetectOverlapped()
 {
     for (int32_t i = 0; i < gameObjects.size(); i++)
     {
-        const auto square1 = dynamic_cast<GameSquare*>(gameObjects[i]);
-        if (!square1) continue;
+        const auto Mesh1 = dynamic_cast<Mesh*>(gameObjects[i]);
+        if (!Mesh1) continue;
         for (int32_t j = i + 1; j < gameObjects.size(); j++)
         {
-            const auto square2 = dynamic_cast<GameSquare*>(gameObjects[j]);
-            if (!square2) continue;
-            if (square1->BoxCollision.Contains(square2->BoxCollision))
+            const auto Mesh2 = dynamic_cast<Mesh*>(gameObjects[j]);
+            if (!Mesh2) continue;
+            if (Mesh1->GetCollision()->Contains(*Mesh2->GetCollision()))
             {
-                square1->beginOverlapped.Broadcast(square2);
-                square2->beginOverlapped.Broadcast(square1);
+                Mesh1->beginOverlapped.Broadcast(Mesh2);
+                Mesh2->beginOverlapped.Broadcast(Mesh1);
             }
             else
             {
-                square1->endOverlapped.Broadcast(square2);
-                square2->endOverlapped.Broadcast(square1);
+                Mesh1->endOverlapped.Broadcast(Mesh2);
+                Mesh2->endOverlapped.Broadcast(Mesh1);
             }
         }
     }
@@ -244,20 +250,20 @@ void Engine::Render()
     for (int32_t i = 0; i < curPlData->viewportsNum; i++)
     {
         curPlData->curViewport = i;
-        
+
         curPlData->context->RSSetViewports(1, &curPlData->viewports[i]);
 
         for (const auto Comp : gameComponents)
         {
-            Comp->Draw();
+            Comp->Render();
         }
         for (const auto Obj : gameObjects)
         {
-            Obj->Draw();
+            Obj->Render();
         }
         for (const auto cam : cameras)
         {
-            cam->Draw();
+            cam->Render();
         }
     }
     curPlData->swapChain->Present(1, /*DXGI_PRESENT_DO_NOT_WAIT*/ 0);
@@ -313,7 +319,7 @@ void Engine::CreateTargetViewAndViewport()
         curPlData->viewports[i] = {};
         curPlData->viewports[i].Width = width;
         curPlData->viewports[i].Height = height;
-        curPlData->viewports[i].TopLeftX = (i / col) * width; //(i * col) * width;
+        curPlData->viewports[i].TopLeftX = (i / col) * width;  //(i * col) * width;
         curPlData->viewports[i].TopLeftY = (i % row) * height; //(i % row) * height;
         curPlData->viewports[i].MinDepth = 0;
         curPlData->viewports[i].MaxDepth = 1.0f;

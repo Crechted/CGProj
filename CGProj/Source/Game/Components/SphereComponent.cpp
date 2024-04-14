@@ -1,44 +1,9 @@
 #include "SphereComponent.h"
-#include "..\..\Core\Engine.h"
-#include "../Objects/Sphere.h"
+#include "Game/Objects/Sphere.h"
 
-SphereComponent::SphereComponent()
+SphereComponent::SphereComponent(const wchar_t* pathTex, Vector3 position, float radius, int32_t sliceCount, int32_t stackCount,
+    bool drawFirstHalf, bool drawSecondHalf, bool drawUp, bool drawDown)
 {
-    engInst = engInst ? engInst : &Engine::GetInstance();
-    sphere = new Sphere();
-}
-
-void SphereComponent::Initialize()
-{
-    if (!sphere) return;
-    sphere->radius = radius;
-    sphere->sliceCount = sliceCount;
-    sphere->stackCount = stackCount;
-    sphere->color = color;
-    sphere->doDifColor = doDifColor;
-    sphere->drawFirstHalf = drawFirstHalf;
-    sphere->drawSecondHalf = drawSecondHalf;
-    sphere->drawUp = drawUp;
-    sphere->drawDown = drawDown;
-    sphere->Initialize();
-    SceneComponent::Initialize();
-}
-
-void SphereComponent::Update(float timeTick)
-{
-    if (!sphere) return;
-    SceneComponent::Update(timeTick);
-}
-
-void SphereComponent::Draw()
-{
-    if (!sphere) return;
-    SceneComponent::Draw();
-    sphere->Draw();
-}
-
-void SphereComponent::DestroyResource()
-{
-    SceneComponent::DestroyResource();
-    if (!sphere) sphere->Destroy();
+    if (mesh) mesh->Destroy();
+    mesh = new Sphere(pathTex, position, radius, sliceCount, stackCount, drawFirstHalf, drawSecondHalf, drawUp, drawDown);
 }

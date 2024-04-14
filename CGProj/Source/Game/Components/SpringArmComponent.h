@@ -1,5 +1,5 @@
 #pragma once
-#include "../../Components/SceneComponent.h"
+#include "Core/Components/SceneComponent.h"
 
 class Camera;
 enum class Keys;

@@ -1,11 +1,11 @@
 #pragma once
 #include <DirectXCollision.h>
 
-#include "../Core/Object.h"
+#include "Core/Objects/Object.h"
 #include "SimpleMath.h"
 
 using namespace DirectX::SimpleMath;
-class TriangleComponent;
+class DrawComponent;
 class Movement2DComponent;
 class GameComponent;
 
@@ -27,7 +27,7 @@ public:
 
     DirectX::BoundingBox BoxCollision;
     Movement2DComponent* moveComp = nullptr;
-    TriangleComponent* boxSprite = nullptr;
+    DrawComponent* boxSprite = nullptr;
 
     Vector3 center;
     Vector3 extends;

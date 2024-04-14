@@ -1,10 +1,8 @@
 #pragma once
 #include <d3d11.h>
-#include <wrl.h>
-#include "../Utils/Array/Array.h"
-
-#include "../Core/Object.h"
-#include "../Game/Camera.h"
+#include "Utils/Array/Array.h"
+#include "Core/Objects/Object.h"
+#include "Game/Camera.h"
 
 enum class ViewType : uint8_t;
 class Camera;
@@ -15,7 +13,7 @@ class WinDisplay;
 struct PipelineData
 {
     WinDisplay* display;
-    Microsoft::WRL::ComPtr<ID3D11Device> device;
+    ID3D11Device* device;
     ID3D11DeviceContext* context;
     IDXGISwapChain* swapChain;
     DXGI_SWAP_CHAIN_DESC swapDesc;
@@ -49,9 +47,10 @@ public:
 
     float GetTotalTime() const { return totalTime; }
     Camera* CreateCamera(ViewType ViewType = ViewType::Perspective);
+    void AddCamera(Camera* otherCam);
 
     ID3D11DeviceContext* GetContext() const { return curPlData->context; }
-    Microsoft::WRL::ComPtr<ID3D11Device> GetDevice() const { return curPlData->device; }
+    ID3D11Device* GetDevice() const { return curPlData->device; }
     WinDisplay* GetDisplay() const { return curPlData->display; }
     Camera* GetCurCamera() const { return curPlData->cameras[curPlData->curViewport]; }
     Array<Camera*>& GetCamerasOnViewport() const { return curPlData->cameras; }

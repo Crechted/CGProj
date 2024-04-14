@@ -1,9 +1,9 @@
 #include "Racket.h"
 
 #include "Wall.h"
-#include "../../../Components/TriangleComponent.h"
-#include "../Components/RacketAIMoveComponent.h"
-#include "../Components/RacketMoveComponent.h"
+#include "Core/Components/DrawComponent.h"
+#include "Game/Pong/Components/RacketAIMoveComponent.h"
+#include "Game/Pong/Components/RacketMoveComponent.h"
 
 Racket::Racket(Vector3 center, Vector3 extends, Vector3 color)
 {
@@ -15,7 +15,7 @@ Racket::Racket(Vector3 center, Vector3 extends, Vector3 color)
 void Racket::CreateComponents()
 {
     moveComp = isAI ? CreateComponent<RacketAIMoveComponent>() : CreateComponent<RacketMoveComponent>();
-    boxSprite = CreateComponent<TriangleComponent>();
+    boxSprite = CreateComponent<DrawComponent>();
 }
 
 void Racket::OnBeginOverlapped(Object* other)

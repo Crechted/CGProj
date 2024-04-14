@@ -1,20 +1,13 @@
 #pragma once
-#include "../../Components/SceneComponent.h"
+#include "Core/Components/MeshComponent.h"
+#include "Core/Components/SceneComponent.h"
 class Box;
-class TriangleComponent;
 
-class BoxComponent : public SceneComponent
+class BoxComponent : public MeshComponent
 {
 public:
-    BoxComponent();
-    void Initialize() override;
-    void Update(float timeTick) override;
-    void Draw() override;
-    void DestroyResource() override;
-
-    Vector3 size = Vector3(0.2f);
-    Vector3 color = Vector3(1.0f);
-
-protected:
-    Box* box;
+    BoxComponent(const wchar_t* pathTex = nullptr,
+        Vector3 position = Vector3::Zero,
+        Vector3 size = Vector3(0.2f),
+        Vector4 color = Vector4(1.0f));
 };
