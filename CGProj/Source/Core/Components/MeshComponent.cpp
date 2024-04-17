@@ -8,12 +8,14 @@ MeshComponent::MeshComponent(const std::string& pathModel, const wchar_t* pathTe
 {
     engInst = engInst ? engInst : &Engine::GetInstance();
     mesh = new Mesh(pathModel, pathTex);
+    mesh->GetSceneComponent()->AttachTo(this);
 }
 
 MeshComponent::MeshComponent()
 {
     engInst = engInst ? engInst : &Engine::GetInstance();
     mesh = new Mesh();
+    mesh->GetSceneComponent()->AttachTo(this);
 }
 
 void MeshComponent::Initialize()
@@ -47,7 +49,7 @@ void MeshComponent::DestroyResource()
     if (mesh) mesh->Destroy();
 }
 
-DirectX::BoundingBox* MeshComponent::GetMeshCollision() const
+CollisionComponent* MeshComponent::GetMeshCollision() const
 {
     return mesh->GetCollision();
 }

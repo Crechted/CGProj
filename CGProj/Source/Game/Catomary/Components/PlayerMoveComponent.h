@@ -6,12 +6,11 @@
 
 using namespace DirectX::SimpleMath;
 
-class SceneComponent;
+class Pawn;
 
-class PlayerMovement : public GameComponent
+class PlayerMoveComponent : public GameComponent
 {
 public:
-    bool SearchSceneComponent();
     
     void Initialize() override;
     void Reload() override;
@@ -34,10 +33,11 @@ public:
     Vector3 delRotation;
 
 protected:
-    SceneComponent* movableComp = nullptr;
+    Pawn* pawn = nullptr;
     virtual void HandleInputByKey();
     virtual void CalcOffset(float timeTick);
-    virtual void OnKeyDown(Keys key);
-    virtual void OnKeyUp(Keys key);
     virtual void OnMouseMove(const MouseMoveEventArgs& mouseEvent);
+
+private:    
+    float rotSpeed = 140.0;
 };

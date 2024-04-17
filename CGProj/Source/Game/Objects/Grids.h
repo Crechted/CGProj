@@ -9,7 +9,7 @@ class Grids : public Object
 public:
 
     void Initialize() override;
-    Grids();
+    Grids(float cell = 1.0f, int32_t numLineOnSide = 21);
     SceneComponent* sceneComp;
     DrawComponent* coordAxis;
     DrawComponent* grid;

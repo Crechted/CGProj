@@ -1,6 +1,5 @@
 ﻿#include "Camera.h"
 
-#include "Core/Components/MovementComponent.h"
 #include "Core/Components/SceneComponent.h"
 #include "Core/Engine.h"
 #include "Core/Input/InputDevice.h"
@@ -10,14 +9,7 @@ Camera::Camera(Vector3 initPosition, Vector3 initRotation)
     : initPosition(initPosition), initRotation(initRotation)
 {
     sceneComp = CreateComponent<SceneComponent>();
-    movementComp = CreateComponent<MovementComponent>();
-    springArmComp = CreateComponent<SpringArmComponent>();
-    movementComp->sceneComp = springArmComp;
-    sceneComp->AttachTo(springArmComp);
 
-    springArmComp->initPosition = initPosition;
-    springArmComp->initRotation = initRotation;
-    springArmComp->controlCamera = this;
     //sceneComp->initPosition = Vector3(0.0f, 0.0f, 0.0f);
     //sceneComp->initRotation = Vector3(0.0f);
 }
@@ -36,8 +28,6 @@ void Camera::Draw()
 void Camera::Initialize()
 {
     Object::Initialize();
-    springArmComp->initPosition = initPosition;
-    springArmComp->initRotation = initRotation;
     scale = initScale;
     engInst->GetInputDevice()->KeyDownDelegate.AddRaw(this, &Camera::OnKeyDown);
     engInst->GetInputDevice()->KeyUpDelegate.AddRaw(this, &Camera::OnKeyUp);
@@ -59,35 +49,37 @@ void Camera::Update(float timeTick)
 void Camera::UpdateViewMatrix()
 {
     Matrix worldMat = sceneComp->GetWorldMatrix();
-    Matrix worldSpringMat = springArmComp->GetWorldMatrix();
-    Vector3 worldSpringLoc = worldSpringMat.Translation();
-    
-    Vector3 loc, tar, up;
+
+    const Matrix targetMat = targetView ? targetView->GetWorldMatrix() : sceneComp->GetWorldMatrix();
+    const Vector3 targetLoc = targetMat.Translation();
+
+    const Vector3 loc = worldMat.Translation();
+    Vector3 tar, up;
 
     if (viewType == ViewType::General || viewType == ViewType::Perspective || viewType == ViewType::OrtFree)
     {
-        loc = worldMat.Translation();
-        tar = worldSpringLoc + worldSpringMat.Forward();
-        up = worldMat.Up();
+        //loc = worldMat.Translation();
+        tar = targetLoc + targetMat.Forward();
+        up = sceneComp->GetUp();
     }
 
     if (viewType == ViewType::OrtXOZ)
     {
-        loc = worldMat.Translation();
+        //loc = worldMat.Translation();
         tar = loc + Vector3(0.0f, -1.0f, 0.0f);
         up = Vector3(-1.0f, 0.0f, 0.0f);
     }
 
     if (viewType == ViewType::OrtYOZ)
     {
-        loc = worldMat.Translation();
+        //loc = worldMat.Translation();
         tar = loc + Vector3(-1.0f, 0.0f, 0.0f);
         up = Vector3(0.0f, 1.0f, 0.0f);
     }
 
     if (viewType == ViewType::OrtXOY)
     {
-        loc = worldMat.Translation();
+        //loc = worldMat.Translation();
         tar = loc + Vector3(0.0f, 0.0f, -1.0f);
         up = Vector3(0.0f, 1.0f, 0.0f);
     }

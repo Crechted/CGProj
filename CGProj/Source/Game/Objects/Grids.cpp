@@ -5,14 +5,6 @@
 #include "Core/Components/DrawComponent.h"
 #include "Core/Components/SceneComponent.h"
 
-
-Grids::Grids()
-{
-    sceneComp = CreateComponent<SceneComponent>();
-    coordAxis = CreateComponent<DrawComponent>();
-    grid = CreateComponent<DrawComponent>();
-}
-
 void Grids::Initialize()
 {
     CreateCoordinates();
@@ -20,6 +12,13 @@ void Grids::Initialize()
     CreateGrid();
 
     Object::Initialize();
+}
+
+Grids::Grids(float cell, int32_t numLine) : cellSize(cell), numLineOnSide(numLine)
+{
+    sceneComp = CreateComponent<SceneComponent>();
+    coordAxis = CreateComponent<DrawComponent>();
+    grid = CreateComponent<DrawComponent>();
 }
 
 void Grids::CreateCoordinates()

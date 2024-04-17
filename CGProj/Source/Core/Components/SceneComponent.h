@@ -24,7 +24,8 @@ struct Transform
 class SceneComponent : public GameComponent
 {
 public:
-    SceneComponent(SceneComponent* parentComponent = nullptr, Vector3 position = Vector3(0.0f), Vector3 rotation = Vector3(0.0f), Vector3 scale = Vector3(1.0f));
+    SceneComponent(SceneComponent* parentComp = nullptr, Vector3 position = Vector3(0.0f), Vector3 rotation = Vector3(0.0f), Vector3 scale = Vector3(1.0f));
+    SceneComponent(Transform transf, SceneComponent* parentComp = nullptr);
     /*Array<SceneComponent*> childComponents;*/
 
     void Initialize() override;
@@ -52,6 +53,7 @@ public:
     const Vector3& GetWorldRotation() const;
     void SetRotation(const Vector3& rot) { transform.rotate = rot; }
     void AddRotation(const Vector3& addRot) { transform.rotate += addRot; }
+    void AddQuatRotation(const Vector3& addRot);
 
 
     const Vector3& GetForward() const;

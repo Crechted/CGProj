@@ -9,8 +9,10 @@
 #include <d3dcompiler.h>
 #include <chrono>
 
+#include "Components/CollisionComponent.h"
 #include "Core/Objects/Object.h"
 #include "Components/GameComponent.h"
+#include "Components/MeshComponent.h"
 #include "Core/Input/InputDevice.h"
 #include "Game/GameSquare.h"
 #include "Game/Camera.h"
@@ -21,20 +23,6 @@
 #pragma comment(lib, "d3dcompiler.lib")
 #pragma comment(lib, "dxguid.lib")
 
-
-Camera* Engine::CreateCamera(ViewType ViewType)
-{
-    //auto cam = CreateObject<Camera>();
-    auto cam = new Camera();
-    cam->viewType = ViewType;
-    cameras.insert(cam);
-    return cam;
-}
-
-void Engine::AddCamera(Camera* otherCam)
-{
-    if (otherCam) cameras.insert(otherCam);
-}
 
 Engine::Engine()
 {
@@ -56,10 +44,6 @@ void Engine::Destroy()
     {
         delete gComp;
     }
-    for (const auto cam : cameras)
-    {
-        delete cam;
-    }
     for (auto plData : pipelinesData)
     {
         plData->renderTargetView->Release();
@@ -68,6 +52,11 @@ void Engine::Destroy()
         plData->swapChain->Release();
         plData->context->Release();
         plData->device->Release();
+
+        for (const auto cam : GetCamerasOnViewport())
+        {
+            delete cam;
+        }
     }
 }
 
@@ -86,8 +75,16 @@ int32_t Engine::GetIdxCurrentPipeline()
     return -1;
 }
 
-void Engine::AddWindow(int32_t scrWidth, int32_t scrHeight, int32_t posX, int32_t posY, const Array<Camera*>& cameras)
+Camera* Engine::CreateCamera(ViewType ViewType)
 {
+    const auto cam = CreateObject<Camera>();
+    cam->viewType = ViewType;
+    return cam;
+}
+
+void Engine::AddWindow(int32_t scrWidth, int32_t scrHeight, int32_t posX, int32_t posY, ViewType vType)
+{
+    if (cameras.isEmpty()) CreateCamera(vType);
     auto plData = new PipelineData();
     curPlData = plData;
     curPlData->display = new WinDisplay();
@@ -98,15 +95,6 @@ void Engine::AddWindow(int32_t scrWidth, int32_t scrHeight, int32_t posX, int32_
     curPlData->cameras = cameras;
     curPlData->viewportsNum = cameras.size();
     pipelinesData.insert(plData);
-}
-
-void Engine::AddWindow(int32_t scrWidth, int32_t scrHeight, int32_t posX, int32_t posY, ViewType vType)
-{
-    auto cam = CreateCamera();
-    cam->viewType = vType;
-    Array<Camera*> cameras{};
-    cameras.insert(cam);
-    AddWindow(scrWidth, scrHeight, posX, posY, cameras);
 }
 
 
@@ -133,7 +121,7 @@ void Engine::Initialize()
         {
             Obj->Initialize();
         }
-        for (const auto cam : cameras)
+        for (const auto cam : GetCamerasOnViewport())
         {
             cam->Initialize();
         }
@@ -147,10 +135,10 @@ void Engine::Run()
     bool isExitRequested = false;
     while (!isExitRequested)
     {
+        Input(isExitRequested);
         for (auto plData : pipelinesData)
         {
             curPlData = plData;
-            Input(isExitRequested);
             Update();
             Render();
         }
@@ -197,7 +185,6 @@ void Engine::Update()
         frameCount = 0;
     }
 
-    DetectOverlapped();
 
     for (const auto Comp : gameComponents)
     {
@@ -208,32 +195,62 @@ void Engine::Update()
     {
         Obj->Update(deltaTime);
     }
-    for (const auto cam : cameras)
+    for (const auto cam : GetCamerasOnViewport())
     {
         cam->Update(deltaTime);
     }
 
+    DetectOverlapped();
 }
 
 void Engine::DetectOverlapped()
 {
-    for (int32_t i = 0; i < gameObjects.size(); i++)
+    Array<CollisionComponent*> collisions;
+    for (const auto obj : gameObjects)
     {
-        const auto Mesh1 = dynamic_cast<Mesh*>(gameObjects[i]);
-        if (!Mesh1) continue;
-        for (int32_t j = i + 1; j < gameObjects.size(); j++)
+        if (const auto mesh = dynamic_cast<Mesh*>(obj))
         {
-            const auto Mesh2 = dynamic_cast<Mesh*>(gameObjects[j]);
-            if (!Mesh2) continue;
-            if (Mesh1->GetCollision()->Contains(*Mesh2->GetCollision()))
+            const auto collision = mesh->GetCollision();
+            if (collision) collisions.insert(collision);
+        }
+        else
+        {
+            for (const auto comp : obj->gameComponents)
             {
-                Mesh1->beginOverlapped.Broadcast(Mesh2);
-                Mesh2->beginOverlapped.Broadcast(Mesh1);
+                if (const auto meshComp = dynamic_cast<MeshComponent*>(comp))
+                {
+                    const auto collision = meshComp->GetMeshCollision();
+                    if (collision) collisions.insert(collision);
+                }
             }
-            else
+        }
+    }
+
+    for (const auto comp : gameComponents)
+    {
+        if (const auto meshComp = dynamic_cast<MeshComponent*>(comp))
+        {
+            const auto collision = meshComp->GetMeshCollision();
+            if (collision) collisions.insert(collision);
+        }
+    }
+
+    for (int32_t i = 0; i < collisions.size(); i++)
+    {
+        const auto col1 = collisions[i];
+        for (int32_t j = i + 1; j < collisions.size(); j++)
+        {
+            const auto col2 = collisions[j];
+
+            if (col1->Contains(col2) && !col1->GetOverlappedCollisions().contains(col2))
             {
-                Mesh1->endOverlapped.Broadcast(Mesh2);
-                Mesh2->endOverlapped.Broadcast(Mesh1);
+                col1->beginOverlapped.Broadcast(col2);
+                col2->beginOverlapped.Broadcast(col1);
+            }
+            else if (!col1->Contains(col2) && col1->GetOverlappedCollisions().contains(col2))
+            {
+                col1->endOverlapped.Broadcast(col2);
+                col2->endOverlapped.Broadcast(col1);
             }
         }
     }
@@ -261,7 +278,7 @@ void Engine::Render()
         {
             Obj->Render();
         }
-        for (const auto cam : cameras)
+        for (const auto cam : GetCamerasOnViewport())
         {
             cam->Render();
         }

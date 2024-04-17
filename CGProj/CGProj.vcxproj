@@ -132,6 +132,9 @@
     <ClInclude Include="Libs\Inc\VertexTypes.h" />
     <ClInclude Include="Libs\Inc\WICTextureLoader.h" />
     <ClInclude Include="Libs\Inc\XboxDDSTextureLoader.h" />
+    <ClInclude Include="Source\Core\Components\CollisionComponent.h" />
+    <ClInclude Include="Source\Core\Components\Collisions\BoxCollision.h" />
+    <ClInclude Include="Source\Core\Components\Collisions\SphereCollision.h" />
     <ClInclude Include="Source\Core\Components\DrawComponent.h" />
     <ClInclude Include="Source\Core\Components\GameComponent.h" />
     <ClInclude Include="Source\Core\Components\MeshComponent.h" />
@@ -147,6 +150,7 @@
     <ClInclude Include="Source\Core\WinDisplay.h" />
     <ClInclude Include="Source\Game\Camera.h" />
     <ClInclude Include="Source\Game\Catomary\Components\PlayerMoveComponent.h" />
+    <ClInclude Include="Source\Game\Catomary\Objects\CatomaryObjects.h" />
     <ClInclude Include="Source\Game\Catomary\Objects\Pawn.h" />
     <ClInclude Include="Source\Game\Components\BoxComponent.h" />
     <ClInclude Include="Source\Game\Components\DrawSphereComponent.h" />
@@ -173,11 +177,15 @@
     <ClInclude Include="Source\Core\Engine.h" />
     <ClInclude Include="Source\Utils\Array\Array.h" />
     <ClInclude Include="Source\Utils\Array\Array.hpp" />
+    <ClInclude Include="Source\Utils\Functions.h" />
     <ClInclude Include="Source\Utils\MeshImporter.h" />
     <ClInclude Include="Source\Utils\Types.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\CGProj.cpp" />
+    <ClCompile Include="Source\Core\Components\CollisionComponent.cpp" />
+    <ClCompile Include="Source\Core\Components\Collisions\BoxCollision.cpp" />
+    <ClCompile Include="Source\Core\Components\Collisions\SphereCollision.cpp" />
     <ClCompile Include="Source\Core\Components\DrawComponent.cpp" />
     <ClCompile Include="Source\Core\Components\GameComponent.cpp" />
     <ClCompile Include="Source\Core\Components\MeshComponent.cpp" />
@@ -264,6 +272,7 @@
     <ClCompile Include="Source\Core\WinDisplay.cpp" />
     <ClCompile Include="Source\Game\Camera.cpp" />
     <ClCompile Include="Source\Game\Catomary\Components\PlayerMoveComponent.cpp" />
+    <ClCompile Include="Source\Game\Catomary\Objects\CatomaryObjects.cpp" />
     <ClCompile Include="Source\Game\Catomary\Objects\Pawn.cpp" />
     <ClCompile Include="Source\Game\Components\BoxComponent.cpp" />
     <ClCompile Include="Source\Game\Components\DrawSphereComponent.cpp" />
@@ -598,18 +607,28 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Source\Utils\lib\" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="Libs\Assimp\assimp-vc142-mtd.lib" />
     <Content Include="Libs\Assimp\include\assimp\.editorconfig" />
     <Content Include="Libs\Assimp\include\assimp\config.h.in" />
     <Content Include="Libs\DirectXTK.lib" />
     <Content Include="Libs\DirectXTK.pdb" />
+    <Content Include="Resource\Meshes\GunLow2.fbx" />
+    <Content Include="Resource\Meshes\GunLow2.obj" />
     <Content Include="Resource\Meshes\Piram.obj" />
     <Content Include="Resource\Meshes\Piram.glb" />
     <Content Include="Resource\Textures\DefaultCG.dds" />
+    <Content Include="Resource\Textures\DefaultCG.png" />
+    <Content Include="Resource\Textures\Golova2.jpg" />
+    <Content Include="Resource\Textures\grass.jpg" />
+    <Content Include="Resource\Textures\grassH.jpg" />
+    <Content Include="Resource\Textures\hdri1.jpg" />
+    <Content Include="Resource\Textures\hdri2.jpg" />
+    <Content Include="Resource\Textures\hdri3.jpg" />
+    <Content Include="Resource\Textures\hdri4.jpg" />
+    <Content Include="Resource\Textures\hdri5.jpg" />
+    <Content Include="Resource\Textures\Putin.dds" />
     <Content Include="Resource\Textures\Putin.jpg" />
+    <Content Include="Resource\Textures\sky.jpeg" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

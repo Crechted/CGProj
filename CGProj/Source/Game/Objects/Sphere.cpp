@@ -101,3 +101,73 @@ void Sphere::InitSphere()
         }
     }
 }
+
+void Sphere::CreateSphereByTopology(float radius, Array<Vertex>& vertices, Array<int32_t>& indexes, D3D_PRIMITIVE_TOPOLOGY topology)
+{
+
+}
+
+void Sphere::CreateDrawSphereByTopology(Vector3 position, float radius, Vector4 color, Array<VertexNoTex>& vertices,
+    Array<int32_t>& indexes, D3D_PRIMITIVE_TOPOLOGY topology)
+{
+    const int32_t stackCount = 8;
+    const int32_t sliceCount = 8;
+
+    auto phiStep = Pi / stackCount;
+    auto thetaStep = 2.0f * Pi / sliceCount;
+
+    vertices.insert(VertexNoTex{Vector4(position.x, position.y + radius, position.z, 1.0f), color});
+
+    for (int i = 1; i <= stackCount - 1; i++)
+    {
+        auto phi = i * phiStep;
+        for (int j = 0; j <= sliceCount; j++)
+        {
+            auto theta = j * thetaStep;
+            auto pos = Vector4(
+                position.x + radius * sin(phi) * cos(theta),
+                position.y + radius * cos(phi),
+                position.z + radius * sin(phi) * sin(theta),
+                1.0f
+                );
+            //var t = new Vector3(-radius*MathF.Sin(phi)*MathF.Sin(theta), 0, radius*MathF.Sin(phi)*MathF.Cos(theta)); - tangent
+            auto norm = pos;
+            norm.Normalize();
+            vertices.insert(VertexNoTex{pos, color});
+        }
+    }
+
+    vertices.insert(VertexNoTex{Vector4(position.x, position.y - radius, position.z, 1.0f), color});
+
+    for (int i = 1; i <= sliceCount; i++)
+    {
+        indexes.insert(0);
+        indexes.insert(i);
+        indexes.insert(i + 1);
+    }
+
+    auto baseIndex = 1;
+    auto ringVertexCount = sliceCount + 1;
+    for (int i = 0; i < stackCount - 2; i++)
+    {
+        for (int j = 0; j < sliceCount; j++)
+        {
+            indexes.insert(baseIndex + (i + 1) * ringVertexCount + j);
+            indexes.insert(baseIndex + i * ringVertexCount + j);
+            indexes.insert(baseIndex + i * ringVertexCount + j + 1);
+            indexes.insert(baseIndex + (i + 1) * ringVertexCount + j);
+            indexes.insert(baseIndex + (i + 1) * ringVertexCount + j + 1);
+            indexes.insert(baseIndex + i * ringVertexCount + j + 1);
+
+        }
+    }
+
+    auto southPoleIndex = vertices.size() - 1;
+    baseIndex = southPoleIndex - ringVertexCount;
+    for (int i = 0; i < sliceCount; i++)
+    {
+        indexes.insert(southPoleIndex);
+        indexes.insert(baseIndex + i);
+        indexes.insert(baseIndex + i + 1);
+    }
+}

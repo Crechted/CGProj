@@ -7,17 +7,20 @@ enum class Keys;
 class SpringArmComponent : public SceneComponent
 {
 public:
-    SpringArmComponent();
+    SpringArmComponent(Camera* cam = nullptr);
     void Initialize() override;
     void Detach();
     void Reload() override;
 
-    Camera* controlCamera;
+    void SetControlCamera(Camera* cam);
+    Camera* GetCamera() const { return controlCamera; }
+    
     void Update(float timeTick) override;
     void OnKeyDown(Keys key);
     void OnKeyUp(Keys key);
     float springLenght = 0.0f;
 
 protected:
-    float delSpringLenght = 0.0f;    
+    Camera* controlCamera;
+    float delSpringLenght = 0.0f;
 };

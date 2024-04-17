@@ -19,10 +19,10 @@ public:
     virtual void Reload();    
     virtual void Update(float timeTick);
 
-    template<typename T>
-    T* CreateComponent()
+    template<typename T, typename... Args>
+    T* CreateComponent(const Args&... args)
     {
-        if (const auto newComp = dynamic_cast<GameComponent*>(new T()))
+        if (const auto newComp = dynamic_cast<GameComponent*>(new T(args...)))
         {
             newComp->Owner = Owner;            
             gameComponents.insert(newComp);

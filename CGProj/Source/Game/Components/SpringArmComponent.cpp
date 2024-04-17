@@ -5,12 +5,18 @@
 #include "../../Core/Input/InputDevice.h"
 #include "../../Utils/Types.h"
 
-SpringArmComponent::SpringArmComponent()
+SpringArmComponent::SpringArmComponent(Camera* cam)
 {
+    SetControlCamera(cam);
 }
 
 void SpringArmComponent::Initialize()
 {
+    if (!controlCamera)
+    {
+        printf("Forget Set Camera In Spring Component");
+    }
+
     SceneComponent::Initialize();
     engInst->GetInputDevice()->KeyDownDelegate.AddRaw(this, &SpringArmComponent::OnKeyDown);
     engInst->GetInputDevice()->KeyUpDelegate.AddRaw(this, &SpringArmComponent::OnKeyUp);
@@ -18,35 +24,50 @@ void SpringArmComponent::Initialize()
 
 void SpringArmComponent::Detach()
 {
-    auto worldMat = controlCamera->sceneComp->GetWorldMatrix();
+    if (!controlCamera) return;
+
+    controlCamera->SetTargetView(nullptr);
+    auto worldMat = controlCamera->GetSceneComponent()->GetWorldMatrix();
     auto worldLoc = worldMat.Translation();
     parentComponent = nullptr;
     SetLocation(worldLoc);
-    
+
     auto euler = worldMat.ToEuler();
     auto pitch = DegreeFromRadians(euler.x);
     auto yaw = DegreeFromRadians(euler.y);
     auto roll = initRotation.z;
     SetRotation(Vector3(pitch, yaw, roll));
-    
+
     springLenght = 0.0f;
 }
 
 void SpringArmComponent::Reload()
 {
     SceneComponent::Reload();
-    Detach();    
+    if (controlCamera)
+    {
+        controlCamera->Reload();
+        Detach();
+    }
+}
+
+void SpringArmComponent::SetControlCamera(Camera* cam)
+{
+    if (!cam) return;
+    controlCamera = cam;
+    controlCamera->GetSceneComponent()->AttachTo(this);
+    controlCamera->SetTargetView(this);
 }
 
 void SpringArmComponent::Update(float timeTick)
 {
     SceneComponent::Update(timeTick);
-
     if (!controlCamera) return;
+    controlCamera->Update(timeTick);
     if (springLenght <= 0.0f && delSpringLenght < 0.0f) springLenght = 0.0f;
     springLenght += delSpringLenght * timeTick;
-    controlCamera->sceneComp->SetLocation(Vector3(0.0f, 0.0f, springLenght));
-    
+    controlCamera->GetSceneComponent()->SetLocation(Vector3(0.0f, 0.0f, springLenght));
+
     //SetRotation(Vector3(transform.rotate.x, transform.rotate.y, 0.0f));
 }
 

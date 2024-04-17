@@ -14,7 +14,7 @@ enum class ViewType : uint8_t
     OrtFree,
     OrtXOZ,
     OrtYOZ,
-    OrtXOY,    
+    OrtXOY,
 };
 
 class Camera : public Object
@@ -44,18 +44,22 @@ public:
     float initScale = 1.0f;
     float speedScale = 1.0f;
     bool isPerspective = true;
-    SceneComponent* sceneComp;
-    MovementComponent* movementComp;
-    SpringArmComponent* springArmComp;
-    
+
     void OnKeyDown(Keys key);
     void OnKeyUp(Keys key);
     void OnMouse(const MouseMoveEventArgs& mouseData);
 
+    SceneComponent* GetSceneComponent() const { return sceneComp; }
+    void SetTargetView(SceneComponent* target) {targetView = target;}
+    SceneComponent*  GetTargetView() {return targetView;}
     ViewType viewType = ViewType::Perspective;
     Vector3 initPosition;
     Vector3 initRotation;
+
 protected:
+    SceneComponent* sceneComp;
+
+    SceneComponent* targetView = nullptr;
     float scale = 1.0f;
     float delScale;
 };

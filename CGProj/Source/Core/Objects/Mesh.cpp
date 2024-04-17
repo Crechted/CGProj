@@ -1,11 +1,12 @@
 #include "Mesh.h"
 
+#include "Core/Components/CollisionComponent.h"
 #include "Core/Components/DrawComponent.h"
 #include "Utils/MeshImporter.h"
 #include "Core/Components/SceneComponent.h"
 #include "Core/Components/TextureComponent.h"
 #include "Core/Components/TriangleComponent.h"
-#include "Game/Objects/Box.h"
+#include "Core/Components/Collisions/BoxCollision.h"
 
 Mesh::Mesh(const std::string& pathModel, const wchar_t* pathTex)
     : initPathModel(pathModel), initPathTex(pathTex)
@@ -13,7 +14,8 @@ Mesh::Mesh(const std::string& pathModel, const wchar_t* pathTex)
     sceneComp = CreateComponent<SceneComponent>();
     triangleComp = CreateComponent<TriangleComponent>();
     textureComp = CreateComponent<TextureComponent>();
-    debugCollision = CreateComponent<DrawComponent>();
+    collisionComp = CreateComponent<BoxCollision>();
+    collisionComp->AttachTo(sceneComp);
 }
 
 Mesh::Mesh()
@@ -21,56 +23,41 @@ Mesh::Mesh()
     sceneComp = CreateComponent<SceneComponent>();
     triangleComp = CreateComponent<TriangleComponent>();
     textureComp = CreateComponent<TextureComponent>();
-    debugCollision = CreateComponent<DrawComponent>();
+    collisionComp = CreateComponent<BoxCollision>();
+    collisionComp->AttachTo(sceneComp);
 }
 
 void Mesh::Initialize()
 {
     if (!initPathModel.empty()) MeshImporter::ImportMesh(initPathModel, this);
     SetTexture(initPathTex);
-    InitDebugCollision();
-    beginOverlapped.AddRaw(this, &Mesh::OnBeginOverlap);
+    collisionComp->beginOverlapped.AddRaw(this, &Mesh::OnBeginOverlap);
     Object::Initialize();
-}
-
-void Mesh::InitDebugCollision()
-{
-    Array<VertexNoTex> vertices;
-    Array<int32_t> indexes;
-    const Vector3 size = maxAABB - minAABB;
-    
-    boxCollision.Extents = DirectX::XMFLOAT3(size/2);
-    boxCollision.Center = DirectX::XMFLOAT3(minAABB + size/2);
-    Box::CreateDrawBoxByTopology(minAABB + size/2, size, Vector4(0.5f, 0.0f, 1.0f, 1.0f), vertices, indexes, D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-    debugCollision->topology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
-    debugCollision->SetVertices(vertices);
-    debugCollision->SetIndexes(indexes);
 }
 
 void Mesh::Update(float timeTick)
 {
     Object::Update(timeTick);
-    UpdateCollision();
-}
-
-void Mesh::UpdateCollision()
-{
-    const DirectX::FXMMATRIX mat = sceneComp->GetWorldMatrix();
-    boxCollision.Transform(boxCollision, mat);
 }
 
 void Mesh::Draw()
 {
-    for (auto gameComp : gameComponents)
-    {
-        if (gameComp == debugCollision && !showCollision) continue;
-        gameComp->Draw();
-    }
+    Object::Draw();
 }
 
-DirectX::BoundingBox* Mesh::GetCollision()
+CollisionComponent* Mesh::GetCollision() const
 {
-    return &boxCollision;
+    return collisionComp && collisionComp->CollisionEnabled() ? collisionComp : nullptr;
+}
+
+void Mesh::SetCollision(CollisionComponent* newCollisionComp)
+{
+    if (!newCollisionComp) return;
+    if (collisionComp) collisionComp->DestroyResource();
+    gameComponents.remove(collisionComp);
+    collisionComp = newCollisionComp;
+    //gameComponents.insert(collisionComp);
+    collisionComp->AttachTo(sceneComp);
 }
 
 int32_t Mesh::GetNumVertices() const
@@ -125,7 +112,23 @@ void Mesh::SetTexture(const wchar_t* path)
     }
 }
 
-void Mesh::OnBeginOverlap(Object* other)
+void Mesh::SetCollisionVisibility(bool visible)
 {
-    printf("Overlaped!");
+    if (collisionComp) collisionComp->SetCollisionVisibility(visible);
+}
+
+void Mesh::SetCollisionEnabled(bool enable)
+{
+    if (collisionComp) collisionComp->SetCollisionEnabled(enable);
+}
+
+bool Mesh::CollisionEnabled() const
+{
+    if (collisionComp) return collisionComp->CollisionEnabled();
+    return false;
+}
+
+void Mesh::OnBeginOverlap(CollisionComponent* other)
+{
+    
 }

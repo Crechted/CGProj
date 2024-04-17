@@ -41,13 +41,13 @@ Array<T>& Array<T>::operator=(Array&& other)
 
 
 template <typename T>
-int Array<T>::insert(const T& value)
+int32_t Array<T>::insert(const T& value)
 {
     return insert(lenght_, value);
 }
 
 template <typename T>
-int Array<T>::insert(int index, const T& value)
+int32_t Array<T>::insert(int32_t index, const T& value)
 {
     preInsert(index);
     new(&array_[index]) T(value);
@@ -55,13 +55,13 @@ int Array<T>::insert(int index, const T& value)
 }
 
 template <typename T>
-int Array<T>::insert(T&& value)
+int32_t Array<T>::insert(T&& value)
 {
     return insert(lenght_, std::move(value));
 }
 
 template <typename T>
-int Array<T>::insert(int index, T&& value)
+int32_t Array<T>::insert(int32_t index, T&& value)
 {
     preInsert(index);
     new(&array_[index]) T(std::move(value));
@@ -69,7 +69,7 @@ int Array<T>::insert(int index, T&& value)
 }
 
 template <typename T>
-void Array<T>::preInsert(int& index)
+void Array<T>::preInsert(int32_t& index)
 {
     validateArray();
 
@@ -78,7 +78,7 @@ void Array<T>::preInsert(int& index)
 
     index = index >= 0 && index < lenght_ ? index : lenght_ - 1;
 
-    for (int i = lenght_ - 2; i >= index; i--)
+    for (int32_t i = lenght_ - 2; i >= index; i--)
     {
         new(array_ + i + 1) T(std::move(array_[i]));
         array_[i].~T();
@@ -86,12 +86,12 @@ void Array<T>::preInsert(int& index)
 }
 
 template <typename T>
-void Array<T>::remove(int index)
+void Array<T>::removeAt(int32_t index)
 {
     validateArray();
     if (index < 0 || index >= lenght_) return;
     array_[index].~T();
-    for (int i = index; i < lenght_ - 1; i++)
+    for (int32_t i = index; i < lenght_ - 1; i++)
     {
         new(array_ + i) T(std::move(array_[i + 1]));
         array_[i + 1].~T();
@@ -100,16 +100,42 @@ void Array<T>::remove(int index)
 }
 
 template <typename T>
+void Array<T>::remove(const T& element)
+{
+    validateArray();
+
+    int32_t i = 0;
+    for (; i < lenght_; i++)
+    {
+        if (array_[i] == element)
+        {
+            removeAt(i);
+            return;
+        }
+    }    
+}
+
+template <typename T>
 void Array<T>::clear()
 {
     for (int32_t i = 0; i < lenght_;)
     {
-        remove(i);
+        removeAt(i);
     }
 }
 
 template <typename T>
-const T& Array<T>::operator[](int index) const
+bool Array<T>::contains(const T& element) const
+{
+    for ( int32_t i = 0; i < lenght_; i++)
+    {
+        if (array_[i] == element) return true;
+    }
+    return false;
+}
+
+template <typename T>
+const T& Array<T>::operator[](int32_t index) const
 {
     //validateArray();
     //if (index < 0 || index >= lenght_) return &T();
@@ -117,7 +143,7 @@ const T& Array<T>::operator[](int index) const
 }
 
 template <typename T>
-T& Array<T>::operator[](int index)
+T& Array<T>::operator[](int32_t index)
 {
     validateArray();
     //if (index < 0 || index >= lenght_) return T();
@@ -125,7 +151,7 @@ T& Array<T>::operator[](int index)
 }
 
 template <typename T>
-int Array<T>::size() const
+int32_t Array<T>::size() const
 {
     return lenght_;
 }
@@ -166,7 +192,7 @@ void Array<T>::swap(Array& lhs, Array& rhs)
 template <typename T>
 void Array<T>::copyFromTo(T* from, T* to)
 {
-    for (int i = 0; i < lenght_; i++)
+    for (int32_t i = 0; i < lenght_; i++)
     {
         new(&to[i]) T(std::move(from[i]));
         from[i].~T();

@@ -47,20 +47,29 @@ public:
 
     float GetTotalTime() const { return totalTime; }
     Camera* CreateCamera(ViewType ViewType = ViewType::Perspective);
-    void AddCamera(Camera* otherCam);
 
     ID3D11DeviceContext* GetContext() const { return curPlData->context; }
     ID3D11Device* GetDevice() const { return curPlData->device; }
     WinDisplay* GetDisplay() const { return curPlData->display; }
-    Camera* GetCurCamera() const { return curPlData->cameras[curPlData->curViewport]; }
-    Array<Camera*>& GetCamerasOnViewport() const { return curPlData->cameras; }
+
+    void SetCurCamera(Camera* cam) {curCam = cam;}
+    
+    Camera* GetCurCamera() const
+    {
+        return curCam ? curCam : curPlData->cameras[curPlData->curViewport];
+    }
+
+    Array<Camera*>& GetCamerasOnViewport()
+    {
+        return curPlData->cameras;
+    }
+
     InputDevice* GetInputDevice() const { return inputDevice; }
     int32_t GetIdxCurrentPipeline();
 
 
     //PipelineData plData;
 
-    void AddWindow(int32_t scrWidth, int32_t scrHeigh, int32_t posX, int32_t posY,  const Array<Camera*>& cameras);
     void AddWindow(int32_t scrWidth = -1, int32_t scrHeight = -1, int32_t posX = -1, int32_t posY = -1, ViewType = ViewType::General);
 
     template <typename T, typename... Args>
@@ -69,7 +78,9 @@ public:
         T* newObj = new T(args...);
         if (const auto nGObj = dynamic_cast<Object*>(newObj))
         {
-            gameObjects.insert(nGObj);
+            if (const auto nCam = dynamic_cast<Camera*>(newObj)) cameras.insert(nCam);
+            else gameObjects.insert(nGObj);
+
             return newObj;
         }
         delete newObj;
@@ -100,6 +111,7 @@ protected:
     Array<Camera*> cameras;
     Array<GameComponent*> gameComponents;
     Array<PipelineData*> pipelinesData;
+    Camera* curCam;
 
     std::chrono::time_point<std::chrono::steady_clock> PrevTime;
     std::chrono::time_point<std::chrono::steady_clock> curTime;
@@ -107,7 +119,7 @@ protected:
     unsigned int frameCount = 0;
 
     MSG msg;
-
+    
     void CreateDeviceAndSwapChain();
     void CreateTargetViewAndViewport();
     void CreateDepthStencilView();

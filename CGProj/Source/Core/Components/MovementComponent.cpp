@@ -47,7 +47,7 @@ void MovementComponent::Update(float timeTick)
 void MovementComponent::HandleInputByKey()
 {
     if (!sceneComp) return;
-    auto curScene = sceneComp->GetParentComponent()&& !sceneComp->attachOnlyTranslation  ? sceneComp->GetParentComponent() : sceneComp;
+    auto curScene = sceneComp->GetParentComponent() && !sceneComp->attachOnlyTranslation ? sceneComp->GetParentComponent() : sceneComp;
 
     delLocation = Vector3(0.0);
     if (engInst->GetInputDevice()->IsKeyDown(inputForward)) delLocation += curScene->GetForward() * speed;

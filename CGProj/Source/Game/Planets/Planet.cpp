@@ -33,10 +33,13 @@ void Planet::OnKeyDown(Keys key)
     {
         for (const auto camera : engInst->GetCamerasOnViewport())
         {
-            camera->springArmComp->AttachTo(meshComponent);
-            camera->springArmComp->SetLocation(Vector3(0.0f));        
-            camera->springArmComp->SetRotation(Vector3(0.0f));
-            camera->springArmComp->springLenght = meshComponent->radius*4.0f;
+            if (const auto springArmComp = dynamic_cast<SpringArmComponent*>(camera->GetTargetView()))
+            {
+                springArmComp->AttachTo(meshComponent);
+                springArmComp->SetLocation(Vector3(0.0f));        
+                springArmComp->SetRotation(Vector3(0.0f));
+                springArmComp->springLenght = meshComponent->radius*4.0f;
+            }
         }
     }
 }

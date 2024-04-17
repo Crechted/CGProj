@@ -1,8 +1,8 @@
 ﻿#pragma once
 #include <string>
-
 #include "SceneComponent.h"
 
+class CollisionComponent;
 class Mesh;
 
 class MeshComponent : public SceneComponent
@@ -19,7 +19,7 @@ public:
     void DestroyResource() override;
 
     Mesh* GetMesh() const {return mesh;}
-    DirectX::BoundingBox* GetMeshCollision() const;
+    CollisionComponent* GetMeshCollision() const;
     
 protected:
     Mesh* mesh;

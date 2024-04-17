@@ -4,7 +4,12 @@
 #include "Game/Camera.h"
 #include "Utils/Types.h"
 
-SceneComponent::SceneComponent(SceneComponent* parentComp, Vector3 position, Vector3 rotation, Vector3 scale) : parentComponent(parentComp), initPosition(position), initRotation(rotation), initScale(scale)
+SceneComponent::SceneComponent(SceneComponent* parentComp, Vector3 position, Vector3 rotation, Vector3 scale)
+    : parentComponent(parentComp), initPosition(position), initRotation(rotation), initScale(scale)
+{
+}
+
+SceneComponent::SceneComponent(Transform transf, SceneComponent* parentComp) : parentComponent(parentComp), initPosition(transf.location), initRotation(transf.rotate), initScale(transf.rotate)
 {
 }
 
@@ -51,10 +56,8 @@ void SceneComponent::Reload()
 
 void SceneComponent::UpdateTransformMatrix()
 {
-    const float pitch = RadiansFromDegree(transform.rotate.x);
-    const float yaw = RadiansFromDegree(transform.rotate.y);
-    const float roll = RadiansFromDegree(transform.rotate.z);
-    mTransform = Matrix::CreateFromYawPitchRoll(yaw, pitch, roll);
+    const auto rad = RadiansFromDegree(transform.rotate);
+    mTransform = Matrix::CreateFromYawPitchRoll(rad);
     mTransform.Translation(GetLocation());
     mTransform *= mTransform.CreateScale(GetScale());
 }
@@ -105,34 +108,36 @@ const Vector3& SceneComponent::GetWorldLocation() const
 const Vector3& SceneComponent::GetWorldRotation() const
 {
     const auto euler = GetWorldMatrix().ToEuler();
-    const auto pitch = DegreeFromRadians(euler.x);
-    const auto yaw = DegreeFromRadians(euler.y);
-    const auto roll = DegreeFromRadians(euler.z);
-    return Vector3(pitch, yaw, roll);
+    const auto deg = DegreeFromRadians(euler);
+    return deg;
+}
+
+void SceneComponent::AddQuatRotation(const Vector3& addRot)
+{
+    const auto newRot = GetRotation() + addRot;    
+    auto quat = Quaternion::CreateFromRotationMatrix(mTransform);
+    quat = quat*Quaternion::CreateFromYawPitchRoll(RadiansFromDegree(addRot));
+    const auto euler = quat.ToEuler();
+    const auto deg = DegreeFromRadians(euler);
+    transform.rotate = deg;
 }
 
 const Vector3& SceneComponent::GetForward() const
 {
-    const float pitch = RadiansFromDegree(transform.rotate.x);
-    const float yaw = RadiansFromDegree(transform.rotate.y);
-    const float roll = RadiansFromDegree(transform.rotate.z);
-    return Matrix::CreateFromYawPitchRoll(yaw, pitch, roll).Forward();
+    const auto rad = RadiansFromDegree(transform.rotate);
+    return Matrix::CreateFromYawPitchRoll(rad).Forward();
 }
 
 const Vector3& SceneComponent::GetRight() const
 {
-    const float pitch = RadiansFromDegree(transform.rotate.x);
-    const float yaw = RadiansFromDegree(transform.rotate.y);
-    const float roll = RadiansFromDegree(transform.rotate.z);
-    return Matrix::CreateFromYawPitchRoll(yaw, pitch, roll).Right();
+    const auto rad = RadiansFromDegree(transform.rotate);
+    return Matrix::CreateFromYawPitchRoll(rad).Right();
 }
 
 const Vector3& SceneComponent::GetUp() const
 {
-    const float pitch = RadiansFromDegree(transform.rotate.x);
-    const float yaw = RadiansFromDegree(transform.rotate.y);
-    const float roll = RadiansFromDegree(transform.rotate.z);
-    return Matrix::CreateFromYawPitchRoll(yaw, pitch, roll).Up();
+    const auto rad = RadiansFromDegree(transform.rotate);
+    return Matrix::CreateFromYawPitchRoll(rad).Up();
 }
 
 const Vector3& SceneComponent::GetGlobalUp() const

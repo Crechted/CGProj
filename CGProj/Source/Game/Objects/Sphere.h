@@ -19,6 +19,12 @@ public:
     
     void Initialize() override;
     void InitSphere();
+    
+    static void CreateSphereByTopology(float radius, Array<Vertex>& vertices, Array<int32_t>& indexes,
+        D3D_PRIMITIVE_TOPOLOGY topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    
+    static void CreateDrawSphereByTopology(Vector3 pos, float radius, Vector4 color, Array<VertexNoTex>& vertices, Array<int32_t>& indexes,
+        D3D_PRIMITIVE_TOPOLOGY topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 protected:
     Vector3 initPos = Vector3::Zero;

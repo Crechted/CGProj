@@ -39,8 +39,12 @@ public:
     int32_t insert(int32_t index, const T& value);
     int32_t insert(T&& value);
     int32_t insert(int32_t index, T&& value);
-    void remove(int32_t index);
+    void removeAt(int32_t index);
+    void remove(const T& element);
     void clear();
+    bool contains(const T& element) const;
+    
+    
     const T& operator[](int32_t index) const;
     T& operator[](int32_t index);
     int32_t size() const;
