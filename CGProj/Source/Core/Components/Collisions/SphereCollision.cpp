@@ -18,21 +18,18 @@ bool SphereCollision::Contains(CollisionComponent* other) const
 
 void SphereCollision::InitCollision()
 {   
-    sphereCollision.Radius = radius;
-    sphereCollision.Center = DirectX::XMFLOAT3(GetLocation());
-    
     Array<VertexNoTex> vertices;
     Array<int32_t> indexes;
-    Sphere::CreateDrawSphereByTopology(initPosition, radius, Vector4(0.5f, 0.0f, 1.0f, 1.0f), vertices, indexes, D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+    Sphere::CreateDrawSphereByTopology(Vector3::Zero, radius, Vector4(0.5f, 0.0f, 1.0f, 1.0f), vertices, indexes, D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
     debugCollision->topology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
     debugCollision->SetVertices(vertices);
     debugCollision->SetIndexes(indexes);
+    UpdateCollision();
 }
 
 void SphereCollision::UpdateCollision()
 {
-    const DirectX::FXMMATRIX mat = GetWorldMatrix();
-    sphereCollision.Transform(sphereCollision, mat);
-    sphereCollision.Center = GetWorldLocation();
-    sphereCollision.Radius = radius;
+    const auto trans = GetWorldTransform();
+    sphereCollision.Center = trans.location;
+    sphereCollision.Radius = radius*trans.scale.x;
 }

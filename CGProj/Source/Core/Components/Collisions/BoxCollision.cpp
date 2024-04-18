@@ -16,29 +16,31 @@ bool BoxCollision::Contains(CollisionComponent* other) const
 
 void BoxCollision::InitCollision()
 {
-    boxCollision.Extents = DirectX::XMFLOAT3(size / 2);
-    boxCollision.Center = DirectX::XMFLOAT3(GetLocation());
-
-    Vector3 inPos = initPosition;
     if (const auto mesh = dynamic_cast<Mesh*>(Owner))
     {
-        Vector3 min;
-        Vector3 max;
+        Vector3 min = Vector3::Zero;
+        Vector3 max = Vector3::Zero;
         mesh->GetAABB(min, max);
-        inPos = inPos != (max-min)/2 ? (max-min)/2 : inPos;
+        if (min != Vector3::Zero || max != Vector3::Zero)
+        {
+            size = max - min;
+            printf("size: %f, %f, %f;\n", size.x, size.y, size.z);
+        }
     }
     Array<VertexNoTex> vertices;
     Array<int32_t> indexes;
-    Box::CreateDrawBoxByTopology(initPosition, size, Vector4(0.5f, 0.0f, 1.0f, 1.0f), vertices, indexes, D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+    Box::CreateDrawBoxByTopology(Vector3::Zero, size, Vector4(0.5f, 0.0f, 1.0f, 1.0f), vertices, indexes,
+        D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
     debugCollision->topology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
     debugCollision->SetVertices(vertices);
     debugCollision->SetIndexes(indexes);
+
+    UpdateCollision();
 }
 
 void BoxCollision::UpdateCollision()
 {
-    const DirectX::FXMMATRIX mat = GetWorldMatrix();
-    boxCollision.Transform(boxCollision, mat);
-    boxCollision.Center = GetWorldLocation();
-    boxCollision.Extents = size/2;
+    const auto trans = GetWorldTransform();
+    boxCollision.Center = trans.location;
+    boxCollision.Extents = size * 0.5f * trans.scale;
 }

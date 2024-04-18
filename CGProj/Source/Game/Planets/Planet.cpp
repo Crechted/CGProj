@@ -22,7 +22,7 @@ void Planet::Initialize()
 
 void Planet::AddSputnik(Planet* dirPlanet)
 {
-    dirPlanet->meshComponent->attachOnlyTranslation = true;
+    dirPlanet->meshComponent->attachRotate = false;
     dirPlanet->parentPlanet = this;
     dirPlanet->meshComponent->AttachTo(meshComponent);
 }

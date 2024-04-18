@@ -47,7 +47,6 @@ void SpringArmComponent::Reload()
     if (controlCamera)
     {
         controlCamera->Reload();
-        Detach();
     }
 }
 

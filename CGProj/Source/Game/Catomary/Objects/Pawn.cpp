@@ -4,14 +4,14 @@
 #include "Game/Components/SphereComponent.h"
 #include "Game/Components/SpringArmComponent.h"
 
-Pawn::Pawn()
+Pawn::Pawn(float lenght, Vector3 pos)
 {
     springArmComp = CreateComponent<SpringArmComponent>(engInst->CreateCamera());
-    sphereComp = CreateComponent<SphereComponent>(nullptr, Vector3(0.0f, 0.5f, 0.0f));
+    sphereComp = CreateComponent<SphereComponent>(nullptr, pos);
     playerMoveComp = CreateComponent<PlayerMoveComponent>();
     springArmComp->AttachTo(sphereComp);
-    springArmComp->attachOnlyTranslation = true;
-    springArmComp->springLenght = 5.0f;
+    springArmComp->attachRotate = false;
+    springArmComp->springLenght = lenght;
 }
 
 void Pawn::Initialize()

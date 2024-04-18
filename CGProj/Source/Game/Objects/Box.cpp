@@ -11,12 +11,9 @@ Box::Box(const wchar_t* pathTex, Vector3 position, Vector3 size, Vector4 color)
     initPathTex = pathTex;
 }
 
-void Box::Initialize()
+void Box::InitMesh()
 {
     InitBox(initSize, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    maxAABB = sceneComp->GetLocation() + 0.5 * initSize;
-    minAABB = sceneComp->GetLocation() - 0.5 * initSize;
-    Mesh::Initialize();
 }
 
 void Box::InitBox(Vector3 size, D3D_PRIMITIVE_TOPOLOGY topology)
@@ -26,7 +23,6 @@ void Box::InitBox(Vector3 size, D3D_PRIMITIVE_TOPOLOGY topology)
     Array<int32_t> indexes;
     CreateBoxByTopology(size, vertices, indexes, topology);
     SetVertices(vertices);
-
     SetIndices(indexes);
 }
 
@@ -36,7 +32,7 @@ void Box::CreateBoxByTopology(Vector3 size, Array<Vertex>& vertices, Array<int32
     auto h2 = 0.5f * size.y;
     auto d2 = 0.5f * size.z;
 
-    const float invU = -1.0f;
+    const float invU = 0.0f;
     vertices.insert(Vertex{Vector4(-w2, -h2, -d2, 1.0f), Vector4(0.0f, 0.0f, -1.0f, 1.0f), Vector2(abs(invU + 0.0f), 1.0f)}); // front
     vertices.insert(Vertex{Vector4(-w2, +h2, -d2, 1.0f), Vector4(0.0f, 0.0f, -1.0f, 1.0f), Vector2(abs(invU + 0.0f), 0.0f)});
     vertices.insert(Vertex{Vector4(+w2, +h2, -d2, 1.0f), Vector4(0.0f, 0.0f, -1.0f, 1.0f), Vector2(abs(invU + 1.0f), 0.0f)});

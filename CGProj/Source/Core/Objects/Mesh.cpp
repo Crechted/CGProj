@@ -8,8 +8,8 @@
 #include "Core/Components/TriangleComponent.h"
 #include "Core/Components/Collisions/BoxCollision.h"
 
-Mesh::Mesh(const std::string& pathModel, const wchar_t* pathTex)
-    : initPathModel(pathModel), initPathTex(pathTex)
+Mesh::Mesh(const std::string& pathModel, const wchar_t* pathTex, bool centering)
+    : initPathModel(pathModel), initPathTex(pathTex), centering(centering)
 {
     sceneComp = CreateComponent<SceneComponent>();
     triangleComp = CreateComponent<TriangleComponent>();
@@ -19,6 +19,7 @@ Mesh::Mesh(const std::string& pathModel, const wchar_t* pathTex)
 }
 
 Mesh::Mesh()
+    : centering(true)
 {
     sceneComp = CreateComponent<SceneComponent>();
     triangleComp = CreateComponent<TriangleComponent>();
@@ -27,17 +28,31 @@ Mesh::Mesh()
     collisionComp->AttachTo(sceneComp);
 }
 
+void Mesh::InitTexture()
+{
+    SetTexture(initPathTex);
+}
+
+void Mesh::InitMesh()
+{
+    if (!initPathModel.empty())
+    {        
+        triangleComp->SetWorldLoc(sceneComp->GetWorldLocation());
+        MeshImporter::ImportMesh(initPathModel, this, centering);
+    }
+}
+
 void Mesh::Initialize()
 {
-    if (!initPathModel.empty()) MeshImporter::ImportMesh(initPathModel, this);
-    SetTexture(initPathTex);
-    collisionComp->beginOverlapped.AddRaw(this, &Mesh::OnBeginOverlap);
+    InitMesh();
+    InitTexture();
     Object::Initialize();
 }
 
 void Mesh::Update(float timeTick)
 {
     Object::Update(timeTick);
+    triangleComp->SetWorldLoc(sceneComp->GetWorldLocation());
 }
 
 void Mesh::Draw()
@@ -73,10 +88,7 @@ void Mesh::SetAABB(Vector3 min, Vector3 max)
 
 void Mesh::SetVertices(const Array<Vertex>& vertices) const
 {
-    for (const auto& vert : vertices)
-    {
-        triangleComp->AddVertex(vert);
-    }
+    triangleComp->SetVertices(vertices);
 }
 
 void Mesh::AddVertex(const Vertex& vertex) const
@@ -126,9 +138,4 @@ bool Mesh::CollisionEnabled() const
 {
     if (collisionComp) return collisionComp->CollisionEnabled();
     return false;
-}
-
-void Mesh::OnBeginOverlap(CollisionComponent* other)
-{
-    
 }

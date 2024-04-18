@@ -6,7 +6,7 @@ class SphereCollision : public CollisionComponent
 {
 public:
     SphereCollision(float radius = 1.0f);
-
+    
     bool Contains(CollisionComponent* other) const override;
     void InitCollision() override;
     void UpdateCollision() override;

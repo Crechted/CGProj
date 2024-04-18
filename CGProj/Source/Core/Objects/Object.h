@@ -37,6 +37,7 @@ public:
         return nullptr;
     }
 
+    GameComponent* outer = nullptr;
     Array<GameComponent*> gameComponents;
 
     //Array<Object*> overlappedObjects;

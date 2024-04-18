@@ -3,6 +3,14 @@
 #include "DDSTextureLoader.h"
 #include "GameComponent.h"
 
+struct LoadedTex
+{
+    const wchar_t* path;
+    ID3D11ShaderResourceView* textureRV;
+};
+
+static Array<LoadedTex> LoadedTextures;
+
 class TextureComponent : public GameComponent
 {
 public:

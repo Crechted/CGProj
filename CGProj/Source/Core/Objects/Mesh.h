@@ -15,8 +15,10 @@ class SceneComponent;
 class Mesh : public Object
 {
 public:
-    Mesh(const std::string& pathModel, const wchar_t* pathTex = nullptr);
+    Mesh(const std::string& pathModel, const wchar_t* pathTex = nullptr, bool centering = true);
     Mesh();
+    virtual void InitMesh();
+    virtual void InitTexture();
     void Initialize() override;
     void Update(float timeTick) override;
     void Draw() override;
@@ -25,6 +27,7 @@ public:
     void SetCollision(CollisionComponent* newCollisionComp);
     TextureComponent* GetTextureComponent() const { return textureComp; }
     SceneComponent* GetSceneComponent() const { return sceneComp; }
+    TriangleComponent* GetTriangleComponent() const { return triangleComp; }
 
     int32_t GetNumVertices() const;
     void SetAABB(DirectX::SimpleMath::Vector3 min, DirectX::SimpleMath::Vector3 max);
@@ -45,6 +48,8 @@ public:
 
     void SetCollisionVisibility(bool visible);
     void SetCollisionEnabled(bool enable);
+    void SetCentering(bool center) {centering = center;};
+    bool GetCentering() const {return centering;};
     bool CollisionEnabled() const;
 
 protected:
@@ -56,8 +61,8 @@ protected:
     std::string initPathModel;
     const wchar_t* initPathTex = nullptr;
 
+    bool centering;
     DirectX::SimpleMath::Vector3 maxAABB;
     DirectX::SimpleMath::Vector3 minAABB;
 
-    void OnBeginOverlap(CollisionComponent* other);
 };

@@ -8,9 +8,9 @@ class Mesh;
 class MeshImporter
 {
 public:
-    static Mesh* ImportMesh(const std::string& pathModel, const wchar_t* pathTex = nullptr);
-    static bool ImportMesh(const std::string& pathModel, Mesh* resMesh);
+    static Mesh* ImportMesh(const std::string& pathModel, const wchar_t* pathTex = nullptr, bool centering = true, int32_t numMesh = 0);
+    static bool ImportMesh(const std::string& pathModel, Mesh* resMesh, bool centering = true, int32_t numMesh = 0);
 
 private:
-    static void FillMeshData(const aiScene* sce, Mesh* resMesh);
+    static void FillMeshData(const aiScene* sce, Mesh* resMesh, bool centering = true, int32_t numMesh = 0);
 };

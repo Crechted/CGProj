@@ -3,7 +3,8 @@
 #include "WICTextureLoader.h"
 #include "Core/Engine.h"
 
-TextureComponent::TextureComponent(const wchar_t* path) : pathForLoad(path)
+TextureComponent::TextureComponent(const wchar_t* path)
+    : pathForLoad(path)
 {
 }
 
@@ -16,7 +17,6 @@ void TextureComponent::Initialize()
 void TextureComponent::DestroyResource()
 {
     GameComponent::DestroyResource();
-    if (textureRV) textureRV->Release();
     if (samplerLinear) samplerLinear->Release();
 }
 
@@ -75,13 +75,20 @@ void TextureComponent::LoadDefaultTexture()
 void TextureComponent::LoadTexture(const wchar_t* path)
 {
     if (textureRV) textureRV->Release();
+    for (const auto& tex : LoadedTextures)
+    {
+        if (tex.path != path) continue;
+        printf("GOIDA!\n");
+        textureRV = tex.textureRV;
+        return;
+    }
     auto res = DirectX::CreateDDSTextureFromFile(engInst->GetDevice(), path, nullptr, &textureRV);
 
     if (FAILED(res))
     {
         res = DirectX::CreateWICTextureFromFile(engInst->GetDevice(), path, nullptr, &textureRV);
-        if (FAILED(res))
-            printf("Load texture failed");
+        if (FAILED(res)) printf("Load texture failed");
+        else LoadedTextures.insert(LoadedTex{path, textureRV});
     }
-
+    else LoadedTextures.insert(LoadedTex{path, textureRV});
 }

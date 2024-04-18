@@ -8,7 +8,7 @@ BoxComponent::BoxComponent(const wchar_t* pathTex, Vector3 position, Vector3 siz
 {
     if (mesh) mesh->Destroy();
     mesh = new Box(pathTex, Vector3::Zero, size, color);
-    
+    mesh->outer = this;
     mesh->SetCollision(mesh->CreateComponent<BoxCollision>(size));    
     mesh->GetSceneComponent()->AttachTo(this);
     //mesh->GetCollision()->initPosition = position;

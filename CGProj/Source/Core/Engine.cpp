@@ -13,6 +13,7 @@
 #include "Core/Objects/Object.h"
 #include "Components/GameComponent.h"
 #include "Components/MeshComponent.h"
+#include "Components/TextureComponent.h"
 #include "Core/Input/InputDevice.h"
 #include "Game/GameSquare.h"
 #include "Game/Camera.h"
@@ -57,6 +58,10 @@ void Engine::Destroy()
         {
             delete cam;
         }
+    }
+    for (const auto& tex : LoadedTextures)
+    {
+        if (tex.textureRV) tex.textureRV->Release();
     }
 }
 

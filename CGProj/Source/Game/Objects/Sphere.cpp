@@ -52,7 +52,7 @@ void Sphere::InitSphere()
             //var t = new Vector3(-radius*MathF.Sin(phi)*MathF.Sin(theta), 0, radius*MathF.Sin(phi)*MathF.Cos(theta)); - tangent
             auto norm = pos;
             norm.Normalize();
-            auto tex = Vector2(1.0f - theta / (Pi * 2), phi / Pi);
+            auto tex = Vector2(theta / (Pi * 2), phi / Pi);
             AddVertex(Vertex{pos, norm, tex});
         }
     }

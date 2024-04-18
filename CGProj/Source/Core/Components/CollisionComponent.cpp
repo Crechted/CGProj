@@ -11,15 +11,15 @@ CollisionComponent::CollisionComponent()
 void CollisionComponent::Initialize()
 {
     InitCollision();
+    SceneComponent::Initialize();
     beginOverlapped.AddRaw(this, &CollisionComponent::OnBeginOverlap);
     endOverlapped.AddRaw(this, &CollisionComponent::OnEndOverlap);
-    SceneComponent::Initialize();
 }
 
 void CollisionComponent::Update(float timeTick)
 {
-    UpdateCollision();
     SceneComponent::Update(timeTick);
+    UpdateCollision();
 }
 
 void CollisionComponent::OnBeginOverlap(CollisionComponent* other)

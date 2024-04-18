@@ -97,13 +97,15 @@ void TriangleComponent::AddVertex(const Vertex& vertex)
 {
     const D3DVertex tempVert{{vertex.position.x, vertex.position.y, vertex.position.z, vertex.position.w},
                              {vertex.normal.x, vertex.normal.y, vertex.normal.z, vertex.normal.w},
+                             {worldLoc.x + vertex.position.x, worldLoc.y + vertex.position.y, worldLoc.z + vertex.position.z,
+                              vertex.position.w},
                              {vertex.texture.x, vertex.texture.y}};
     vertices.insert(tempVert);
 }
 
 void TriangleComponent::AddVertex(const DirectX::XMFLOAT4& pos, const DirectX::XMFLOAT4& norm, const DirectX::XMFLOAT2& tex)
 {
-    const D3DVertex vert{pos, norm, tex};
+    const D3DVertex vert{pos, norm, {worldLoc.x + pos.x, worldLoc.y + pos.y, worldLoc.z + pos.z, pos.w}, tex};
     vertices.insert(vert);
 }
 
@@ -113,6 +115,8 @@ void TriangleComponent::SetVertices(const Array<Vertex>& verts)
     {
         const D3DVertex tempVert{{vert.position.x, vert.position.y, vert.position.z, vert.position.w},
                                  {vert.normal.x, vert.normal.y, vert.normal.z, vert.normal.w},
+                                 {worldLoc.x + vert.position.x, worldLoc.y + vert.position.y, worldLoc.z + vert.position.z,
+                                  vert.position.w},
                                  {vert.texture.x, vert.texture.y}};
         vertices.insert(tempVert);
     }
@@ -195,10 +199,15 @@ void TriangleComponent::CreateLayout()
         D3D11_INPUT_ELEMENT_DESC{"POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
         D3D11_INPUT_ELEMENT_DESC{"NORMAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA,
                                  0},
-        D3D11_INPUT_ELEMENT_DESC{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0}};
+        D3D11_INPUT_ELEMENT_DESC{"TEXCOORD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT,
+                                 D3D11_INPUT_PER_VERTEX_DATA,
+                                 0},
+        D3D11_INPUT_ELEMENT_DESC{"TEXCOORD", 1, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0}};
 
     engInst->GetDevice()->CreateInputLayout(inputElements, numElements, vertexBC->GetBufferPointer(), vertexBC->GetBufferSize(),
         &layout);
+    /*engInst->GetDevice()->CreateInputLayout(inputElements, numElements, pixelBC->GetBufferPointer(), pixelBC->GetBufferSize(),
+        &layout);*/
 }
 
 void TriangleComponent::CreateVertexBuffer()
@@ -236,7 +245,7 @@ void TriangleComponent::CreateIndexBuffer()
 
 void TriangleComponent::CreateAndSetRasterizerState()
 {
-    strides = new UINT[1]{40};
+    strides = new UINT[1]{56};
     offsets = new UINT[1]{0};
 
     CD3D11_RASTERIZER_DESC rastDesc = {};
@@ -245,5 +254,5 @@ void TriangleComponent::CreateAndSetRasterizerState()
     rastDesc.AntialiasedLineEnable = isAntialiasedLine;
 
     auto res = engInst->GetDevice()->CreateRasterizerState(&rastDesc, &rastState);
-    //engInst->GetContext()->RSSetState(rastState);
+    engInst->GetContext()->RSSetState(rastState);
 }

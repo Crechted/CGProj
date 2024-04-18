@@ -53,8 +53,8 @@ void PlayerMoveComponent::CalcOffset(float timeTick)
 
     const auto mat = curRotScene->GetWorldMatrix();
     curRotScene->AddRotation(delRotation * timeTick);
-    curScene->AddQuatRotation(Vector3(delLocation.z, 0.0f, -delLocation.x) * rotSpeed * timeTick);
-    curScene->AddLocation(delLocation * timeTick);
+    curScene->AddQuatRotation(Vector3(delLocation.z, 0.0f, -delLocation.x) * speed* rotSpeed * timeTick);
+    curScene->AddLocation(delLocation* speed* timeTick);
     delRotation = Vector3(0.0);
 
     /*printf(" Rotation: Pitch=%04.4f Yaw:%04.4f Roll:%04.4f\n",
