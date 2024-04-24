@@ -4,6 +4,8 @@
 #include "Core/Engine.h"
 #include "Core/Input/InputDevice.h"
 #include "Components/SpringArmComponent.h"
+#include "Core/Windisplay.h"
+#include "Utils/Types.h"
 
 Camera::Camera(Vector3 initPosition, Vector3 initRotation)
     : initPosition(initPosition), initRotation(initRotation)
@@ -84,7 +86,7 @@ void Camera::UpdateViewMatrix()
         up = Vector3(0.0f, 1.0f, 0.0f);
     }
 
-    mView = Matrix::CreateLookAt(loc, tar, up);
+    eyeData.mView = Matrix::CreateLookAt(loc, tar, up);
     /*auto Res = Matrix();
     Res = worldMat;
     printf(" Position: posX=%04.4f posY:%04.4f offsetZ:%04.4f :: Rotation X=%04.4f Y=%04.4f Z=%04.4f \n",
@@ -100,12 +102,12 @@ void Camera::UpdateProjMatrix()
 {
     if (viewType == ViewType::General)
     {
-        mProj = isPerspective
+        eyeData.mProj = isPerspective
                     ? Matrix::CreatePerspective(width * scale, height * scale, nearPlane, farPlane)
                     : Matrix::CreateOrthographic(widthOrt * scale, heightOrt * scale, nearPlane, farPlane);
     }
-    else if (viewType == ViewType::Perspective) mProj = Matrix::CreatePerspective(width * scale, height * scale, nearPlane, farPlane);
-    else mProj = Matrix::CreateOrthographic(widthOrt * scale, heightOrt * scale, nearPlane, farPlane);
+    else if (viewType == ViewType::Perspective) eyeData.mProj = Matrix::CreatePerspective(width * scale, height * scale, nearPlane, farPlane);
+    else eyeData.mProj = Matrix::CreateOrthographic(widthOrt * scale, heightOrt * scale, nearPlane, farPlane);
 }
 
 void Camera::OnKeyDown(Keys key)

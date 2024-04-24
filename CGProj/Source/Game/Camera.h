@@ -17,6 +17,12 @@ enum class ViewType : uint8_t
     OrtXOY,
 };
 
+struct EyeViewData
+{
+    Matrix mView;
+    Matrix mProj;
+};
+
 class Camera : public Object
 {
 public:
@@ -28,11 +34,8 @@ public:
     void Initialize() override;
     void Update(float timeTick) override;
 
-    Matrix mWorld;
-    Matrix mView;
-    Matrix mProj;
-    Matrix mOrtho;
-
+    EyeViewData GetEyeData() const {return eyeData;}
+    
     float mAngle = 0.0f;
     float width = 0.01f;
     float height = 0.01f;
@@ -56,7 +59,8 @@ public:
     Vector3 initPosition;
     Vector3 initRotation;
 
-protected:
+protected:    
+    EyeViewData eyeData;
     SceneComponent* sceneComp;
 
     SceneComponent* targetView = nullptr;

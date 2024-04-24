@@ -18,7 +18,6 @@ struct D3DMinVertex
 class DrawComponent : public GameComponent
 {
 public:
-    DrawComponent();
     ~DrawComponent();
 
     void Initialize() override;

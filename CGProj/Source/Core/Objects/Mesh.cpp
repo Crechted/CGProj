@@ -11,20 +11,20 @@
 Mesh::Mesh(const std::string& pathModel, const wchar_t* pathTex, bool centering)
     : initPathModel(pathModel), initPathTex(pathTex), centering(centering)
 {
+    collisionComp = CreateComponent<BoxCollision>();
     sceneComp = CreateComponent<SceneComponent>();
     triangleComp = CreateComponent<TriangleComponent>();
     textureComp = CreateComponent<TextureComponent>();
-    collisionComp = CreateComponent<BoxCollision>();
     collisionComp->AttachTo(sceneComp);
 }
 
 Mesh::Mesh()
     : centering(true)
 {
+    collisionComp = CreateComponent<BoxCollision>();
     sceneComp = CreateComponent<SceneComponent>();
     triangleComp = CreateComponent<TriangleComponent>();
     textureComp = CreateComponent<TextureComponent>();
-    collisionComp = CreateComponent<BoxCollision>();
     collisionComp->AttachTo(sceneComp);
 }
 
@@ -37,7 +37,6 @@ void Mesh::InitMesh()
 {
     if (!initPathModel.empty())
     {        
-        triangleComp->SetWorldLoc(sceneComp->GetWorldLocation());
         MeshImporter::ImportMesh(initPathModel, this, centering);
     }
 }
@@ -52,7 +51,6 @@ void Mesh::Initialize()
 void Mesh::Update(float timeTick)
 {
     Object::Update(timeTick);
-    triangleComp->SetWorldLoc(sceneComp->GetWorldLocation());
 }
 
 void Mesh::Draw()
@@ -71,7 +69,7 @@ void Mesh::SetCollision(CollisionComponent* newCollisionComp)
     if (collisionComp) collisionComp->DestroyResource();
     gameComponents.remove(collisionComp);
     collisionComp = newCollisionComp;
-    //gameComponents.insert(collisionComp);
+    //gameComponents.insert(0, collisionComp);
     collisionComp->AttachTo(sceneComp);
 }
 

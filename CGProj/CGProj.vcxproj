@@ -147,13 +147,16 @@
     <ClInclude Include="Source\Core\Input\Keys.h" />
     <ClInclude Include="Source\Core\Objects\Mesh.h" />
     <ClInclude Include="Source\Core\Objects\Object.h" />
+    <ClInclude Include="Source\Core\Shader.h" />
     <ClInclude Include="Source\Core\WinDisplay.h" />
     <ClInclude Include="Source\Game\Camera.h" />
     <ClInclude Include="Source\Game\Catomary\Components\PlayerMoveComponent.h" />
     <ClInclude Include="Source\Game\Catomary\Objects\CatamaryObjects.h" />
     <ClInclude Include="Source\Game\Catomary\Objects\Pawn.h" />
     <ClInclude Include="Source\Game\Components\BoxComponent.h" />
+    <ClInclude Include="Source\Game\Components\DirectionalLightComponent.h" />
     <ClInclude Include="Source\Game\Components\DrawSphereComponent.h" />
+    <ClInclude Include="Source\Game\Components\LightComponent.h" />
     <ClInclude Include="Source\Game\Components\SphereComponent.h" />
     <ClInclude Include="Source\Game\Components\SpringArmComponent.h" />
     <ClInclude Include="Source\Game\GameSquare.h" />
@@ -269,13 +272,16 @@
       <AdditionalIncludeDirectories>Z:\Univer\maga\2sem\CG\CGProj\CGProj/Source/;Z:\Univer\maga\2sem\CG\CGProj\CGProj\Libs\Inc\;Z:\Univer\maga\2sem\CG\CGProj\CGProj\Libs\Assimp\include\;Z:\Univer\maga\2sem\CG\vcpkg\installed\x64-windows\include</AdditionalIncludeDirectories>
       <LinkCompiled>true</LinkCompiled>
     </ClCompile>
+    <ClCompile Include="Source\Core\Shader.cpp" />
     <ClCompile Include="Source\Core\WinDisplay.cpp" />
     <ClCompile Include="Source\Game\Camera.cpp" />
     <ClCompile Include="Source\Game\Catomary\Components\PlayerMoveComponent.cpp" />
     <ClCompile Include="Source\Game\Catomary\Objects\CatamaryObjects.cpp" />
     <ClCompile Include="Source\Game\Catomary\Objects\Pawn.cpp" />
     <ClCompile Include="Source\Game\Components\BoxComponent.cpp" />
+    <ClCompile Include="Source\Game\Components\DirectionalLightComponent.cpp" />
     <ClCompile Include="Source\Game\Components\DrawSphereComponent.cpp" />
+    <ClCompile Include="Source\Game\Components\LightComponent.cpp" />
     <ClCompile Include="Source\Game\Components\SphereComponent.cpp" />
     <ClCompile Include="Source\Game\Components\SpringArmComponent.cpp" />
     <ClCompile Include="Source\Game\GameSquare.cpp" />
@@ -690,6 +696,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(SolutionDir)CGProj/Source/;$(SolutionDir)CGProj\Libs\Inc\;$(SolutionDir)CGProj\Libs\Assimp\include\$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -700,6 +707,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories></AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -714,6 +722,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories></AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -728,7 +737,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)CGProj/Source/;$(SolutionDir)CGProj\Libs\Inc\;$(SolutionDir)CGProj\Libs\Assimp\include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories></AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -745,7 +754,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)CGProj/Source/;$(SolutionDir)CGProj\Libs\Inc\;$(SolutionDir)CGProj\Libs\Assimp\include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories></AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

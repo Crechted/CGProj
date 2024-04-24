@@ -11,6 +11,7 @@ SphereComponent::SphereComponent(const wchar_t* pathTex, Vector3 position, float
     mesh = new Sphere(pathTex, Vector3::Zero, radius, sliceCount, stackCount, drawFirstHalf, drawSecondHalf, drawUp, drawDown);
     mesh->outer = this;
     mesh->SetCollision(mesh->CreateComponent<SphereCollision>(radius));    
+    //mesh->SetCollision(new SphereCollision(radius));    
     mesh->GetSceneComponent()->AttachTo(this);
     //mesh->GetCollision()->initPosition = position;
     initPosition = position;

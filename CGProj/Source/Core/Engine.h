@@ -3,7 +3,9 @@
 #include "Utils/Array/Array.h"
 #include "Core/Objects/Object.h"
 #include "Game/Camera.h"
+#include "Game/Components/LightComponent.h"
 
+class LightComponent;
 enum class ViewType : uint8_t;
 class Camera;
 class Object;
@@ -22,8 +24,8 @@ struct PipelineData
 
     Array<D3D11_VIEWPORT> viewports;
     Array<Camera*> cameras;
-    uint32_t viewportsNum = 1;
-    uint32_t curViewport = 0;
+    int32_t viewportsNum = 1;
+    int32_t curViewport = 0;
 
     ID3D11Texture2D* depthStencil;
     ID3D11DepthStencilView* depthStencilView;
@@ -43,6 +45,7 @@ public:
     virtual void Render();
     virtual void Initialize();
     void Input(bool& isExitRequested);
+    float UpdateTime();
     void DetectOverlapped();
 
     float GetTotalTime() const { return totalTime; }
@@ -52,16 +55,23 @@ public:
     ID3D11Device* GetDevice() const { return curPlData->device; }
     WinDisplay* GetDisplay() const { return curPlData->display; }
 
-    void SetCurCamera(Camera* cam) {curCam = cam;}
-    
+    void SetCurCamera(Camera* cam) { curCam = cam; }
+
     Camera* GetCurCamera() const
     {
         return curCam ? curCam : curPlData->cameras[curPlData->curViewport];
     }
 
-    Array<Camera*>& GetCamerasOnViewport()
+    EyeViewData GetCurEyeData() const {return curEyeData;}
+
+    Array<Camera*>& GetCamerasOnViewport() const
     {
         return curPlData->cameras;
+    }
+
+    Array<LightComponent*>& GetLightComponents()
+    {
+        return lightComponents;
     }
 
     InputDevice* GetInputDevice() const { return inputDevice; }
@@ -94,7 +104,9 @@ public:
         T* newComp = new T(args...);
         if (const auto nComp = dynamic_cast<GameComponent*>(newComp))
         {
-            gameComponents.insert(nComp);
+            if (const auto nLight = dynamic_cast<LightComponent*>(nComp)) lightComponents.insert(nLight);
+            else gameComponents.insert(nComp);
+
             nComp->Owner = nullptr;
             return newComp;
         }
@@ -109,6 +121,7 @@ protected:
 
     Array<Object*> gameObjects;
     Array<Camera*> cameras;
+    Array<LightComponent*> lightComponents;
     Array<GameComponent*> gameComponents;
     Array<PipelineData*> pipelinesData;
     Camera* curCam;
@@ -119,8 +132,11 @@ protected:
     unsigned int frameCount = 0;
 
     MSG msg;
-    
+
+private:
+    EyeViewData curEyeData;
     void CreateDeviceAndSwapChain();
     void CreateTargetViewAndViewport();
     void CreateDepthStencilView();
+    void RenderScene();
 };

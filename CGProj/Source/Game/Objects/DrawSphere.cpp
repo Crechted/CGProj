@@ -27,9 +27,9 @@ void DrawSphere::Initialize()
         {
             auto theta = j * thetaStep;
             auto p = Vector3(
-                radius * sin(phi) * cos(theta),
-                radius * cos(phi),
-                radius * sin(phi) * sin(theta)
+                static_cast<float>(radius * sin(phi) * cos(theta)),
+                static_cast<float>(radius * cos(phi)),
+                static_cast<float>(radius * sin(phi) * sin(theta))
                 );
             curCol = doDifColor ? DirectX::XMFLOAT4(p.x, p.y, p.z, 1.0f) : defColor;
             triangleComp->AddVertex(DirectX::XMFLOAT4(p.x, p.y, p.z, 1.0f), curCol);

@@ -173,7 +173,7 @@ void Array<T>::toValidNull()
 template <typename T>
 void Array<T>::expand()
 {
-    size_ *= kExpandCoef;
+    size_ = static_cast<int32_t>(size_*kExpandCoef);
     T* new_array = static_cast<T*>(malloc(sizeof(T) * size_));
     copyFromTo(array_, new_array);
     free(array_);

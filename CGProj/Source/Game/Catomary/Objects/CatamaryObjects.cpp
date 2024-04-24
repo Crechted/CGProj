@@ -17,7 +17,7 @@ void CatamaryObjects::Initialize()
 
 void CatamaryObjects::OnBeginOverlap(CollisionComponent* other)
 {
-    if(!dynamic_cast<Pawn*>(other->Owner->outer->Owner)) return;
+    if(!other || !other->Owner || !other->Owner->outer || !other->Owner->outer->Owner ||!dynamic_cast<Pawn*>(other->Owner->outer->Owner)) return;
     const Transform worldTrans = GetSceneComponent()->GetWorldTransform();
     GetSceneComponent()->attachScale = true;
     GetSceneComponent()->AttachTo(other);

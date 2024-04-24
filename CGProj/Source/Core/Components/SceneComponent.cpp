@@ -2,7 +2,27 @@
 
 #include "Core/Engine.h"
 #include "Game/Camera.h"
+#include "Game/Components/DirectionalLightComponent.h"
 #include "Utils/Types.h"
+
+Vector3 Transform::GetRight() const
+{
+    const auto rad = RadiansFromDegree(rotate);
+    return Matrix::CreateFromYawPitchRoll(rad).Right();
+}
+
+Vector3 Transform::GetUp() const
+{
+    const auto rad = RadiansFromDegree(rotate);
+    return Matrix::CreateFromYawPitchRoll(rad).Up();
+
+}
+
+Vector3 Transform::GetForward() const
+{
+    const auto rad = RadiansFromDegree(rotate);
+    return Matrix::CreateFromYawPitchRoll(rad).Forward();
+}
 
 SceneComponent::SceneComponent(SceneComponent* parentComp, Vector3 position, Vector3 rotation, Vector3 scale)
     : parentComponent(parentComp), initPosition(position), initRotation(rotation), initScale(scale)
@@ -21,35 +41,25 @@ void SceneComponent::Initialize()
     transform.scale = initScale;
     UpdateTransformMatrix();
 
-    constBufDesc.Usage = D3D11_USAGE_DYNAMIC;
+    constBufDesc.Usage = D3D11_USAGE_DEFAULT;
     constBufDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    constBufDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    constBufDesc.CPUAccessFlags = 0;
     constBufDesc.MiscFlags = 0;
     constBufDesc.StructureByteStride = 0;
     constBufDesc.ByteWidth = sizeof(ViewData);
 
     engInst->GetDevice()->CreateBuffer(&constBufDesc, nullptr, &viewBuffer);
-    constBufDesc.ByteWidth = sizeof(DirectionLightData);
-    engInst->GetDevice()->CreateBuffer(&constBufDesc, nullptr, &lightBuffer);
-    buffers.insert(engInst->GetIdxCurrentPipeline(), {viewBuffer, lightBuffer});
+
     GameComponent::Initialize();
 }
 
-void SceneComponent::PreDraw()
-{
-    GameComponent::PreDraw();
-    const auto buffs = buffers[engInst->GetIdxCurrentPipeline()];
-    viewBuffer = buffs.viewBuffer;
-    lightBuffer = buffs.lightBuffer;
-    //UpdateTransformMatrix();
-    UpdateConstantBuffer();
-    ID3D11Buffer* psBuffers[] = {viewBuffer, lightBuffer};
-    engInst->GetContext()->VSSetConstantBuffers(0, 1, &viewBuffer);
-    engInst->GetContext()->PSSetConstantBuffers(0, 2, psBuffers);
-}
 
 void SceneComponent::Draw()
 {
+    UpdateConstantBuffer();
+
+    engInst->GetContext()->VSSetConstantBuffers(0, 1, &viewBuffer);
+    engInst->GetContext()->PSSetConstantBuffers(0, 1, &viewBuffer);
     GameComponent::Draw();
 }
 
@@ -69,58 +79,43 @@ void SceneComponent::UpdateTransformMatrix()
 void SceneComponent::Update(float timeTick)
 {
     GameComponent::Update(timeTick);
-    const auto buffs = buffers[engInst->GetIdxCurrentPipeline()];
-    viewBuffer = buffs.viewBuffer;
-    lightBuffer = buffs.lightBuffer;
     UpdateTransformMatrix();
-    //UpdateConstantBuffer();
 }
 
 void SceneComponent::UpdateConstantBuffer()
 {
-    D3D11_MAPPED_SUBRESOURCE res = {};
+    Transform lightTransform;
 
-    auto worldMat = GetWorldMatrix();
-    /*printf(" Position: posX=%04.4f posY:%04.4f posZ:%04.4f\n",
-        Res.Translation().x,
-        Res.Translation().y,
-        Res.Translation().z);*/
-
-    const auto cam = engInst->GetCurCamera();
-    const auto camLoc = cam->GetSceneComponent()->GetWorldLocation();
-    ViewData viewData =
+    for (const auto light : engInst->GetLightComponents())
     {
-        worldMat.Transpose(),
-        Matrix(cam->mView).Transpose(),
-        Matrix(cam->mProj).Transpose(),
-        Vector4(worldMat.Translation().x, worldMat.Translation().y, worldMat.Translation().z, 1.0f),
-        Vector4(camLoc.x, camLoc.y, camLoc.z, 1.0f),
-    };
+        if (const auto dirLight = dynamic_cast<DirectionalLightComponent*>(light))
+        {
+            DirectionLightData lightData = dirLight->GetLightData();
+            lightTransform = dirLight->GetTransform();
+            lightData.kaSpecPowKsX = Vector4{ambietKoeff, specPow, specKoeff, playVertAnim ? engInst->GetTotalTime() : 0.0f};
+            dirLight->UpdateSubresource(lightData);
+        }
+    }
 
-    Vector3 rot(-90.0f, 0.0f, 0.0f);
-    DirectionLightData lightData;
-    lightData.color = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
-    //lightData.direction = Vector4::Transform(Vector4(-3.0f, -2.0f, -0.5f, 0.0f), Quaternion::CreateFromYawPitchRoll(RadiansFromDegree(rot)));
-    lightData.direction = Vector4(-1.0f, -1.0f, 0.0f, 0.0f);
-    lightData.direction.Normalize();
-    ambietKoeff = 0.1f;
-    specPow = 50.0f;
-    specKoeff = 0.25f;
-    lightData.kaSpecPowKsX = Vector4{ambietKoeff, specPow, specKoeff, 0.0f};
+    const auto camLoc = engInst->GetCurCamera()->GetSceneComponent()->GetWorldLocation();
+    auto worldMat = GetWorldMatrix();
+    Matrix T(
+        0.5f, 0.0f, 0.0f, 0.0f,
+        0.0f, -0.5f, 0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        0.5f, 0.5f, 0.0f, 1.0f);
+    const auto eyeData = engInst->GetCurEyeData();
 
-    engInst->GetContext()->Map(viewBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);        
-    auto dataPtr = reinterpret_cast<float*>(res.pData);
-    memcpy(dataPtr, &viewData, sizeof(viewData));
-    engInst->GetContext()->Unmap(viewBuffer, 0);
-    
-    
-    engInst->GetContext()->Map(lightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);        
-    dataPtr = reinterpret_cast<float*>(res.pData);
-    memcpy(dataPtr, &lightData, sizeof(lightData));
-    engInst->GetContext()->Unmap(lightBuffer, 0);
-    
-    //engInst->GetContext()->UpdateSubresource(viewBuffer, 0, nullptr, &viewData, 0, 0);
-    //engInst->GetContext()->UpdateSubresource(lightBuffer, 0, nullptr, &lightData, 0, 0);
+    ViewData viewData;
+    viewData.mWorld = worldMat.Transpose();
+    viewData.mView = Matrix(eyeData.mView).Transpose();
+    viewData.mProj = Matrix(eyeData.mProj).Transpose();
+    viewData.mShadowTransform = (Matrix::CreateLookAt(lightTransform.location, lightTransform.GetForward(), lightTransform.GetUp())
+                                 * Matrix::CreateOrthographic(40.0f, 40.0f, 20.0f, 60.0f) * T).Transpose();
+    viewData.objPos = Vector4(worldMat.Translation().x, worldMat.Translation().y, worldMat.Translation().z, 1.0f);
+    viewData.camPos = Vector4(camLoc.x, camLoc.y, camLoc.z, 1.0f);
+
+    engInst->GetContext()->UpdateSubresource(viewBuffer, 0, nullptr, &viewData, 0, 0);
 }
 
 void SceneComponent::DestroyResource()
@@ -152,7 +147,7 @@ void SceneComponent::SetWorldLocation(const Vector3& loc)
     transform.location = GetLocalFromWorldTransform(trans).location;
 }
 
-const Vector3& SceneComponent::GetWorldRotation() const
+Vector3 SceneComponent::GetWorldRotation() const
 {
     const auto euler = GetWorldMatrix().ToEuler();
     const auto deg = DegreeFromRadians(euler);
@@ -169,25 +164,25 @@ void SceneComponent::AddQuatRotation(const Vector3& addRot)
     transform.rotate = deg;
 }
 
-const Vector3& SceneComponent::GetForward() const
+Vector3 SceneComponent::GetForward() const
 {
     const auto rad = RadiansFromDegree(transform.rotate);
     return Matrix::CreateFromYawPitchRoll(rad).Forward();
 }
 
-const Vector3& SceneComponent::GetRight() const
+Vector3 SceneComponent::GetRight() const
 {
     const auto rad = RadiansFromDegree(transform.rotate);
     return Matrix::CreateFromYawPitchRoll(rad).Right();
 }
 
-const Vector3& SceneComponent::GetUp() const
+Vector3 SceneComponent::GetUp() const
 {
     const auto rad = RadiansFromDegree(transform.rotate);
     return Matrix::CreateFromYawPitchRoll(rad).Up();
 }
 
-const Vector3& SceneComponent::GetGlobalUp() const
+Vector3 SceneComponent::GetGlobalUp() const
 {
     return Vector3(0.0f, 1.0f, 0.0f);
 }

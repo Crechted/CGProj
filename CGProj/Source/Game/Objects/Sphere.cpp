@@ -42,17 +42,17 @@ void Sphere::InitSphere()
         auto phi = i * phiStep;
         for (int j = 0; j <= sliceCount; j++)
         {
-            auto theta = j * thetaStep;
-            auto pos = Vector4(
-                initPos.x + radius * sin(phi) * cos(theta),
-                initPos.y + radius * cos(phi),
-                initPos.z + radius * sin(phi) * sin(theta),
+            const auto theta = j * thetaStep;
+            const auto pos = Vector4(
+                static_cast<float>(initPos.x + radius * sin(phi) * cos(theta)),
+                static_cast<float>(initPos.y + radius * cos(phi)),
+                static_cast<float>(initPos.z + radius * sin(phi) * sin(theta)),
                 1.0f
                 );
             //var t = new Vector3(-radius*MathF.Sin(phi)*MathF.Sin(theta), 0, radius*MathF.Sin(phi)*MathF.Cos(theta)); - tangent
             auto norm = pos;
             norm.Normalize();
-            auto tex = Vector2(theta / (Pi * 2), phi / Pi);
+            const auto tex = Vector2(theta / (Pi * 2), phi / Pi);
             AddVertex(Vertex{pos, norm, tex});
         }
     }
@@ -125,9 +125,9 @@ void Sphere::CreateDrawSphereByTopology(Vector3 position, float radius, Vector4 
         {
             auto theta = j * thetaStep;
             auto pos = Vector4(
-                position.x + radius * sin(phi) * cos(theta),
-                position.y + radius * cos(phi),
-                position.z + radius * sin(phi) * sin(theta),
+                static_cast<float>(position.x + radius * sin(phi) * cos(theta)),
+                static_cast<float>(position.y + radius * cos(phi)),
+                static_cast<float>(position.z + radius * sin(phi) * sin(theta)),
                 1.0f
                 );
             //var t = new Vector3(-radius*MathF.Sin(phi)*MathF.Sin(theta), 0, radius*MathF.Sin(phi)*MathF.Cos(theta)); - tangent

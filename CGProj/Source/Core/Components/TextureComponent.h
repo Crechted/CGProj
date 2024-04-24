@@ -5,11 +5,14 @@
 
 struct LoadedTex
 {
-    const wchar_t* path;
+    bool operator==(const LoadedTex& other) const
+    {
+        return textureRV == other.textureRV && other.name == name;
+    }
+    const wchar_t* name;
     ID3D11ShaderResourceView* textureRV;
 };
 
-static Array<LoadedTex> LoadedTextures;
 
 class TextureComponent : public GameComponent
 {
@@ -23,8 +26,18 @@ public:
 
     void SetTexture(ID3D11ShaderResourceView* tex);
     void SetTexture(const wchar_t* path);
+
+    static Array<LoadedTex> GetLoadTextures();
+    static ID3D11ShaderResourceView* FindTexture(const wchar_t* name);
+    static void AddTexture(const LoadedTex& texData);
+    static void AddTexture(const wchar_t* name, ID3D11ShaderResourceView* resource);
+    static void RemoveTexture(const LoadedTex& texData);
+    static void RemoveTexture(const wchar_t* name, ID3D11ShaderResourceView* resource);
+    static bool ContainsTextures(const wchar_t* name);
+    static bool ContainsTextures(ID3D11ShaderResourceView* resource);
+    static void Clear();
     
-protected:
+protected:    
     void LoadTexture(const wchar_t* path);
     D3D11_SAMPLER_DESC sampDesc;
 

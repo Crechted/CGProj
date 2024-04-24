@@ -8,11 +8,11 @@
 void Pong::Initialize()
 {
     engInst->Initialize();
-    AddRacket(engInst, rightIsAI, 1.5, {0.9, 0.0, 0.5}, {0.015, 0.15, 0.2}, {1.0, 1.0, 1.0}, Keys::Up, Keys::Down, Keys::Left, Keys::Right);
-    AddRacket(engInst, leftIsAI, 1.0, {-0.9, -0.0, 0.5}, {0.015, 0.15, 0.2}, {1.0, 0.0, 0.0});
-    AddBall(engInst, {0.0, 0.0, 0.5}, {0.02, 0.02, 0.2}, {1.0, 1.0, 1.0}, 2.0);
-    AddWall(engInst, WallType::Up, {0.0, 0.5, 0.5});
-    AddWall(engInst, WallType::Down, {0.0, -0.5, 0.5});
+    AddRacket(engInst, rightIsAI, 1.5f, {0.9f, 0.0f, 0.5f}, {0.015f, 0.15f, 0.2f}, {1.0f, 1.0f, 1.0f}, Keys::Up, Keys::Down, Keys::Left, Keys::Right);
+    AddRacket(engInst, leftIsAI, 1.0f, {-0.9f, -0.0f, 0.5f}, {0.015f, 0.15f, 0.2f}, {1.0f, 0.0f, 0.0f});
+    AddBall(engInst, {0.0f, 0.0f, 0.5f}, {0.02f, 0.02f, 0.2f}, {1.0f, 1.0f, 1.0f}, 2.0f);
+    AddWall(engInst, WallType::Up, {0.0f, 0.5f, 0.5f});
+    AddWall(engInst, WallType::Down, {0.0f, -0.5f, 0.5f});
     AddWall(engInst, WallType::Left);
     AddWall(engInst, WallType::Right);
 }

@@ -24,6 +24,7 @@ public:
     MulticastDelegate<Keys> KeyDownDelegate;
     MulticastDelegate<Keys> KeyUpDelegate;
 
+    
     InputDevice(Engine* inEng);
     ~InputDevice();
 

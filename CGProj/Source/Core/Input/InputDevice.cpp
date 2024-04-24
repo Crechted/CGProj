@@ -95,8 +95,8 @@ void InputDevice::HandleMouse(RAWINPUT* rawInput)
     GetCursorPos(&p);
     ScreenToClient(engineInst->GetDisplay()->hWnd, &p);
 
-    MousePosition = Vector2(p.x, p.y);
-    MouseOffset = Vector2(rawInput->data.mouse.lLastX, rawInput->data.mouse.lLastY);
+    MousePosition = Vector2(static_cast<float>(p.x), static_cast<float>(p.y));
+    MouseOffset = Vector2(static_cast<float>(rawInput->data.mouse.lLastX), static_cast<float>(rawInput->data.mouse.lLastY));
     MouseWheelDelta = rawInput->data.mouse.usButtonData;
 
     const MouseMoveEventArgs moveArgs = {MousePosition, MouseOffset, MouseWheelDelta};

@@ -6,69 +6,58 @@
 
 #include "Core/CoreTypes.h"
 #include "Core/Engine.h"
+#include "Core/Shader.h"
 #include "Core/Windisplay.h"
 
 
-TriangleComponent::~TriangleComponent()
-{
-    DestroyResource();
-}
-
 void TriangleComponent::Initialize()
 {
-    if (!CompileVertexBC())
-        return;
 
-    if (!CompilePixelBC())
-        return;
-
-    CreateShaders();
-    CreateLayout();
+    shader = new Shader();
+    shader->AddInputElementDesc("POSITION");
+    shader->AddInputElementDesc("NORMAL");
+    shader->AddInputElementDesc("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT);
+    shader->CreateShader(pFileName, ShaderType::Vertex);
+    shader->CreateShader(pFileName, ShaderType::Pixel);
+    
     CreateVertexBuffer();
     CreateIndexBuffer();
     CreateAndSetRasterizerState();
 
     curDrawData = new TriangleDrawData();
     curDrawData->rastState = rastState;
-    curDrawData->layout = layout;
-    curDrawData->vertexShader = vertexShader;
-    curDrawData->pixelShader = pixelShader;
+    curDrawData->shader = shader;
     curDrawData->vertexBuffer = vertexBuffer;
     curDrawData->indexBuffer = indexBuffer;
-    drawsData.insert(engInst->GetIdxCurrentPipeline(), curDrawData);
+    //drawsData.insert(engInst->GetIdxCurrentPipeline(), curDrawData);
 }
 
 void TriangleComponent::DestroyResource()
 {
-    for (const auto element : drawsData)
+    if (curDrawData)
     {
-        if (element->rastState) element->rastState->Release();
-        if (element->layout) element->layout->Release();
-        if (element->vertexShader) element->vertexShader->Release();
-        if (element->pixelShader) element->pixelShader->Release();
-        if (element->vertexBuffer) element->vertexBuffer->Release();
-        if (element->indexBuffer) element->indexBuffer->Release();
-        if (vertexBC) vertexBC->Release();
-        if (pixelBC) pixelBC->Release();
+        if (curDrawData->rastState) curDrawData->rastState->Release();
+        //if (curDrawData->layout) curDrawData->layout->Release();
+        if (curDrawData->vertexBuffer) curDrawData->vertexBuffer->Release();
+        if (curDrawData->indexBuffer) curDrawData->indexBuffer->Release();
+        delete curDrawData->shader;
     }
-}
-
-void TriangleComponent::PreDraw()
-{
-    if (!engInst) return;
-    UpdateData();
-    engInst->GetContext()->RSSetState(rastState);
-    engInst->GetContext()->IASetInputLayout(layout);
-    engInst->GetContext()->IASetPrimitiveTopology(topology);
-    engInst->GetContext()->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-    engInst->GetContext()->IASetVertexBuffers(0, 1, &vertexBuffer, strides, offsets);
-    engInst->GetContext()->VSSetShader(vertexShader, nullptr, 0);
-    engInst->GetContext()->PSSetShader(pixelShader, nullptr, 0);
 }
 
 void TriangleComponent::Draw()
 {
     if (!engInst) return;
+
+    const uint32_t stride = sizeof(Vertex); 
+    const uint32_t offset = 0;
+
+    UpdateData();
+    //engInst->GetContext()->RSSetState(rastState);
+    //engInst->GetContext()->IASetInputLayout(layout);
+    shader->Draw();
+    engInst->GetContext()->IASetPrimitiveTopology(topology);
+    engInst->GetContext()->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+    engInst->GetContext()->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
     engInst->GetContext()->DrawIndexed(indexes.size(), 0, 0);
 }
 
@@ -78,11 +67,9 @@ void TriangleComponent::Reload()
 
 void TriangleComponent::UpdateData()
 {
-    curDrawData = drawsData[engInst->GetIdxCurrentPipeline()];
+    //curDrawData = drawsData[engInst->GetIdxCurrentPipeline()];
     rastState = curDrawData->rastState;
-    layout = curDrawData->layout;
-    vertexShader = curDrawData->vertexShader;
-    pixelShader = curDrawData->pixelShader;
+    shader = curDrawData->shader;
     vertexBuffer = curDrawData->vertexBuffer;
     indexBuffer = curDrawData->indexBuffer;
 }
@@ -97,15 +84,13 @@ void TriangleComponent::AddVertex(const Vertex& vertex)
 {
     const D3DVertex tempVert{{vertex.position.x, vertex.position.y, vertex.position.z, vertex.position.w},
                              {vertex.normal.x, vertex.normal.y, vertex.normal.z, vertex.normal.w},
-                             {worldLoc.x + vertex.position.x, worldLoc.y + vertex.position.y, worldLoc.z + vertex.position.z,
-                              vertex.position.w},
                              {vertex.texture.x, vertex.texture.y}};
     vertices.insert(tempVert);
 }
 
 void TriangleComponent::AddVertex(const DirectX::XMFLOAT4& pos, const DirectX::XMFLOAT4& norm, const DirectX::XMFLOAT2& tex)
 {
-    const D3DVertex vert{pos, norm, {worldLoc.x + pos.x, worldLoc.y + pos.y, worldLoc.z + pos.z, pos.w}, tex};
+    const D3DVertex vert{pos, norm, tex};
     vertices.insert(vert);
 }
 
@@ -115,8 +100,6 @@ void TriangleComponent::SetVertices(const Array<Vertex>& verts)
     {
         const D3DVertex tempVert{{vert.position.x, vert.position.y, vert.position.z, vert.position.w},
                                  {vert.normal.x, vert.normal.y, vert.normal.z, vert.normal.w},
-                                 {worldLoc.x + vert.position.x, worldLoc.y + vert.position.y, worldLoc.z + vert.position.z,
-                                  vert.position.w},
                                  {vert.texture.x, vert.texture.y}};
         vertices.insert(tempVert);
     }
@@ -139,75 +122,6 @@ void TriangleComponent::SetIndexes(int32_t* idxs, int32_t count)
         indexes.insert(idxs[i]);
     }
 
-}
-
-bool TriangleComponent::CompileVertexBC()
-{
-    vertexBC = nullptr;
-    ID3DBlob* errorVertexCode = nullptr;
-    const auto res = D3DCompileFromFile(pFileName, nullptr, nullptr,
-        VSname, "vs_5_0",
-        D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION, 0, &vertexBC,
-        &errorVertexCode);
-
-    return CheckResCompile(errorVertexCode, res, pFileName);
-}
-
-bool TriangleComponent::CompilePixelBC()
-{
-    D3D_SHADER_MACRO Shader_Macros[] = {"TEST", "1", "TCOLOR", "float4(0.0f, 1.0f, 0.0f, 1.0f)", nullptr, nullptr};
-    ID3DBlob* errorPixelCode;
-
-    auto res = D3DCompileFromFile(pFileName, Shader_Macros,
-        nullptr, PSname,
-        "ps_5_0",
-        D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION, 0, &pixelBC, &errorPixelCode);
-    return CheckResCompile(errorPixelCode, res, pFileName);
-}
-
-bool TriangleComponent::CheckResCompile(ID3DBlob* errorVertexCode, const HRESULT& res, LPCWSTR pFileName)
-{
-    if (FAILED(res))
-    {
-        // If the shader failed to compile it should have written something to the error message.
-        if (errorVertexCode)
-        {
-            char* compileErrors = (char*)(errorVertexCode->GetBufferPointer());
-
-            std::cout << compileErrors << std::endl;
-        }
-        // If there was  nothing in the error message then it simply could not find the shader file itself.
-        else
-        {
-            MessageBox(engInst->GetDisplay()->hWnd, pFileName, L"Missing Shader File", MB_OK);
-        }
-
-        return false;
-    }
-    return true;
-}
-
-void TriangleComponent::CreateShaders()
-{
-    engInst->GetDevice()->CreateVertexShader(vertexBC->GetBufferPointer(), vertexBC->GetBufferSize(), nullptr, &vertexShader);
-    engInst->GetDevice()->CreatePixelShader(pixelBC->GetBufferPointer(), pixelBC->GetBufferSize(), nullptr, &pixelShader);
-}
-
-void TriangleComponent::CreateLayout()
-{
-    D3D11_INPUT_ELEMENT_DESC inputElements[] = {
-        D3D11_INPUT_ELEMENT_DESC{"POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        D3D11_INPUT_ELEMENT_DESC{"NORMAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA,
-                                 0},
-        D3D11_INPUT_ELEMENT_DESC{"TEXCOORD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT,
-                                 D3D11_INPUT_PER_VERTEX_DATA,
-                                 0},
-        D3D11_INPUT_ELEMENT_DESC{"TEXCOORD", 1, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0}};
-
-    engInst->GetDevice()->CreateInputLayout(inputElements, numElements, vertexBC->GetBufferPointer(), vertexBC->GetBufferSize(),
-        &layout);
-    /*engInst->GetDevice()->CreateInputLayout(inputElements, numElements, pixelBC->GetBufferPointer(), pixelBC->GetBufferSize(),
-        &layout);*/
 }
 
 void TriangleComponent::CreateVertexBuffer()
@@ -245,14 +159,15 @@ void TriangleComponent::CreateIndexBuffer()
 
 void TriangleComponent::CreateAndSetRasterizerState()
 {
-    strides = new UINT[1]{56};
-    offsets = new UINT[1]{0};
-
     CD3D11_RASTERIZER_DESC rastDesc = {};
     rastDesc.CullMode = cullMode; // D3D11_CULL_NONE
     rastDesc.FillMode = fillMode; // D3D11_FILL_SOLID
-    rastDesc.AntialiasedLineEnable = isAntialiasedLine;
-
+    //rastDesc.AntialiasedLineEnable = isAntialiasedLine;
+    rastDesc.FrontCounterClockwise = false;
+    rastDesc.DepthClipEnable = true;
+    rastDesc.DepthBias = 100000;
+    rastDesc.DepthBiasClamp = 0.0f;
+    rastDesc.SlopeScaledDepthBias = 1.0f;
     auto res = engInst->GetDevice()->CreateRasterizerState(&rastDesc, &rastState);
     engInst->GetContext()->RSSetState(rastState);
 }

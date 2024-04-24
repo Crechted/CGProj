@@ -17,7 +17,6 @@ Pawn::Pawn(float lenght, Vector3 pos)
 void Pawn::Initialize()
 {
     engInst->SetCurCamera(springArmComp->GetCamera());
-
     engInst->GetInputDevice()->KeyDownDelegate.AddRaw(this, &Pawn::OnKeyDown);
     Object::Initialize();
 }

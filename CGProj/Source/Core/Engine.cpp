@@ -59,10 +59,8 @@ void Engine::Destroy()
             delete cam;
         }
     }
-    for (const auto& tex : LoadedTextures)
-    {
-        if (tex.textureRV) tex.textureRV->Release();
-    }
+
+    TextureComponent::Clear();
 }
 
 Engine& Engine::GetInstance()
@@ -117,7 +115,10 @@ void Engine::Initialize()
         CreateDeviceAndSwapChain();
         CreateTargetViewAndViewport();
         CreateDepthStencilView();
-
+        for (const auto light : lightComponents)
+        {
+            light->Initialize();
+        }
         for (const auto Comp : gameComponents)
         {
             Comp->Initialize();
@@ -170,27 +171,12 @@ void Engine::Input(bool& isExitRequested)
 void Engine::Update()
 {
 
-    curTime = std::chrono::steady_clock::now();
-    float deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(curTime - PrevTime).count() / 1000000.0f;
-    PrevTime = curTime;
+    const float deltaTime = UpdateTime();
 
-    totalTime += deltaTime;
-    frameCount++;
-
-    if (totalTime > 1.0f)
+    for (const auto light : lightComponents)
     {
-        float fps = frameCount / totalTime;
-
-        totalTime -= 1.0f;
-
-        WCHAR text[256];
-        swprintf_s(text, TEXT("FPS: %f"), fps);
-        SetWindowText(GetDisplay()->hWnd, text);
-
-        frameCount = 0;
+        light->Update(deltaTime);
     }
-
-
     for (const auto Comp : gameComponents)
     {
         Comp->Update(deltaTime);
@@ -206,6 +192,40 @@ void Engine::Update()
     }
 
     DetectOverlapped();
+}
+
+float Engine::UpdateTime()
+{
+    curTime = std::chrono::steady_clock::now();
+    const float deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(curTime - PrevTime).count() / 1000000.0f;
+    PrevTime = curTime;
+
+    totalTime += deltaTime;
+    frameCount++;
+
+    /*if (totalTime > 1.0f)
+    {
+        float fps = frameCount / totalTime;
+
+        totalTime -= 1.0f;
+
+        WCHAR text[256];
+        swprintf_s(text, TEXT("FPS: %f"), fps);
+        SetWindowText(GetDisplay()->hWnd, text);
+
+        frameCount = 0;
+    }*/
+
+    float fps = frameCount / totalTime;
+
+    //totalTime -= 1.0f;
+
+    WCHAR text[256];
+    swprintf_s(text, TEXT("FPS: %f"), fps);
+    SetWindowText(GetDisplay()->hWnd, text);
+
+    //frameCount = 0;
+    return deltaTime;
 }
 
 void Engine::DetectOverlapped()
@@ -238,6 +258,7 @@ void Engine::DetectOverlapped()
             const auto collision = meshComp->GetMeshCollision();
             if (collision) collisions.insert(collision);
         }
+
     }
 
     for (int32_t i = 0; i < collisions.size(); i++)
@@ -261,18 +282,35 @@ void Engine::DetectOverlapped()
     }
 }
 
+
 void Engine::Render()
 {
     float color[] = {0.0f, 0.0f, 0.0f, 1.0f};
-    curPlData->context->ClearState();
+    //curPlData->context->ClearState();
     curPlData->context->ClearRenderTargetView(curPlData->renderTargetView, color);
-    curPlData->context->ClearDepthStencilView(curPlData->depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
-    curPlData->context->OMSetRenderTargets(1, &curPlData->renderTargetView, curPlData->depthStencilView);
+    curPlData->context->ClearDepthStencilView(curPlData->depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
+    /*for (const auto light : lightComponents)
+    {
+        light->Begin();
+        curEyeData = light->GetEyeData();
+        RenderScene();
+        light->End();
+    }*/
+
+    curPlData->context->OMSetRenderTargets(1, &curPlData->renderTargetView, curPlData->depthStencilView);
+    //curPlData->context->OMSetRenderTargets(1, &curPlData->renderTargetView, nullptr);    
+    RenderScene();
+
+    curPlData->swapChain->Present(1, /*DXGI_PRESENT_DO_NOT_WAIT*/ 0);
+
+}
+
+void Engine::RenderScene()
+{
     for (int32_t i = 0; i < curPlData->viewportsNum; i++)
     {
         curPlData->curViewport = i;
-
         curPlData->context->RSSetViewports(1, &curPlData->viewports[i]);
 
         for (const auto Comp : gameComponents)
@@ -285,11 +323,10 @@ void Engine::Render()
         }
         for (const auto cam : GetCamerasOnViewport())
         {
+            curEyeData = cam->GetEyeData();
             cam->Render();
         }
     }
-    curPlData->swapChain->Present(1, /*DXGI_PRESENT_DO_NOT_WAIT*/ 0);
-
 }
 
 void Engine::CreateDeviceAndSwapChain()
@@ -305,8 +342,8 @@ void Engine::CreateDeviceAndSwapChain()
     curPlData->swapDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
     curPlData->swapDesc.OutputWindow = GetDisplay()->hWnd;
     curPlData->swapDesc.Windowed = true;
-    curPlData->swapDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;     // DXGI_SWAP_EFFECT_FLIP_DISCARD
-    curPlData->swapDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH; // DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH
+    curPlData->swapDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;                          // DXGI_SWAP_EFFECT_FLIP_DISCARD
+    curPlData->swapDesc.Flags = DXGI_SWAP_CHAIN_FLAG_RESTRICTED_TO_ALL_HOLOGRAPHIC_DISPLAYS; // DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH
     curPlData->swapDesc.SampleDesc.Count = 1;
     curPlData->swapDesc.SampleDesc.Quality = 0;
 
@@ -354,8 +391,8 @@ void Engine::CreateDepthStencilView()
 
     D3D11_TEXTURE2D_DESC descDepth;
     ZeroMemory(&descDepth, sizeof(descDepth));
-    descDepth.Width = static_cast<float>(curPlData->display->screenWidth);
-    descDepth.Height = static_cast<float>(curPlData->display->screenHeight);
+    descDepth.Width = curPlData->display->screenWidth;
+    descDepth.Height = curPlData->display->screenHeight;
     descDepth.MipLevels = 1;
     descDepth.ArraySize = 1;
     descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT; // DXGI_FORMAT_D24_UNORM_S8_UINT
@@ -366,11 +403,13 @@ void Engine::CreateDepthStencilView()
     descDepth.CPUAccessFlags = 0;
     descDepth.MiscFlags = 0;
     res = curPlData->device->CreateTexture2D(&descDepth, nullptr, &curPlData->depthStencil);
-
+    if (FAILED(res)) return;
+    
     D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
     ZeroMemory(&descDSV, sizeof(descDSV));
     descDSV.Format = descDepth.Format;
     descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
     descDSV.Texture2D.MipSlice = 0;
     res = curPlData->device->CreateDepthStencilView(curPlData->depthStencil, &descDSV, &curPlData->depthStencilView);
+    if (FAILED(res)) return;
 }

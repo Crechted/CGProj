@@ -7,24 +7,23 @@
 
 using namespace DirectX::SimpleMath;
 
-struct DirectionLightData
-{
-    Vector4 direction;
-    Vector4 color;
-    Vector4 kaSpecPowKsX;
-};
 
 struct ViewData
 {
     Matrix mWorld;
     Matrix mView;
     Matrix mProj;
+    Matrix mShadowTransform;
     Vector4 objPos;
     Vector4 camPos;
 };
 
 struct Transform
 {
+    Vector3 GetUp() const;
+    Vector3 GetForward() const;
+    Vector3 GetRight() const;
+    
     Vector3 location;
     Vector3 rotate;
     Vector3 scale;
@@ -45,7 +44,6 @@ public:
     /*Array<SceneComponent*> childComponents;*/
 
     void Initialize() override;
-    void PreDraw() override;
     void Draw() override;
     void Reload() override;
     void UpdateTransformMatrix();
@@ -69,17 +67,17 @@ public:
     void SetScale(const Vector3& scale) { transform.scale = scale; }
 
     const Vector3& GetRotation() const { return transform.rotate; }
-    const Vector3& GetWorldRotation() const;
+    Vector3 GetWorldRotation() const;
     void SetRotation(const Vector3& rot) { transform.rotate = rot; }
     void AddRotation(const Vector3& addRot) { transform.rotate += addRot; }
     void AddQuatRotation(const Vector3& addRot);
 
 
-    const Vector3& GetForward() const;
-    const Vector3& GetRight() const;
-    const Vector3& GetUp() const;
+    Vector3 GetForward() const;
+    Vector3 GetRight() const;
+    Vector3 GetUp() const;
 
-    const Vector3& GetGlobalUp() const;
+    Vector3 GetGlobalUp() const;
 
     Matrix GetWorldMatrix() const;
     Matrix GetWorldMatrixAndMatComposition(Array<Matrix>& compos) const;
@@ -94,7 +92,8 @@ public:
     bool attachTranslation = true;
     bool attachRotate = true;
     bool attachScale = true;
-
+    bool playVertAnim = false;
+    
     SceneComponent* GetParentComponent() const { return parentComponent; }
 
     static Transform TransformFromMatrix(Matrix& mTrans);
@@ -109,9 +108,8 @@ protected:
     float specPow = 50.0f;
     float specKoeff = 0.25f;
 
-    Array<BufStruct> buffers;
+    //Array<BufStruct> buffers;
     ID3D11Buffer* viewBuffer = nullptr;
-    ID3D11Buffer* lightBuffer = nullptr;
     D3D11_BUFFER_DESC constBufDesc;
 
 };
