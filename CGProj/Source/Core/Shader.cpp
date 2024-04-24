@@ -20,6 +20,15 @@ Shader::~Shader()
     Destroy();
 }
 
+ShaderData Shader::FindShader(LPCWSTR pFileName, ShaderType type)
+{
+    for (const auto& globalData : GlobalShadersData)
+    {
+        if (globalData.pFileName == pFileName && globalData.type == type) return globalData;
+    }
+    return {};
+}
+
 bool Shader::ContainsShader(LPCWSTR pFileName, ShaderType type)
 {
     for (const auto& globalData : GlobalShadersData)
@@ -98,8 +107,7 @@ void Shader::Draw()
     }
 }
 
-
-bool Shader::CreateShader(LPCWSTR shaderPath, ShaderType type, D3D_SHADER_MACRO* shaderMacros)
+bool Shader::CreateShader(LPCWSTR shaderPath, ShaderType type, const D3D_SHADER_MACRO* shaderMacros, LPSTR entry)
 {
     //D3D_SHADER_MACRO Shader_Macros[] = {"TEST", "1", "TCOLOR", "float4(0.0f, 1.0f, 0.0f, 1.0f)", nullptr, nullptr};
     if (ContainsLocalShader(shaderPath, type)) return true;
@@ -108,8 +116,8 @@ bool Shader::CreateShader(LPCWSTR shaderPath, ShaderType type, D3D_SHADER_MACRO*
     ID3DBlob* byteCode;
 
     const DefData defData = GetEntryPointAndTargetByType(type);
-    const auto res = D3DCompileFromFile(shaderPath, shaderMacros, nullptr,
-        defData.entryPoint, defData.target,
+    const auto res = D3DCompileFromFile(shaderPath, shaderMacros, D3D_COMPILE_STANDARD_FILE_INCLUDE,
+        entry ? entry : defData.entryPoint, defData.target,
         D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION, 0, &byteCode, &errorPixelCode);
 
     if (!CheckResCompile(errorPixelCode, res, shaderPath)) return false;

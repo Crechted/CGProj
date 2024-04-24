@@ -40,11 +40,12 @@ public:
     void Destroy();
     void Draw();
 
+    static ShaderData FindShader(LPCWSTR pFileName, ShaderType type);
     static bool ContainsShader(LPCWSTR pFileName, ShaderType type);
     static bool ContainsShader(const ShaderData& data);
     static void RemoveShader(const ShaderData& data);
     static void AddShader(const ShaderData& data);
-    bool CreateShader(LPCWSTR shaderPath, ShaderType type, D3D_SHADER_MACRO* shaderMacros = nullptr);
+    bool CreateShader(LPCWSTR shaderPath, ShaderType type, const D3D_SHADER_MACRO* shaderMacros = nullptr, LPSTR entry = nullptr);
     void AddInputElementDesc(LPCSTR SemanticName, UINT SemanticIndex = 0, DXGI_FORMAT Format = DXGI_FORMAT_R32G32B32A32_FLOAT,
         D3D11_INPUT_CLASSIFICATION InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA);
 

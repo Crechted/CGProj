@@ -9,11 +9,12 @@
 #include "Game/Components/BoxComponent.h"
 #include "Game/Components/DirectionalLightComponent.h"
 #include "Game/Components/SphereComponent.h"
+#include "Game/Objects/SkySphere.h"
 
 int main()
 {
-    Engine* engine = &Engine::GetInstance();
-    //auto grids = engine->CreateObject<Grids>(1.0f, 41);
+        Engine* engine = &Engine::GetInstance();
+        //auto grids = engine->CreateObject<Grids>(1.0f, 41);
 
     auto pawn = engine->CreateObject<Pawn>(5.0f, Vector3(-3.0f, 0.5f, 0.0f));
     //pawn->GetSphereComponent()->GetMesh()->GetSceneComponent()->playVertAnim = true;
@@ -57,9 +58,9 @@ int main()
 
     auto ball = engine->CreateObject<CatamaryObjects>("Resource/Meshes/Basketball_ball.obj");
 
-    /*auto sky = engine->CreateObject<SkySphere>();
+    auto sky = engine->CreateObject<SkySphere>();
     sky->SetCollisionVisibility(false);
-    sky->SetCollisionEnabled(false);*/
+    sky->SetCollisionEnabled(false);
     engine->CreateComponent<DirectionalLightComponent>();
     engine->Initialize();
     engine->Run();

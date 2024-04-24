@@ -6,6 +6,7 @@
 #include "Utils/Array/Array.h"
 
 
+enum class RenderState;
 class Shader;
 struct Vertex;
 class Movement2DComponent;
@@ -14,7 +15,6 @@ struct TriangleDrawData
 {
     ID3D11RasterizerState* rastState;
     ID3D11InputLayout* layout;
-    Shader* shader;
     ID3D11VertexShader* vertexShader;
     ID3D11PixelShader* pixelShader;
     ID3D11Buffer* vertexBuffer;
@@ -44,6 +44,8 @@ public:
     void SetVertices(const Array<Vertex>& verts);
     void SetVertices(const Array<D3DVertex>& pts);
 
+    void SetShader(Shader* difShader);
+    void SetDefaultShader();
 
     int32_t GetNumIndexes() const { return indexes.size(); }
     void AddIndex(int32_t idx);
@@ -60,15 +62,10 @@ public:
     bool isAntialiasedLine = false;
 
 protected:
+    void CreateDefaultShader();
     void CreateVertexBuffer();
     void CreateIndexBuffer();
-
     void CreateAndSetRasterizerState();
-
-    D3D11_BUFFER_DESC vertexBufDesc;
-    D3D11_BUFFER_DESC indexBufDesc;
-    D3D11_SUBRESOURCE_DATA vertexData;
-    D3D11_SUBRESOURCE_DATA indexData;
 
     TriangleDrawData* curDrawData;
     Array<D3DVertex> vertices;
@@ -80,11 +77,19 @@ protected:
     float totalTime = 0;
 
     LPCWSTR pFileName = L"./Resource/Shaders/TriangleShader.hlsl";
-    Shader* shader = nullptr;
+    Shader* curShader = nullptr;
+    Shader* defShader = nullptr;
 
 private:
-    ID3D11RasterizerState* rastState;
-    ID3D11RasterizerState* rastStateShadow;
-    ID3D11Buffer* vertexBuffer;
-    ID3D11Buffer* indexBuffer;
+    ID3D11RasterizerState* rastState = nullptr;
+    ID3D11RasterizerState* rastStateShadow = nullptr;
+    ID3D11Buffer* vertexBuffer = nullptr;
+    ID3D11Buffer* indexBuffer = nullptr;
+
+    Shader* cascadeShader = nullptr;
+    Shader* shadowMappingShader = nullptr;
+    void OnChangeRenderState(RenderState state);
+
+    void CreateCascadeShader();
+    void CreateShadowMappingShader();
 };

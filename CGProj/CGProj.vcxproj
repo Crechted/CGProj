@@ -185,6 +185,9 @@
     <ClInclude Include="Source\Utils\Types.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resource\Shaders\LightingFunctions.hlsl" />
+    <None Include="Resource\Shaders\ShadowMappingShader.hlsl" />
+    <None Include="Resource\Shaders\Structures.hlsl" />
     <ClCompile Include="Source\CGProj.cpp" />
     <ClCompile Include="Source\Core\Components\CollisionComponent.cpp" />
     <ClCompile Include="Source\Core\Components\Collisions\BoxCollision.cpp" />

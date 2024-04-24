@@ -108,6 +108,7 @@ void Engine::Initialize()
     inputDevice = new InputDevice(&GetInstance());
     if (!GetDisplay() || !inputDevice) return;
 
+    OnChangeRenderStateDelegate.AddRaw(this, &Engine::OnChangeRenderState);
     for (auto plData : pipelinesData)
     {
         curPlData = plData;
@@ -292,6 +293,7 @@ void Engine::Render()
 
     for (const auto light : lightComponents)
     {
+        OnChangeRenderStateDelegate.Broadcast(RenderState::ShadowMap);
         curEyeData = light->GetEyeData();
         curEyeData.isCam = false;
         light->SetRenderTarget();
@@ -299,6 +301,7 @@ void Engine::Render()
         RenderScene();
     }
 
+    OnChangeRenderStateDelegate.Broadcast(RenderState::Normal);
     curPlData->context->OMSetRenderTargets(1, &curPlData->renderTargetView, curPlData->depthStencilView);
     for (int32_t i = 0; i < curPlData->viewportsNum; i++)
     {
@@ -327,6 +330,11 @@ void Engine::RenderScene()
         curEyeData = cam->GetEyeData();
         cam->Render();
     }
+}
+
+void Engine::OnChangeRenderState(RenderState state)
+{
+    renderState = state;
 }
 
 void Engine::CreateDeviceAndSwapChain()

@@ -31,6 +31,13 @@ struct PipelineData
     ID3D11DepthStencilView* depthStencilView;
 };
 
+enum class RenderState
+{
+    ShadowMap,
+    CascadeShadow,
+    Normal
+};
+
 class Engine
 {
 
@@ -113,8 +120,13 @@ public:
         return nullptr;
     }
 
+    RenderState GetCurrentRenderState() const {return renderState;}
+    MulticastDelegate<RenderState> OnChangeRenderStateDelegate;
+    
 protected:
-    //D3D_FEATURE_LEVEL featureLevel;    
+    //D3D_FEATURE_LEVEL featureLevel;
+    RenderState renderState;
+    
     InputDevice* inputDevice;
     PipelineData* curPlData;
     explicit Engine();
@@ -139,4 +151,6 @@ private:
     void CreateTargetViewAndViewport();
     void CreateDepthStencilView();
     void RenderScene();
+
+    void OnChangeRenderState(RenderState state);
 };
