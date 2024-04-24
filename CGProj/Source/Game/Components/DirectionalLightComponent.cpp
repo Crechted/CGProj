@@ -28,7 +28,7 @@ void DirectionalLightComponent::Initialize()
     const float screenNear = -50.0f;
     const float screenDepth = 50.0f;
     
-    eyeData.mProj = Matrix::CreateOrthographic(100.0f, 100.0f, screenNear, screenDepth);
+    eyeData.mProj = Matrix::CreateOrthographic(50.0f, 50.0f, screenNear, screenDepth);
     //eyeData.mProj = Matrix::CreatePerspectiveFieldOfView(((float)Pi / 4.0f), ((float)texWidth / (float)texHeight), screenNear, screenDepth);
     
     LightComponent::Initialize();

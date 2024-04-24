@@ -23,11 +23,10 @@ PS_IN VS(VS_IN input)
     output.tex = input.tex;
     output.norm = mul(float4(input.norm.xyz, 0.0f), viewData.mWorld);
     
-    float4 pos = mul(float4(input.pos.xyz, 1.0f), viewData.mWorld);
-    pos += output.norm * sin(pos.x * 10.0f * lightData.kaSpecPowKsX.w);
+    output.pos = mul(float4(input.pos.xyz, 1.0f), viewData.mWorld);
+    output.pos += output.norm * sin(output.pos.x * 10.0f * lightData.kaSpecPowKsX.w);
 
-    output.worldPos = pos;
-    output.pos = pos;
+    output.worldPos = output.pos;
     output.pos = mul(output.pos, viewData.mView);
     output.pos = mul(output.pos, viewData.mProj);
     return output;
