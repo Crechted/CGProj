@@ -12,12 +12,11 @@ public:
     void Draw() override;
 
     ID3D11ShaderResourceView* GetOutputTexture() const {return m_pOutputTextureSRV;}
-
-    virtual void Begin();
-    virtual void End();
+    D3D11_VIEWPORT* GetViewport() {return &m_OutputViewPort;}
 
     EyeViewData GetEyeData() const {return eyeData;}
-
+    void SetRenderTarget();
+    void ClearRenderTarget();
 protected:
     ID3D11ShaderResourceView* m_pOutputTextureSRV = nullptr; // Shader resource view corresponding to the output texture (or shadow map)
     ID3D11RenderTargetView* m_pOutputTextureRTV = nullptr;   // Render target view corresponding to the output texture
@@ -46,5 +45,10 @@ private:
     void RemoveShadowMap();
 };
 
-
+class CascadeShaderManager
+{
+public:
+    static Array<Vector4> GetFrustumCorners(const Matrix& view, const Matrix& proj);
+    static Matrix GetOrthographicProjByCorners(const Array<Vector4>& corners, const Matrix& LightView);
+};
 

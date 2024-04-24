@@ -23,7 +23,7 @@ struct Transform
     Vector3 GetUp() const;
     Vector3 GetForward() const;
     Vector3 GetRight() const;
-    
+    Matrix GetMatrix() const;
     Vector3 location;
     Vector3 rotate;
     Vector3 scale;

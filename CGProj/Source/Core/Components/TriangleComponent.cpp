@@ -19,7 +19,7 @@ void TriangleComponent::Initialize()
     shader->AddInputElementDesc("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT);
     shader->CreateShader(pFileName, ShaderType::Vertex);
     shader->CreateShader(pFileName, ShaderType::Pixel);
-    
+
     CreateVertexBuffer();
     CreateIndexBuffer();
     CreateAndSetRasterizerState();
@@ -48,16 +48,16 @@ void TriangleComponent::Draw()
 {
     if (!engInst) return;
 
-    const uint32_t stride = sizeof(Vertex); 
+    const uint32_t stride = sizeof(Vertex);
     const uint32_t offset = 0;
 
     UpdateData();
+    engInst->GetContext()->RSSetState(engInst->GetCurEyeData().isCam ? rastState : rastStateShadow);
     //engInst->GetContext()->RSSetState(rastState);
-    //engInst->GetContext()->IASetInputLayout(layout);
-    shader->Draw();
     engInst->GetContext()->IASetPrimitiveTopology(topology);
     engInst->GetContext()->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
     engInst->GetContext()->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+    shader->Draw();
     engInst->GetContext()->DrawIndexed(indexes.size(), 0, 0);
 }
 
@@ -160,14 +160,18 @@ void TriangleComponent::CreateIndexBuffer()
 void TriangleComponent::CreateAndSetRasterizerState()
 {
     CD3D11_RASTERIZER_DESC rastDesc = {};
-    rastDesc.CullMode = cullMode; // D3D11_CULL_NONE
-    rastDesc.FillMode = fillMode; // D3D11_FILL_SOLID
+    rastDesc.CullMode = cullMode; // cullMode
+    rastDesc.FillMode = fillMode; // fillMode
     //rastDesc.AntialiasedLineEnable = isAntialiasedLine;
+    auto res = engInst->GetDevice()->CreateRasterizerState(&rastDesc, &rastState);
+
+    rastDesc.CullMode = D3D11_CULL_NONE; // D3D11_CULL_NONE
+    rastDesc.FillMode = D3D11_FILL_SOLID;
     rastDesc.FrontCounterClockwise = false;
     rastDesc.DepthClipEnable = true;
     rastDesc.DepthBias = 100000;
     rastDesc.DepthBiasClamp = 0.0f;
     rastDesc.SlopeScaledDepthBias = 1.0f;
-    auto res = engInst->GetDevice()->CreateRasterizerState(&rastDesc, &rastState);
+    res = engInst->GetDevice()->CreateRasterizerState(&rastDesc, &rastStateShadow);
     engInst->GetContext()->RSSetState(rastState);
 }

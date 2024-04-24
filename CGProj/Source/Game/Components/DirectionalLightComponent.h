@@ -21,6 +21,7 @@ public:
     DirectionLightData GetLightData() const {return lightData;}
     Transform GetTransform() const {return transform;}
     void UpdateSubresource(DirectionLightData Data);
+    void UpdateShaderResources();
     void Update(float timeTick) override;
     void Draw() override;
     

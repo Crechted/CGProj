@@ -20,9 +20,9 @@ void LightComponent::Initialize()
     texDesc.MipLevels = 1;
     texDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | (m_ShadowMap ? D3D11_BIND_SHADER_RESOURCE : 0);*/
     CD3D11_TEXTURE2D_DESC texDesc((m_ShadowMap ? DXGI_FORMAT_R24G8_TYPELESS : DXGI_FORMAT_D24_UNORM_S8_UINT),
-            texWidth, texHeight, 1, 1,
-            D3D11_BIND_DEPTH_STENCIL | (m_ShadowMap ? D3D11_BIND_SHADER_RESOURCE : 0));
-    
+        texWidth, texHeight, 1, 1,
+        D3D11_BIND_DEPTH_STENCIL | (m_ShadowMap ? D3D11_BIND_SHADER_RESOURCE : 0));
+
     hr = engInst->GetDevice()->CreateTexture2D(&texDesc, nullptr, &depthTex);
     if (FAILED(hr)) return;
 
@@ -52,8 +52,16 @@ void LightComponent::Initialize()
     sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
     sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
     sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+    /*sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;*/
     sampDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
-    sampDesc.BorderColor[0] = {1.0f};
+    //sampDesc.BorderColor[0] = {1.0f};
+    sampDesc.BorderColor[0] = 0;
+    sampDesc.BorderColor[1] = 0;
+    sampDesc.BorderColor[2] = 0;
+    sampDesc.BorderColor[3] = 0;
     sampDesc.MinLOD = 0;
     sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
     engInst->GetDevice()->CreateSamplerState(&sampDesc, &SampShadow);
@@ -91,7 +99,7 @@ void LightComponent::Draw()
 void LightComponent::AddShadowMap()
 {
     TextureComponent::AddTexture(shadowMapName, GetOutputTexture());
-    
+
 }
 
 void LightComponent::RemoveShadowMap()
@@ -99,44 +107,68 @@ void LightComponent::RemoveShadowMap()
     //TextureComponent::RemoveTexture(shadowMapName, GetOutputTexture());
 }
 
-void LightComponent::Begin()
+void LightComponent::SetRenderTarget()
 {
-
-    RemoveShadowMap();
-    // Cache rendering target and depth template view
-    engInst->GetContext()->OMGetRenderTargets(1, &m_pCacheRTV, &m_pCacheDSV);
-    // cache viewport
-    UINT num_Viewports = 1;
-    engInst->GetContext()->RSGetViewports(&num_Viewports, &m_CacheViewPort);
-
-    // Clear the buffer
-    // ... 
-    engInst->GetContext()->ClearDepthStencilView(m_pOutputTextureDSV, D3D11_CLEAR_DEPTH | (m_ShadowMap ? 0 : D3D11_CLEAR_STENCIL), 1.0f, 0);
-
     // Set rendering target and depth template view
     engInst->GetContext()->OMSetRenderTargets((m_ShadowMap ? 0 : 1),
         (m_ShadowMap ? nullptr : &m_pOutputTextureRTV),
         m_pOutputTextureDSV);
     // Set the viewport
-    engInst->GetContext()->RSSetViewports(num_Viewports, &m_OutputViewPort);
+    engInst->GetContext()->RSSetViewports(1, &m_OutputViewPort);
 }
 
-void LightComponent::End()
+void LightComponent::ClearRenderTarget()
 {
-    AddShadowMap();
-    float color[] = {0.0f, 0.0f, 0.0f, 1.0f};
+    float color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
     //engInst->GetContext()->ClearRenderTargetView(m_pOutputTextureRTV, color);
-    //engInst->GetContext()->ClearDepthStencilView(m_pCacheDSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+    engInst->GetContext()->ClearDepthStencilView(m_pOutputTextureDSV, D3D11_CLEAR_DEPTH | (m_ShadowMap ? 0 : D3D11_CLEAR_STENCIL), 1.0f, 0);
+}
 
-    /*CD3D11_RASTERIZER_DESC rastDesc = {};
-    rastDesc.CullMode = cullMode; // D3D11_CULL_NONE
-    rastDesc.FillMode = fillMode; // D3D11_FILL_SOLID
-    rastDesc.AntialiasedLineEnable = isAntialiasedLine;
-    /*rastDesc.FrontCounterClockwise = false;
-    rastDesc.DepthClipEnable = true;
-    rastDesc.DepthBias = 100000;
-    rastDesc.DepthBiasClamp = 0.0f;
-    rastDesc.SlopeScaledDepthBias = 1.0f;#1#
-    auto res = engInst->GetDevice()->CreateRasterizerState(&rastDesc, &rastState);
-    engInst->GetContext()->RSSetState(rastState);*/
+
+Array<Vector4> CascadeShaderManager::GetFrustumCorners(const Matrix& view, const Matrix& proj)
+{
+    const auto viewProj = view * proj;
+    const auto inv = viewProj.Invert();
+
+    Array<Vector4> corners;
+
+    for (int32_t x = 0; x < 2; x++)
+    {
+        for (int32_t y = 0; y < 2; y++)
+        {
+            for (int32_t z = 0; z < 2; z++)
+            {
+                const Vector4 pt = Vector4::Transform(Vector4(
+                    2.0f * static_cast<float>(x) - 1.0f,
+                    2.0f * static_cast<float>(y) - 1.0f,
+                    static_cast<float>(z),
+                    1.0f), inv);
+                corners.insert(pt);
+            }
+        }
+    }
+
+    return corners;
+}
+
+Matrix CascadeShaderManager::GetOrthographicProjByCorners(const Array<Vector4>& corners, const Matrix& LightView)
+{
+    if (corners.size() != 8) return Matrix::Identity;
+
+    Vector4 lightCameraFrustumOrthoMin = corners[0];
+    Vector4 lightCameraFrustumOrthoMax = corners[0];
+
+    Vector4 vTempTranslateCornerPoints;
+    for (const auto& corner : corners)
+    {
+        vTempTranslateCornerPoints = Vector4::Transform(corner, LightView);
+
+        lightCameraFrustumOrthoMin = Vector4::Min(lightCameraFrustumOrthoMin, vTempTranslateCornerPoints);
+        lightCameraFrustumOrthoMax = Vector4::Max(lightCameraFrustumOrthoMax, vTempTranslateCornerPoints);
+    }
+
+    const auto resOrthoMat = Matrix::CreateOrthographicOffCenter(lightCameraFrustumOrthoMin.x, lightCameraFrustumOrthoMax.x,
+        lightCameraFrustumOrthoMin.y, lightCameraFrustumOrthoMax.y, lightCameraFrustumOrthoMin.z, lightCameraFrustumOrthoMax.z);
+
+    return resOrthoMat;
 }

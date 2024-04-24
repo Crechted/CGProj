@@ -8,14 +8,7 @@
 #include "Game/Catomary/Objects/Pawn.h"
 #include "Game/Components/BoxComponent.h"
 #include "Game/Components/DirectionalLightComponent.h"
-#include "Game/Components/DrawSphereComponent.h"
-#include "Game/Components/SpringArmComponent.h"
 #include "Game/Components/SphereComponent.h"
-#include "Game/Objects/Box.h"
-#include "Game/Objects/Grids.h"
-#include "Game/Objects/SkySphere.h"
-#include "Game/Planets/Components/PlanetMoveComponent.h"
-#include "Utils/Functions.h"
 
 int main()
 {

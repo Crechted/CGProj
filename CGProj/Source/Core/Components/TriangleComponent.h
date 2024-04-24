@@ -84,6 +84,7 @@ protected:
 
 private:
     ID3D11RasterizerState* rastState;
+    ID3D11RasterizerState* rastStateShadow;
     ID3D11Buffer* vertexBuffer;
     ID3D11Buffer* indexBuffer;
 };

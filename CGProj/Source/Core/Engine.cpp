@@ -290,17 +290,23 @@ void Engine::Render()
     curPlData->context->ClearRenderTargetView(curPlData->renderTargetView, color);
     curPlData->context->ClearDepthStencilView(curPlData->depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-    /*for (const auto light : lightComponents)
+    for (const auto light : lightComponents)
     {
-        light->Begin();
         curEyeData = light->GetEyeData();
+        curEyeData.isCam = false;
+        light->SetRenderTarget();
+        light->ClearRenderTarget();
         RenderScene();
-        light->End();
-    }*/
+    }
 
     curPlData->context->OMSetRenderTargets(1, &curPlData->renderTargetView, curPlData->depthStencilView);
-    //curPlData->context->OMSetRenderTargets(1, &curPlData->renderTargetView, nullptr);    
-    RenderScene();
+    for (int32_t i = 0; i < curPlData->viewportsNum; i++)
+    {
+        curPlData->curViewport = i;
+        curEyeData.isCam = true;
+        GetContext()->RSSetViewports(1, &curPlData->viewports[i]);
+        RenderScene();
+    }
 
     curPlData->swapChain->Present(1, /*DXGI_PRESENT_DO_NOT_WAIT*/ 0);
 
@@ -308,24 +314,18 @@ void Engine::Render()
 
 void Engine::RenderScene()
 {
-    for (int32_t i = 0; i < curPlData->viewportsNum; i++)
+    for (const auto Comp : gameComponents)
     {
-        curPlData->curViewport = i;
-        curPlData->context->RSSetViewports(1, &curPlData->viewports[i]);
-
-        for (const auto Comp : gameComponents)
-        {
-            Comp->Render();
-        }
-        for (const auto Obj : gameObjects)
-        {
-            Obj->Render();
-        }
-        for (const auto cam : GetCamerasOnViewport())
-        {
-            curEyeData = cam->GetEyeData();
-            cam->Render();
-        }
+        Comp->Render();
+    }
+    for (const auto Obj : gameObjects)
+    {
+        Obj->Render();
+    }
+    for (const auto cam : GetCamerasOnViewport())
+    {
+        curEyeData = cam->GetEyeData();
+        cam->Render();
     }
 }
 
@@ -404,7 +404,7 @@ void Engine::CreateDepthStencilView()
     descDepth.MiscFlags = 0;
     res = curPlData->device->CreateTexture2D(&descDepth, nullptr, &curPlData->depthStencil);
     if (FAILED(res)) return;
-    
+
     D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
     ZeroMemory(&descDSV, sizeof(descDSV));
     descDSV.Format = descDepth.Format;

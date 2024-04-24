@@ -11,6 +11,11 @@ Vector3 Transform::GetRight() const
     return Matrix::CreateFromYawPitchRoll(rad).Right();
 }
 
+Matrix Transform::GetMatrix() const
+{
+    return SceneComponent::MatrixFromTransform(*this);
+}
+
 Vector3 Transform::GetUp() const
 {
     const auto rad = RadiansFromDegree(rotate);
@@ -83,17 +88,20 @@ void SceneComponent::Update(float timeTick)
 }
 
 void SceneComponent::UpdateConstantBuffer()
-{
-    Transform lightTransform;
-
+{    
+    const auto eyeData = engInst->GetCurEyeData();
+    
+    EyeViewData lightEye;
     for (const auto light : engInst->GetLightComponents())
     {
         if (const auto dirLight = dynamic_cast<DirectionalLightComponent*>(light))
         {
             DirectionLightData lightData = dirLight->GetLightData();
-            lightTransform = dirLight->GetTransform();
+            lightData.color = eyeData.isCam ? lightData.color : Vector4::Zero;
+            lightEye = dirLight->GetEyeData();
             lightData.kaSpecPowKsX = Vector4{ambietKoeff, specPow, specKoeff, playVertAnim ? engInst->GetTotalTime() : 0.0f};
             dirLight->UpdateSubresource(lightData);
+            dirLight->UpdateShaderResources();
         }
     }
 
@@ -104,14 +112,12 @@ void SceneComponent::UpdateConstantBuffer()
         0.0f, -0.5f, 0.0f, 0.0f,
         0.0f, 0.0f, 1.0f, 0.0f,
         0.5f, 0.5f, 0.0f, 1.0f);
-    const auto eyeData = engInst->GetCurEyeData();
 
     ViewData viewData;
     viewData.mWorld = worldMat.Transpose();
     viewData.mView = Matrix(eyeData.mView).Transpose();
     viewData.mProj = Matrix(eyeData.mProj).Transpose();
-    viewData.mShadowTransform = (Matrix::CreateLookAt(lightTransform.location, lightTransform.GetForward(), lightTransform.GetUp())
-                                 * Matrix::CreateOrthographic(40.0f, 40.0f, 20.0f, 60.0f) * T).Transpose();
+    viewData.mShadowTransform = (lightEye.mView * lightEye.mProj * T).Transpose();
     viewData.objPos = Vector4(worldMat.Translation().x, worldMat.Translation().y, worldMat.Translation().z, 1.0f);
     viewData.camPos = Vector4(camLoc.x, camLoc.y, camLoc.z, 1.0f);
 

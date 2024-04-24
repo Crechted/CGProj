@@ -21,6 +21,7 @@ struct EyeViewData
 {
     Matrix mView;
     Matrix mProj;
+    bool isCam;
 };
 
 class Camera : public Object
