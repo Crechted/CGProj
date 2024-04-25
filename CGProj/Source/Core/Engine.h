@@ -5,6 +5,7 @@
 #include "Game/Camera.h"
 #include "Game/Components/LightComponent.h"
 
+class PostProcess;
 class LightComponent;
 enum class ViewType : uint8_t;
 class Camera;
@@ -35,7 +36,8 @@ enum class RenderState
 {
     ShadowMap,
     CascadeShadow,
-    Normal
+    Normal,
+    PostProcess
 };
 
 class Engine
@@ -69,7 +71,7 @@ public:
         return curCam ? curCam : curPlData->cameras[curPlData->curViewport];
     }
 
-    EyeViewData GetCurEyeData() const {return curEyeData;}
+    EyeViewData GetCurEyeData() const { return curEyeData; }
 
     Array<Camera*>& GetCamerasOnViewport() const
     {
@@ -120,15 +122,16 @@ public:
         return nullptr;
     }
 
-    RenderState GetCurrentRenderState() const {return renderState;}
+    RenderState GetCurrentRenderState() const { return renderState; }
     MulticastDelegate<RenderState> OnChangeRenderStateDelegate;
-    
+
 protected:
     //D3D_FEATURE_LEVEL featureLevel;
     RenderState renderState;
-    
     InputDevice* inputDevice;
     PipelineData* curPlData;
+
+
     explicit Engine();
 
     Array<Object*> gameObjects;
@@ -144,7 +147,8 @@ protected:
     unsigned int frameCount = 0;
 
     MSG msg;
-
+    
+    PostProcess* postProcess;
 private:
     EyeViewData curEyeData;
     void CreateDeviceAndSwapChain();
@@ -153,4 +157,9 @@ private:
     void RenderScene();
 
     void OnChangeRenderState(RenderState state);
+
+    ID3D11Texture2D* m_renderTargetTexture;
+    ID3D11RenderTargetView* m_renderTargetView;
+    ID3D11ShaderResourceView* m_shaderResourceView;
+    bool CreateRenderTarget( int textureWidth, int textureHeight);
 };

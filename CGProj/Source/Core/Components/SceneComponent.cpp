@@ -99,7 +99,7 @@ void SceneComponent::UpdateConstantBuffer()
             DirectionLightData lightData = dirLight->GetLightData();
             lightData.color = eyeData.isCam ? lightData.color : Vector4::Zero;
             lightEye = dirLight->GetEyeData();
-            lightData.kaSpecPowKsX = Vector4{ambietKoeff, specPow, specKoeff, playVertAnim ? engInst->GetTotalTime() : 0.0f};
+            lightData.kaSpecPowKsX = Vector4{ambietKoeff, specPow, specKoeff*10.0f, playVertAnim ? engInst->GetTotalTime() : 0.0f};
             dirLight->UpdateSubresource(lightData);
             if (engInst->GetCurrentRenderState() == RenderState::Normal) dirLight->UpdateShaderResources();
         }

@@ -235,3 +235,4 @@ void TriangleComponent::CreateShadowMappingShader()
     shadowMappingShader->CreateShader(L"./Resource/Shaders/ShadowMappingShader.hlsl", ShaderType::Vertex);
     shadowMappingShader->CreateShader(L"./Resource/Shaders/ShadowMappingShader.hlsl", ShaderType::Pixel);
 }
+

@@ -21,13 +21,13 @@ int main()
     //Create4Screen(engine);
     pawn->GetSphereComponent()->GetMesh()->SetCollisionVisibility(true);
     pawn->GetPlayerMoveComponent()->speed = 2.0f;
-    engine->CreateComponent<BoxComponent>(L"Resource/Textures/grassH.jpg", Vector3(-10.0f, -0.05f, -10.0f), Vector3(20.0f, 0.1f, 20.0f))->
+    engine->CreateComponent<BoxComponent>(L"Resource/Textures/grass.png", Vector3(-10.0f, -0.05f, -10.0f), Vector3(20.0f, 0.1f, 20.0f))->
             GetMeshCollision()->SetCollisionEnabled(false);
-    engine->CreateComponent<BoxComponent>(L"Resource/Textures/grassH.jpg", Vector3(-10.0f, -0.05f, 10.0f), Vector3(20.0f, 0.1f, 20.0f))->
+    engine->CreateComponent<BoxComponent>(L"Resource/Textures/grass.png", Vector3(-10.0f, -0.05f, 10.0f), Vector3(20.0f, 0.1f, 20.0f))->
             GetMeshCollision()->SetCollisionEnabled(false);
-    engine->CreateComponent<BoxComponent>(L"Resource/Textures/grassH.jpg", Vector3(10.0f, -0.05f, 10.0f), Vector3(20.0f, 0.1f, 20.0f))->
+    engine->CreateComponent<BoxComponent>(L"Resource/Textures/grass.png", Vector3(10.0f, -0.05f, 10.0f), Vector3(20.0f, 0.1f, 20.0f))->
             GetMeshCollision()->SetCollisionEnabled(false);
-    engine->CreateComponent<BoxComponent>(L"Resource/Textures/grassH.jpg", Vector3(10.0f, -0.05f, -10.0f), Vector3(20.0f, 0.1f, 20.0f))->
+    engine->CreateComponent<BoxComponent>(L"Resource/Textures/grass.png", Vector3(10.0f, -0.05f, -10.0f), Vector3(20.0f, 0.1f, 20.0f))->
             GetMeshCollision()->SetCollisionEnabled(false);
 
     const auto mesh = engine->CreateObject<CatamaryObjects>("Resource/Meshes/Piram.obj");
