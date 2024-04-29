@@ -64,8 +64,8 @@ void Sphere::InitSphere()
         for (int i = 1; i <= sliceCount; i++)
         {
             AddIndex(0);
-            AddIndex(i);
             AddIndex(i + 1);
+            AddIndex(i);
         }
 
     auto baseIndex = 1;
@@ -82,8 +82,8 @@ void Sphere::InitSphere()
             }
             if (drawSecondHalf)
             {
-                AddIndex(baseIndex + (i + 1) * ringVertexCount + j);
                 AddIndex(baseIndex + (i + 1) * ringVertexCount + j + 1);
+                AddIndex(baseIndex + (i + 1) * ringVertexCount + j);
                 AddIndex(baseIndex + i * ringVertexCount + j + 1);
             }
         }

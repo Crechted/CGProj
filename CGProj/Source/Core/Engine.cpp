@@ -19,6 +19,7 @@
 #include "Game/Camera.h"
 #include "Objects/Mesh.h"
 #include "Render/PostProcess.h"
+#include "Render/RenderTarget.h"
 
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxgi.lib")
@@ -59,9 +60,14 @@ void Engine::Destroy()
         {
             delete cam;
         }
+
     }
 
-    if (postProcess) postProcess->Destroy();
+    for (const auto postProc : postProcesses)
+    {
+        delete postProc;
+    }
+    delete texRenderTarget;
     TextureComponent::Clear();
 }
 
@@ -110,7 +116,6 @@ void Engine::Initialize()
     inputDevice = new InputDevice(&GetInstance());
     if (!GetDisplay() || !inputDevice) return;
 
-    postProcess = new PostProcess(GetDisplay()->screenWidth, GetDisplay()->screenHeight);
     OnChangeRenderStateDelegate.AddRaw(this, &Engine::OnChangeRenderState);
     for (auto plData : pipelinesData)
     {
@@ -119,6 +124,10 @@ void Engine::Initialize()
         CreateDeviceAndSwapChain();
         CreateTargetViewAndViewport();
         CreateDepthStencilView();
+        const auto postPro = CreateObject<PostProcess>(GetDisplay()->screenWidth, GetDisplay()->screenHeight);
+        postPro->GetRenderTarget()->SetTargetType(TargetViewType::BackBuffer);
+        texRenderTarget = new RenderTarget(TargetViewType::Texture, GetDisplay()->screenWidth, GetDisplay()->screenHeight);
+        texRenderTarget->Initialize();
         for (const auto light : lightComponents)
         {
             light->Initialize();
@@ -135,10 +144,11 @@ void Engine::Initialize()
         {
             cam->Initialize();
         }
+        for (const auto postProc : postProcesses)
+        {
+            postProc->Initialize();
+        }
     }
-    CreateRenderTarget(GetDisplay()->screenWidth, GetDisplay()->screenHeight);
-    postProcess->SetSRV(m_shaderResourceView);
-    postProcess->Initialize();
 }
 
 void Engine::Run()
@@ -294,8 +304,6 @@ void Engine::Render()
 {
     float color[] = {0.0f, 0.0f, 0.0f, 1.0f};
     //curPlData->context->ClearState();
-    curPlData->context->ClearRenderTargetView(curPlData->renderTargetView, color);
-    curPlData->context->ClearDepthStencilView(curPlData->depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
     for (const auto light : lightComponents)
     {
@@ -307,7 +315,9 @@ void Engine::Render()
         RenderScene();
     }
 
-    GetContext()->OMSetRenderTargets(1, &m_renderTargetView, curPlData->depthStencilView);
+    const auto texTargetView = texRenderTarget->GetRenderTargetView();
+    GetContext()->OMSetRenderTargets(1, &texTargetView, curPlData->depthStencilView);
+    GetContext()->ClearRenderTargetView(texTargetView, color);
     OnChangeRenderStateDelegate.Broadcast(RenderState::Normal);
     for (int32_t i = 0; i < curPlData->viewportsNum; i++)
     {
@@ -317,10 +327,19 @@ void Engine::Render()
         RenderScene();
     }
 
-    GetContext()->ClearRenderTargetView(m_renderTargetView, color);
-    curPlData->context->OMSetRenderTargets(1, &curPlData->renderTargetView, curPlData->depthStencilView);
-    postProcess->Draw();
-    
+    OnChangeRenderStateDelegate.Broadcast(RenderState::PostProcess);
+    auto prevResourceView = texRenderTarget->GetShaderResourceView();
+    for (int32_t i = 0; i < postProcesses.size() - 1; i++)
+    {
+        postProcesses[i]->SetSRV(prevResourceView);
+        postProcesses[i]->Draw();
+        prevResourceView = postProcesses[i]->GetRenderTarget()->GetShaderResourceView();
+    }
+
+    GetContext()->ClearDepthStencilView(curPlData->depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+    postProcesses[postProcesses.size() - 1]->SetSRV(prevResourceView);
+    postProcesses[postProcesses.size() - 1]->Draw();
+
     curPlData->swapChain->Present(1, /*DXGI_PRESENT_DO_NOT_WAIT*/ 0);
 
 }
@@ -430,52 +449,4 @@ void Engine::CreateDepthStencilView()
     descDSV.Texture2D.MipSlice = 0;
     res = curPlData->device->CreateDepthStencilView(curPlData->depthStencil, &descDSV, &curPlData->depthStencilView);
     if (FAILED(res)) return;
-}
-
-bool Engine::CreateRenderTarget( int textureWidth, int textureHeight)
-{
-    D3D11_TEXTURE2D_DESC textureDesc;
-    ZeroMemory(&textureDesc, sizeof(textureDesc));
-
-    // описание render target (цели рендера)
-    textureDesc.Width = textureWidth;
-    textureDesc.Height = textureHeight;
-    textureDesc.MipLevels = 1;
-    textureDesc.ArraySize = 1;
-    textureDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-    textureDesc.SampleDesc.Count = 1;
-    textureDesc.Usage = D3D11_USAGE_DEFAULT;
-    textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-    textureDesc.CPUAccessFlags = 0;
-    textureDesc.MiscFlags = 0;
-
-    // Создание текстуры
-    HRESULT result = GetDevice()->CreateTexture2D(&textureDesc, NULL, &m_renderTargetTexture);
-    if (FAILED(result))
-        return false;
-
-    D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc;
-    // Описание render target view.
-    renderTargetViewDesc.Format = textureDesc.Format;
-    renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-    renderTargetViewDesc.Texture2D.MipSlice = 0;
-
-    // Создание render target view.
-    result = GetDevice()->CreateRenderTargetView(m_renderTargetTexture, &renderTargetViewDesc, &m_renderTargetView);
-    if (FAILED(result))
-        return false;
-
-    D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
-    // Описание shader resource view.
-    shaderResourceViewDesc.Format = textureDesc.Format;
-    shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-    shaderResourceViewDesc.Texture2D.MostDetailedMip = 0;
-    shaderResourceViewDesc.Texture2D.MipLevels = 1;
-
-    // Создание shader resource view.
-    result = GetDevice()->CreateShaderResourceView(m_renderTargetTexture, &shaderResourceViewDesc, &m_shaderResourceView);
-    if (FAILED(result))
-        return false;
-
-    return true;
 }

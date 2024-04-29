@@ -4,6 +4,7 @@
 #include "Core/Objects/Object.h"
 #include "Game/Camera.h"
 #include "Game/Components/LightComponent.h"
+#include "Render/PostProcess.h"
 
 class PostProcess;
 class LightComponent;
@@ -63,6 +64,7 @@ public:
     ID3D11DeviceContext* GetContext() const { return curPlData->context; }
     ID3D11Device* GetDevice() const { return curPlData->device; }
     WinDisplay* GetDisplay() const { return curPlData->display; }
+    IDXGISwapChain* GetSwapChain() const { return curPlData->swapChain; }
 
     void SetCurCamera(Camera* cam) { curCam = cam; }
 
@@ -98,6 +100,7 @@ public:
         if (const auto nGObj = dynamic_cast<Object*>(newObj))
         {
             if (const auto nCam = dynamic_cast<Camera*>(newObj)) cameras.insert(nCam);
+            else if (const auto nPostProc = dynamic_cast<PostProcess*>(newObj)) postProcesses.insert(nPostProc);
             else gameObjects.insert(nGObj);
 
             return newObj;
@@ -136,6 +139,7 @@ protected:
 
     Array<Object*> gameObjects;
     Array<Camera*> cameras;
+    Array<PostProcess*> postProcesses;
     Array<LightComponent*> lightComponents;
     Array<GameComponent*> gameComponents;
     Array<PipelineData*> pipelinesData;
@@ -147,8 +151,6 @@ protected:
     unsigned int frameCount = 0;
 
     MSG msg;
-    
-    PostProcess* postProcess;
 private:
     EyeViewData curEyeData;
     void CreateDeviceAndSwapChain();
@@ -156,10 +158,6 @@ private:
     void CreateDepthStencilView();
     void RenderScene();
 
+    RenderTarget* texRenderTarget;
     void OnChangeRenderState(RenderState state);
-
-    ID3D11Texture2D* m_renderTargetTexture;
-    ID3D11RenderTargetView* m_renderTargetView;
-    ID3D11ShaderResourceView* m_shaderResourceView;
-    bool CreateRenderTarget( int textureWidth, int textureHeight);
 };

@@ -1,10 +1,11 @@
 ﻿#include "PostProcess.h"
 
+#include "RenderTarget.h"
 #include "Core/Engine.h"
 #include "Core/Shader.h"
 
-PostProcess::PostProcess(int32_t screenW, int32_t screenH)
-    : screenWidth(screenW), screenHeight(screenH)
+PostProcess::PostProcess(int32_t screenW, int32_t screenH, LPCWSTR shaderPath)
+    : screenWidth(screenW), screenHeight(screenH), shaderPath(shaderPath)
 {
     signed int centreW = screenWidth / 2 * -1;
     signed int centreH = screenHeight / 2;
@@ -14,16 +15,18 @@ PostProcess::PostProcess(int32_t screenW, int32_t screenH)
     float bottom = top - screenHeight;
 
     vertices.insert({Vector4(left, top, 0.0f, 1.0f), Vector2(0.0f, 0.0f)});
-    vertices.insert({Vector4(right, bottom, 0.0f, 1.0f), Vector2(1.0f, 1.0f)});
+    vertices.insert({Vector4(right, top, 0.0f, 1.0f), Vector2(1.0f, 1.0f)});
     vertices.insert({Vector4(left, bottom, 0.0f, 1.0f), Vector2(0.0f, 1.0f)});
-    vertices.insert({Vector4(right, top, 0.0f, 1.0f), Vector2(1.0f, 0.0f)});
+    vertices.insert({Vector4(right, bottom, 0.0f, 1.0f), Vector2(1.0f, 0.0f)});
 
     indexes.insert(0);
     indexes.insert(1);
-    indexes.insert(2);
+    indexes.insert(3);
     indexes.insert(0);
     indexes.insert(3);
-    indexes.insert(1);
+    indexes.insert(2);
+
+    renderTarget = new RenderTarget(TargetViewType::Texture, 800, 800);
 }
 
 void PostProcess::Draw()
@@ -31,7 +34,9 @@ void PostProcess::Draw()
     Object::Draw();
     const uint32_t stride = sizeof(PostProcessVertex);
     const uint32_t offset = 0;
-    
+
+    renderTarget->SetTarget();
+    renderTarget->ClearTarget();
     engInst->GetContext()->RSSetState(nullptr);
     engInst->GetContext()->PSSetShaderResources(0, 1, &texSRV);
     //engInst->GetContext()->PSSetSamplers(0, 1, &);
@@ -48,24 +53,23 @@ void PostProcess::CreateShader()
     shader = new Shader();
     shader->AddInputElementDesc("POSITION");
     shader->AddInputElementDesc("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT);
-    shader->CreateShader(L"./Resource/Shaders/PostProcessShader.hlsl", ShaderType::Vertex);
-    shader->CreateShader(L"./Resource/Shaders/PostProcessShader.hlsl", ShaderType::Pixel);
+    shader->CreateShader(shaderPath, ShaderType::Vertex);
+    shader->CreateShader(shaderPath, ShaderType::Pixel);
 }
 
 void PostProcess::Initialize()
 {
     CreateShader();
-
-    
     CreateVertexBuffer();
     CreateIndexBuffer();
-
+    renderTarget->Initialize();
     Object::Initialize();
 }
 
 void PostProcess::Destroy()
 {
     Object::Destroy();
+    delete renderTarget;
 }
 
 void PostProcess::SetSRV(ID3D11ShaderResourceView* srv)

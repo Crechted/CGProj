@@ -148,6 +148,7 @@
     <ClInclude Include="Source\Core\Objects\Mesh.h" />
     <ClInclude Include="Source\Core\Objects\Object.h" />
     <ClInclude Include="Source\Core\Render\PostProcess.h" />
+    <ClInclude Include="Source\Core\Render\RenderTarget.h" />
     <ClInclude Include="Source\Core\Shader.h" />
     <ClInclude Include="Source\Core\WinDisplay.h" />
     <ClInclude Include="Source\Game\Camera.h" />
@@ -278,6 +279,7 @@
       <LinkCompiled>true</LinkCompiled>
     </ClCompile>
     <ClCompile Include="Source\Core\Render\PostProcess.cpp" />
+    <ClCompile Include="Source\Core\Render\RenderTarget.cpp" />
     <ClCompile Include="Source\Core\Shader.cpp" />
     <ClCompile Include="Source\Core\WinDisplay.cpp" />
     <ClCompile Include="Source\Game\Camera.cpp" />
@@ -630,8 +632,8 @@
     <Content Include="Resource\Meshes\Piram.glb" />
     <Content Include="Resource\Textures\DefaultCG.dds" />
     <Content Include="Resource\Textures\DefaultCG.png" />
+    <Content Include="Resource\Textures\Dither.jpg" />
     <Content Include="Resource\Textures\Golova2.jpg" />
-    <Content Include="Resource\Textures\grass.jpg" />
     <Content Include="Resource\Textures\grassH.jpg" />
     <Content Include="Resource\Textures\hdri1.jpg" />
     <Content Include="Resource\Textures\hdri2.jpg" />

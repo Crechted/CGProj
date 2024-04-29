@@ -1,5 +1,6 @@
 ﻿#include "Core/Components/MeshComponent.h"
 #include "Core/Engine.h"
+#include "Core/WinDisplay.h"
 #include "Core/Components/CollisionComponent.h"
 #include "Core/Objects/Mesh.h"
 #include "Game/Camera.h"
@@ -58,10 +59,12 @@ int main()
 
     auto ball = engine->CreateObject<CatamaryObjects>("Resource/Meshes/Basketball_ball.obj");
 
-    auto sky = engine->CreateObject<SkySphere>();
+    /*auto sky = engine->CreateObject<SkySphere>();
     sky->SetCollisionVisibility(false);
-    sky->SetCollisionEnabled(false);
+    sky->SetCollisionEnabled(false);*/
     engine->CreateComponent<DirectionalLightComponent>();
+    engine->CreateObject<PostProcess>(800, 800);
+    
     engine->Initialize();
     engine->Run();
     return 0;

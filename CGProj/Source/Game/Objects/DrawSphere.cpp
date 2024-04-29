@@ -60,8 +60,8 @@ void DrawSphere::Initialize()
             }
             if (drawSecondHalf)
             {
-                triangleComp->AddIndex(baseIndex + (i + 1) * ringVertexCount + j);
                 triangleComp->AddIndex(baseIndex + (i + 1) * ringVertexCount + j + 1);
+                triangleComp->AddIndex(baseIndex + (i + 1) * ringVertexCount + j);
                 triangleComp->AddIndex(baseIndex + i * ringVertexCount + j + 1);
             }
         }

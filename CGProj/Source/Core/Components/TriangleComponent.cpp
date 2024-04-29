@@ -176,12 +176,12 @@ void TriangleComponent::CreateIndexBuffer()
 void TriangleComponent::CreateAndSetRasterizerState()
 {
     CD3D11_RASTERIZER_DESC rastDesc = {};
-    rastDesc.CullMode = cullMode; // cullMode
+    rastDesc.CullMode = D3D11_CULL_FRONT; // cullMode
     rastDesc.FillMode = fillMode; // fillMode
     //rastDesc.AntialiasedLineEnable = isAntialiasedLine;
     auto res = engInst->GetDevice()->CreateRasterizerState(&rastDesc, &rastState);
 
-    rastDesc.CullMode = D3D11_CULL_NONE; // D3D11_CULL_NONE
+    rastDesc.CullMode = D3D11_CULL_FRONT; // D3D11_CULL_NONE
     rastDesc.FillMode = D3D11_FILL_SOLID;
     rastDesc.FrontCounterClockwise = false;
     rastDesc.DepthClipEnable = true;
