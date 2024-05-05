@@ -36,14 +36,12 @@ void DrawComponent::DestroyResource()
     {
         if (curDrawData->rastState) curDrawData->rastState->Release();
         if (curDrawData->layout) curDrawData->layout->Release();
-        if (curDrawData->vertexShader) curDrawData->vertexShader->Release();
-        if (curDrawData->pixelShader) curDrawData->pixelShader->Release();
         if (curDrawData->vertexBuffer) curDrawData->vertexBuffer->Release();
         if (curDrawData->indexBuffer) curDrawData->indexBuffer->Release();
-        curShader->Destroy();
-        defShader->Destroy();
-        cascadeShader->Destroy();
-        shadowMappingShader->Destroy();
+        
+        if (defShader) defShader->Destroy();
+        if (cascadeShader) cascadeShader->Destroy();
+        if (shadowMappingShader) shadowMappingShader->Destroy();
     }
 }
 

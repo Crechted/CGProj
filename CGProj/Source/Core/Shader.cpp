@@ -66,15 +66,28 @@ void Shader::AddShader(const ShaderData& data)
     if (!ContainsShader(data)) GlobalShadersData.insert(data);
 }
 
+void Shader::Clear()
+{
+    for (const auto& shaderData : GlobalShadersData)
+    {
+        RemoveShader(shaderData);
+        //if (shaderData.layout) shaderData.layout->Release();
+        if (shaderData.byteCode) shaderData.byteCode->Release();
+        if (shaderData.shader) shaderData.shader->Release();
+    }
+    GlobalShadersData.clear();
+}
+
 void Shader::Destroy()
 {
-    for (const auto& shaderData : shadersData)
+    /*for (const auto& shaderData : shadersData)
     {
         RemoveShader(shaderData);
         if (shaderData.layout) shaderData.layout->Release();
         if (shaderData.byteCode) shaderData.byteCode->Release();
         if (shaderData.shader) shaderData.shader->Release();
-    }
+    }*/
+    if (curLayout) curLayout->Release();
     shadersData.clear();
 }
 
@@ -152,7 +165,7 @@ bool Shader::CreateShader(LPCWSTR shaderPath, ShaderType type, const D3D_SHADER_
 
     if (const auto shader = CreateShaderByType(type, byteCode))
     {
-        shadersData.insert(ShaderData{type, shaderPath, shader, byteCode, curLayout});
+        shadersData.insert(ShaderData{type, shaderPath, shader, byteCode});
         UpdateShadersData();
         if (!curLayout)
             engInst->GetDevice()->CreateInputLayout(&inputElements[0], inputElements.size(), byteCode->GetBufferPointer(),

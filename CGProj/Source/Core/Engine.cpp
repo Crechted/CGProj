@@ -61,7 +61,6 @@ void Engine::Destroy()
         {
             delete cam;
         }
-
     }
 
     for (const auto postProc : postProcesses)
@@ -70,6 +69,7 @@ void Engine::Destroy()
     }
     delete texRenderTarget;
     TextureComponent::Clear();
+    Shader::Clear();
 }
 
 Engine& Engine::GetInstance()

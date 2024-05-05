@@ -29,7 +29,7 @@ struct ShaderData
     LPCWSTR pFileName = nullptr;
     ID3D11DeviceChild* shader = nullptr;
     ID3DBlob* byteCode;    
-    ID3D11InputLayout* layout;
+    //ID3D11InputLayout* layout;
 };
 
 class Shader
@@ -45,6 +45,7 @@ public:
     static bool ContainsShader(const ShaderData& data);
     static void RemoveShader(const ShaderData& data);
     static void AddShader(const ShaderData& data);
+    static void Clear();
     bool CreateShader(LPCWSTR shaderPath, ShaderType type, const D3D_SHADER_MACRO* shaderMacros = nullptr, LPSTR entry = nullptr);
     void AddInputElementDesc(LPCSTR SemanticName, UINT SemanticIndex = 0, DXGI_FORMAT Format = DXGI_FORMAT_R32G32B32A32_FLOAT,
         D3D11_INPUT_CLASSIFICATION InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA);
