@@ -16,25 +16,30 @@ float CalcShadowFactor(SamplerComparisonState samShadow, Texture2D shadowMap, fl
     const float dx = SMAP_DX;
 
     float percentLit = 0.0f;
-    /*const float2 offsets[9] =
-    {
-        float2(-dx, -dx), float2(0.0f, -dx), float2(dx, -dx),
-        float2(-dx, 0.0f), float2(0.0f, 0.0f), float2(dx, 0.0f),
-        float2(-dx, +dx), float2(0.0f, +dx), float2(dx, +dx)
-    };
-
-    [unroll]
-    for (int i = 0; i < 9; ++i)
-    {
-        percentLit += shadowMap.SampleCmpLevelZero(samShadow,
-            shadowPosH.xy + offsets[i], depth).r;
-    }*/
 
     [unroll]
     for (int i = 0; i < 9; ++i)
     {
         percentLit += shadowMap.SampleCmpLevelZero(samShadow,
             shadowPosH.xy, depth, int2(i % 3 - 1, i / 3 - 1)).r;
+    }
+
+    return percentLit /= 9.0f;
+}
+
+float CalcCascadeShadowFactor(SamplerComparisonState samShadow, Texture2DArray shadowMap, float4 shadowPosH, uint idx)
+{
+    shadowPosH.xyz /= shadowPosH.w;
+
+    float depth = shadowPosH.z - 0.001f;
+
+    float percentLit = 0.0f;
+
+    [unroll]
+    for (int i = 0; i < 9; ++i)
+    {
+        percentLit += shadowMap.SampleCmpLevelZero(samShadow,
+            float3(shadowPosH.x, shadowPosH.y, idx), depth, int2(i % 3 - 1, i / 3 - 1)).r;
     }
 
     return percentLit /= 9.0f;

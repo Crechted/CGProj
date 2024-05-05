@@ -4,10 +4,10 @@
 #include "Core/Components/Collisions/BoxCollision.h"
 #include "Game/Objects/Box.h"
 
-BoxComponent::BoxComponent(const wchar_t* pathTex, Vector3 position, Vector3 size, Vector4 color)
+BoxComponent::BoxComponent(const wchar_t* pathTex, Vector3 position, Vector3 size, Vector4 color, D3D_PRIMITIVE_TOPOLOGY topology)
 {
     if (mesh) mesh->Destroy();
-    mesh = new Box(pathTex, Vector3::Zero, size, color);
+    mesh = new Box(pathTex, Vector3::Zero, size, color, topology);
     mesh->outer = this;
     mesh->SetCollision(mesh->CreateComponent<BoxCollision>(size));    
     mesh->GetSceneComponent()->AttachTo(this);

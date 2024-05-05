@@ -157,12 +157,14 @@
     <ClInclude Include="Source\Game\Catomary\Objects\Pawn.h" />
     <ClInclude Include="Source\Game\Components\BoxComponent.h" />
     <ClInclude Include="Source\Game\Components\DirectionalLightComponent.h" />
+    <ClInclude Include="Source\Game\Components\DrawBoxComponent.h" />
     <ClInclude Include="Source\Game\Components\DrawSphereComponent.h" />
     <ClInclude Include="Source\Game\Components\LightComponent.h" />
     <ClInclude Include="Source\Game\Components\SphereComponent.h" />
     <ClInclude Include="Source\Game\Components\SpringArmComponent.h" />
     <ClInclude Include="Source\Game\GameSquare.h" />
     <ClInclude Include="Source\Game\Objects\Box.h" />
+    <ClInclude Include="Source\Game\Objects\DrawBox.h" />
     <ClInclude Include="Source\Game\Objects\Grids.h" />
     <ClInclude Include="Source\Game\Objects\DrawSphere.h" />
     <ClInclude Include="Source\Game\Objects\SkySphere.h" />
@@ -187,6 +189,7 @@
     <ClInclude Include="Source\Utils\Types.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resource\Shaders\CascadeShadowShader.hlsl" />
     <None Include="Resource\Shaders\LightingFunctions.hlsl" />
     <None Include="Resource\Shaders\ShadowMappingShader.hlsl" />
     <None Include="Resource\Shaders\Structures.hlsl" />
@@ -288,12 +291,14 @@
     <ClCompile Include="Source\Game\Catomary\Objects\Pawn.cpp" />
     <ClCompile Include="Source\Game\Components\BoxComponent.cpp" />
     <ClCompile Include="Source\Game\Components\DirectionalLightComponent.cpp" />
+    <ClCompile Include="Source\Game\Components\DrawBoxComponent.cpp" />
     <ClCompile Include="Source\Game\Components\DrawSphereComponent.cpp" />
     <ClCompile Include="Source\Game\Components\LightComponent.cpp" />
     <ClCompile Include="Source\Game\Components\SphereComponent.cpp" />
     <ClCompile Include="Source\Game\Components\SpringArmComponent.cpp" />
     <ClCompile Include="Source\Game\GameSquare.cpp" />
     <ClCompile Include="Source\Game\Objects\Box.cpp" />
+    <ClCompile Include="Source\Game\Objects\DrawBox.cpp" />
     <ClCompile Include="Source\Game\Objects\Grids.cpp" />
     <ClCompile Include="Source\Game\Objects\DrawSphere.cpp" />
     <ClCompile Include="Source\Game\Objects\SkySphere.cpp" />

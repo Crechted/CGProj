@@ -26,7 +26,7 @@ PostProcess::PostProcess(int32_t screenW, int32_t screenH, LPCWSTR shaderPath)
     indexes.insert(3);
     indexes.insert(2);
 
-    renderTarget = new RenderTarget(TargetViewType::Texture, 800, 800);
+    renderTarget = new RenderTarget(TargetViewType::Texture, screenWidth, screenHeight);
 }
 
 void PostProcess::Draw()

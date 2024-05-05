@@ -52,12 +52,9 @@ public:
     void SetIndexes(const Array<int32_t>& idxs) { indexes = idxs; }
     void SetIndexes(int32_t* idxs, int32_t count);
 
-    //UINT idxCount = 6;
-    UINT numElements = 3;
-
     D3D11_PRIMITIVE_TOPOLOGY topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
-    D3D11_CULL_MODE cullMode = D3D11_CULL_NONE;
+    D3D11_CULL_MODE cullMode = D3D11_CULL_FRONT;
     D3D11_FILL_MODE fillMode = D3D11_FILL_SOLID;
     bool isAntialiasedLine = false;
 
@@ -69,7 +66,6 @@ protected:
 
     TriangleDrawData* curDrawData;
     Array<D3DVertex> vertices;
-    //int32_t countPoints;
 
     Array<int32_t> indexes;
     Array<TriangleDrawData*> drawsData;
@@ -88,8 +84,8 @@ private:
 
     Shader* cascadeShader = nullptr;
     Shader* shadowMappingShader = nullptr;
+    
     void OnChangeRenderState(RenderState state);
-
     void CreateCascadeShader();
     void CreateShadowMappingShader();
 };

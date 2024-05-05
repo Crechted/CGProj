@@ -4,42 +4,44 @@
 #include "Core/Components/GameComponent.h"
 #include "Game/Camera.h"
 
+class SceneComponent;
+
 class LightComponent : public GameComponent
 {
 public:
+    LightComponent();
     void Initialize() override;
     void DestroyResource() override;
-    void Draw() override;
+    ID3D11ShaderResourceView* GetOutputTexture() const { return (&outputTextureSRV)[currentCascadeID]; }
+    D3D11_VIEWPORT* GetViewport() { return &outputViewPort; }
 
-    ID3D11ShaderResourceView* GetOutputTexture() const {return m_pOutputTextureSRV;}
-    D3D11_VIEWPORT* GetViewport() {return &m_OutputViewPort;}
+    SceneComponent* GetSceneComponent() const { return sceneComponent; }
+    EyeViewData GetEyeData() const { return eyeData; }
+    void SetDepthStencil();
+    void ClearDepthStencil();
 
-    EyeViewData GetEyeData() const {return eyeData;}
-    void SetRenderTarget();
-    void ClearRenderTarget();
+    virtual void SetCurrentCascadeData(uint32_t idx) { currentCascadeID = idx; }
+
 protected:
-    ID3D11ShaderResourceView* m_pOutputTextureSRV = nullptr; // Shader resource view corresponding to the output texture (or shadow map)
-    ID3D11RenderTargetView* m_pOutputTextureRTV = nullptr;   // Render target view corresponding to the output texture
-    ID3D11DepthStencilView* m_pOutputTextureDSV = nullptr;   // Depth/template view (or shadow map) used for output texture
+    SceneComponent* sceneComponent;
+    ID3D11ShaderResourceView* outputTextureSRV = nullptr; // Shader resource view corresponding to the output texture (or shadow map)
+    ID3D11DepthStencilView* outputTextureDSV = nullptr;   // Depth/template view (or shadow map) used for output texture
     ID3D11Texture2D* depthTex = nullptr;
-    D3D11_VIEWPORT m_OutputViewPort = {};                    // Viewport used for output
+    D3D11_VIEWPORT outputViewPort = {}; // Viewport used for output
 
-    D3D11_SAMPLER_DESC sampDesc;
-    ID3D11SamplerState* SampShadow = nullptr;
-    
-    ID3D11RenderTargetView* m_pCacheRTV = nullptr; // Temporary cache back buffer
-    ID3D11DepthStencilView* m_pCacheDSV = nullptr; // Temporary buffer depth/template buffer
-    D3D11_VIEWPORT m_CacheViewPort = {};           // Temporarily cached viewport
+
+    ID3D11SamplerState* sampShadow = nullptr;
 
     EyeViewData eyeData;
-    
+
     bool m_GenerateMips = false; // Whether to generate mipmap chain
-    bool m_ShadowMap = true;
-    int32_t texWidth = 2048;
-    int32_t texHeight = 2048;
+    uint32_t texWidth = 2048;
+    uint32_t texHeight = 2048;
 
     const wchar_t* shadowMapName = L"T_ShadowMap";
-    
+
+    uint32_t currentCascadeID = 0;
+
 private:
     void AddShadowMap();
     void RemoveShadowMap();
@@ -49,6 +51,6 @@ class CascadeShaderManager
 {
 public:
     static Array<Vector4> GetFrustumCorners(const Matrix& view, const Matrix& proj);
+    static Vector3 GetFrustumCenter(const Array<Vector4>& corners);
     static Matrix GetOrthographicProjByCorners(const Array<Vector4>& corners, const Matrix& LightView);
 };
-

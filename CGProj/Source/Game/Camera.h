@@ -19,9 +19,10 @@ enum class ViewType : uint8_t
 
 struct EyeViewData
 {
-    Matrix mView;
-    Matrix mProj;
-    bool isCam;
+    Matrix GetViewProj() const {return mView*mProj;}
+    Matrix mView = Matrix::Identity;
+    Matrix mProj = Matrix::Identity;
+    bool isCam = false;
 };
 
 class Camera : public Object
@@ -43,7 +44,7 @@ public:
     float widthOrt = 2.0f;
     float heightOrt = 2.0f;
     float nearPlane = 0.01f;
-    float farPlane = 100000.0f;
+    float farPlane = 50.0f;
 
     float initScale = 1.0f;
     float speedScale = 1.0f;
@@ -53,6 +54,7 @@ public:
     void OnKeyUp(Keys key);
     void OnMouse(const MouseMoveEventArgs& mouseData);
 
+    void GetProjAndDistanceBySection(float nearLayer, float farLayer, Matrix& retProj, float& retDistanceToFar);
     SceneComponent* GetSceneComponent() const { return sceneComp; }
     void SetTargetView(SceneComponent* target) {targetView = target;}
     SceneComponent*  GetTargetView() {return targetView;}

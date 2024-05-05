@@ -1,80 +1,76 @@
 #include "LightComponent.h"
 
-#include <string>
-
 #include "Core/Engine.h"
+#include "Core/Components/SceneComponent.h"
 #include "Core/Components/TextureComponent.h"
+
+LightComponent::LightComponent()
+{
+    sceneComponent = CreateComponent<SceneComponent>();
+}
 
 void LightComponent::Initialize()
 {
     HRESULT hr;
 
-    // ******************
-    // Create a depth/stencil buffer or shadow map with the same width and height as the texture, and the corresponding view
-    //
-    /*D3D11_TEXTURE2D_DESC texDesc = {};
-    texDesc.Format = m_ShadowMap ? DXGI_FORMAT_R32G32B32A32_FLOAT : DXGI_FORMAT_D24_UNORM_S8_UINT;
+    D3D11_TEXTURE2D_DESC texDesc;
+    ZeroMemory(&texDesc, sizeof(texDesc));
+    texDesc.Format = DXGI_FORMAT_R32_TYPELESS; //DXGI_FORMAT_R24G8_TYPELESS
     texDesc.Width = texWidth;
     texDesc.Height = texHeight;
-    texDesc.ArraySize = 1;
+    texDesc.ArraySize = engInst->useCascadeShadow ? engInst->CASCADE_COUNT : 1;
     texDesc.MipLevels = 1;
-    texDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | (m_ShadowMap ? D3D11_BIND_SHADER_RESOURCE : 0);*/
-    CD3D11_TEXTURE2D_DESC texDesc((m_ShadowMap ? DXGI_FORMAT_R24G8_TYPELESS : DXGI_FORMAT_D24_UNORM_S8_UINT),
-        texWidth, texHeight, 1, 1,
-        D3D11_BIND_DEPTH_STENCIL | (m_ShadowMap ? D3D11_BIND_SHADER_RESOURCE : 0));
+    texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_DEPTH_STENCIL;
+    texDesc.SampleDesc.Count = 1;
 
     hr = engInst->GetDevice()->CreateTexture2D(&texDesc, nullptr, &depthTex);
     if (FAILED(hr)) return;
 
-    CD3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc(depthTex
-        , D3D11_DSV_DIMENSION_TEXTURE2D
-        , DXGI_FORMAT_D24_UNORM_S8_UINT);
+    D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc;
+    ZeroMemory(&dsvDesc, sizeof(dsvDesc));
+    dsvDesc.Format = DXGI_FORMAT_D32_FLOAT; //DXGI_FORMAT_D24_UNORM_S8_UINT
+    dsvDesc.ViewDimension = engInst->useCascadeShadow ? D3D11_DSV_DIMENSION_TEXTURE2DARRAY : D3D11_DSV_DIMENSION_TEXTURE2D;
+    if (engInst->useCascadeShadow) dsvDesc.Texture2DArray = {0, 0, engInst->CASCADE_COUNT};
 
-    hr = engInst->GetDevice()->CreateDepthStencilView(depthTex, &dsvDesc,
-        &m_pOutputTextureDSV);
+    hr = engInst->GetDevice()->CreateDepthStencilView(depthTex, &dsvDesc, &outputTextureDSV);
+    if (FAILED(hr)) return;
+    // SRV of shadow map
+    /*D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+    ZeroMemory(&srvDesc, sizeof(srvDesc));
+    srvDesc.Format = DXGI_FORMAT_R32_TYPELESS; //DXGI_FORMAT_R24_UNORM_X8_TYPELESS
+    srvDesc.ViewDimension = engInst->useCascadeShadow ? D3D11_SRV_DIMENSION_TEXTURE2DARRAY : D3D11_SRV_DIMENSION_TEXTURE2D ;
+    if (engInst->useCascadeShadow) srvDesc.Texture2DArray = {0, 1, 0, 4};*/
+
+    CD3D11_SHADER_RESOURCE_VIEW_DESC srvCDesc(depthTex, engInst->useCascadeShadow ? D3D11_SRV_DIMENSION_TEXTURE2DARRAY : D3D11_SRV_DIMENSION_TEXTURE2D, DXGI_FORMAT_R32_FLOAT);
+    if (engInst->useCascadeShadow) srvCDesc.Texture2DArray = {0, 1, 0, engInst->CASCADE_COUNT};
+    hr = engInst->GetDevice()->CreateShaderResourceView(depthTex, &srvCDesc, &outputTextureSRV);
     if (FAILED(hr)) return;
 
-    if (m_ShadowMap)
-    {
-        // SRV of shadow map
-        CD3D11_SHADER_RESOURCE_VIEW_DESC srvDesc(depthTex
-            , D3D11_SRV_DIMENSION_TEXTURE2D
-            , DXGI_FORMAT_R24_UNORM_X8_TYPELESS);
-
-        hr = engInst->GetDevice()->CreateShaderResourceView(depthTex, &srvDesc,
-            &m_pOutputTextureSRV);
-        if (FAILED(hr)) return;
-    }
-
     // Sampler status: depth comparison and Border mode
+    D3D11_SAMPLER_DESC sampDesc;
     ZeroMemory(&sampDesc, sizeof(sampDesc));
     sampDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
     sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
     sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
     sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
-    /*sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-    sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-    sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-    sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;*/
     sampDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
-    //sampDesc.BorderColor[0] = {1.0f};
     sampDesc.BorderColor[0] = 0;
     sampDesc.BorderColor[1] = 0;
     sampDesc.BorderColor[2] = 0;
     sampDesc.BorderColor[3] = 0;
     sampDesc.MinLOD = 0;
     sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-    engInst->GetDevice()->CreateSamplerState(&sampDesc, &SampShadow);
+    engInst->GetDevice()->CreateSamplerState(&sampDesc, &sampShadow);
 
     // ******************
     // Initialize the viewport
     //
-    m_OutputViewPort.TopLeftX = 0.0f;
-    m_OutputViewPort.TopLeftY = 0.0f;
-    m_OutputViewPort.Width = static_cast<float>(texWidth);
-    m_OutputViewPort.Height = static_cast<float>(texHeight);
-    m_OutputViewPort.MinDepth = 0.0f;
-    m_OutputViewPort.MaxDepth = 1.0f;
+    outputViewPort.TopLeftX = 0.0f;
+    outputViewPort.TopLeftY = 0.0f;
+    outputViewPort.Width = static_cast<float>(texWidth);
+    outputViewPort.Height = static_cast<float>(texHeight);
+    outputViewPort.MinDepth = 0.0f;
+    outputViewPort.MaxDepth = 1.0f;
 
     GameComponent::Initialize();
 }
@@ -82,18 +78,10 @@ void LightComponent::Initialize()
 void LightComponent::DestroyResource()
 {
     GameComponent::DestroyResource();
-    if (m_pOutputTextureSRV) m_pOutputTextureSRV->Release();
-    if (m_pOutputTextureRTV) m_pOutputTextureRTV->Release();
-    if (m_pOutputTextureDSV) m_pOutputTextureDSV->Release();
+    if (outputTextureSRV) outputTextureSRV->Release();
+    if (outputTextureDSV) outputTextureDSV->Release();
     if (depthTex) depthTex->Release();
-    if (SampShadow) SampShadow->Release();
-    if (m_pCacheRTV) m_pCacheRTV->Release();
-    if (m_pCacheDSV) m_pCacheDSV->Release();
-}
-
-void LightComponent::Draw()
-{
-    GameComponent::Draw();
+    if (sampShadow) sampShadow->Release();
 }
 
 void LightComponent::AddShadowMap()
@@ -107,21 +95,19 @@ void LightComponent::RemoveShadowMap()
     //TextureComponent::RemoveTexture(shadowMapName, GetOutputTexture());
 }
 
-void LightComponent::SetRenderTarget()
+void LightComponent::SetDepthStencil()
 {
     // Set rendering target and depth template view
-    engInst->GetContext()->OMSetRenderTargets((m_ShadowMap ? 0 : 1),
-        (m_ShadowMap ? nullptr : &m_pOutputTextureRTV),
-        m_pOutputTextureDSV);
+    engInst->GetContext()->OMSetRenderTargets(0,
+        nullptr,
+        outputTextureDSV);
     // Set the viewport
-    engInst->GetContext()->RSSetViewports(1, &m_OutputViewPort);
+    engInst->GetContext()->RSSetViewports(1, &outputViewPort);
 }
 
-void LightComponent::ClearRenderTarget()
+void LightComponent::ClearDepthStencil()
 {
-    float color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-    //engInst->GetContext()->ClearRenderTargetView(m_pOutputTextureRTV, color);
-    engInst->GetContext()->ClearDepthStencilView(m_pOutputTextureDSV, D3D11_CLEAR_DEPTH | (m_ShadowMap ? 0 : D3D11_CLEAR_STENCIL), 1.0f, 0);
+    engInst->GetContext()->ClearDepthStencilView(outputTextureDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
 }
 
 
@@ -132,43 +118,64 @@ Array<Vector4> CascadeShaderManager::GetFrustumCorners(const Matrix& view, const
 
     Array<Vector4> corners;
 
-    for (int32_t x = 0; x < 2; x++)
+    for (int32_t x = 0; x < 2; ++x)
     {
-        for (int32_t y = 0; y < 2; y++)
+        for (int32_t y = 0; y < 2; ++y)
         {
-            for (int32_t z = 0; z < 2; z++)
+            for (int32_t z = 0; z < 2; ++z)
             {
                 const Vector4 pt = Vector4::Transform(Vector4(
                     2.0f * static_cast<float>(x) - 1.0f,
                     2.0f * static_cast<float>(y) - 1.0f,
                     static_cast<float>(z),
                     1.0f), inv);
-                corners.insert(pt);
+                corners.insert(pt / pt.w);
             }
         }
     }
-
     return corners;
 }
 
-Matrix CascadeShaderManager::GetOrthographicProjByCorners(const Array<Vector4>& corners, const Matrix& LightView)
+Vector3 CascadeShaderManager::GetFrustumCenter(const Array<Vector4>& corners)
+{
+    Vector3 center = Vector3::Zero;
+
+    for (const auto& corner : corners)
+    {
+        center += Vector3(corner.x, corner.y, corner.z);
+    }
+    center /= static_cast<float>(corners.size());
+
+    return center;
+}
+
+Matrix CascadeShaderManager::GetOrthographicProjByCorners(const Array<Vector4>& corners, const Matrix& lightView)
 {
     if (corners.size() != 8) return Matrix::Identity;
 
-    Vector4 lightCameraFrustumOrthoMin = corners[0];
-    Vector4 lightCameraFrustumOrthoMax = corners[0];
+    Vector4 FrustumMin;
+    Vector4 FrustumMax;
+    FrustumMin.x = FLT_MAX;
+    FrustumMax.x = std::numeric_limits<float>::lowest();
+    FrustumMin.y = FLT_MAX;
+    FrustumMax.y = std::numeric_limits<float>::lowest();
+    FrustumMin.z = FLT_MAX;
+    FrustumMax.z = std::numeric_limits<float>::lowest();
 
-    Vector4 vTempTranslateCornerPoints;
     for (const auto& corner : corners)
     {
-        vTempTranslateCornerPoints = Vector4::Transform(corner, LightView);
+        Vector4 vTempTranslateCornerPoints = Vector4::Transform(corner, lightView);
 
-        lightCameraFrustumOrthoMin = Vector4::Min(lightCameraFrustumOrthoMin, vTempTranslateCornerPoints);
-        lightCameraFrustumOrthoMax = Vector4::Max(lightCameraFrustumOrthoMax, vTempTranslateCornerPoints);
+         Vector4::Min(FrustumMin, vTempTranslateCornerPoints, FrustumMin);
+         Vector4::Max(FrustumMax, vTempTranslateCornerPoints, FrustumMax);
     }
 
-    const auto resOrthoMat = Matrix::CreateOrthographicOffCenter(lightCameraFrustumOrthoMin.x, lightCameraFrustumOrthoMax.x,
-        lightCameraFrustumOrthoMin.y, lightCameraFrustumOrthoMax.y, lightCameraFrustumOrthoMin.z, lightCameraFrustumOrthoMax.z);
+    const float zMult = 10.0f;
+    FrustumMin.z = FrustumMin.z < 0 ? FrustumMin.z * zMult : FrustumMin.z / zMult;
+    FrustumMax.z = FrustumMax.z < 0 ? FrustumMax.z / zMult : FrustumMax.z * zMult;
+
+    const auto resOrthoMat = Matrix::CreateOrthographicOffCenter(FrustumMin.x, FrustumMax.x,
+        FrustumMin.y, FrustumMax.y, FrustumMin.z, FrustumMax.z);
 
     return resOrthoMat;
 }

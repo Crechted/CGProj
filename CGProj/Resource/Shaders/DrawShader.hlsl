@@ -1,8 +1,9 @@
 struct ViewData
 {
     matrix mWorld;
-    matrix mView;
-    matrix mProj;
+    matrix mViewProj;
+    float4 objectPos;
+    float4 camPos;
 };
 
 struct VS_IN
@@ -26,21 +27,18 @@ Texture2D DiffuseMap : register(t0);
 SamplerState Sampler : register(s0);
 
 
-PS_IN VSMain(VS_IN input)
+PS_IN VS(VS_IN input)
 {
     PS_IN output = (PS_IN)0;
 
-    //output.pos = float4(input.pos.xyz + OffsetTransformData.offsetLoc.xyz, 1.0f);
     output.pos = mul(input.pos, viewData.mWorld);
-    output.pos = mul(output.pos, viewData.mView);
-    output.pos = mul(output.pos, viewData.mProj);
+    output.pos = mul(output.pos, viewData.mViewProj);
     output.col = input.col;
-    //output.col = abs(sin(viewData.color));
 
     return output;
 }
 
-float4 PSMain(PS_IN input) : SV_Target
+float4 PS(PS_IN input) : SV_Target
 {
     float4 col = input.col;
     return col;

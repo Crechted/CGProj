@@ -43,7 +43,6 @@ enum class RenderState
 
 class Engine
 {
-
 public:
     Engine(const Engine& obj) = delete;
     virtual ~Engine();
@@ -128,6 +127,8 @@ public:
     RenderState GetCurrentRenderState() const { return renderState; }
     MulticastDelegate<RenderState> OnChangeRenderStateDelegate;
 
+    const uint32_t CASCADE_COUNT = 4;
+    bool useCascadeShadow = false;
 protected:
     //D3D_FEATURE_LEVEL featureLevel;
     RenderState renderState;

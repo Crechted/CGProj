@@ -1,5 +1,6 @@
 #include "Mesh.h"
 
+#include "Core/Engine.h"
 #include "Core/Components/CollisionComponent.h"
 #include "Core/Components/DrawComponent.h"
 #include "Utils/MeshImporter.h"
@@ -7,6 +8,7 @@
 #include "Core/Components/TextureComponent.h"
 #include "Core/Components/TriangleComponent.h"
 #include "Core/Components/Collisions/BoxCollision.h"
+#include "Game/Components/DirectionalLightComponent.h"
 
 Mesh::Mesh(const std::string& pathModel, const wchar_t* pathTex, bool centering)
     : initPathModel(pathModel), initPathTex(pathTex), centering(centering)
@@ -23,8 +25,8 @@ Mesh::Mesh()
 {
     collisionComp = CreateComponent<BoxCollision>();
     sceneComp = CreateComponent<SceneComponent>();
-    triangleComp = CreateComponent<TriangleComponent>();
     textureComp = CreateComponent<TextureComponent>();
+    triangleComp = CreateComponent<TriangleComponent>();
     collisionComp->AttachTo(sceneComp);
 }
 
@@ -55,6 +57,27 @@ void Mesh::Update(float timeTick)
 
 void Mesh::Draw()
 {
+    const auto eyeData = engInst->GetCurEyeData();
+    EyeViewData lightEye;    
+    Matrix T(
+        0.5f, 0.0f, 0.0f, 0.0f,
+        0.0f, -0.5f, 0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        0.5f, 0.5f, 0.0f, 1.0f);
+    for (const auto light : engInst->GetLightComponents())
+    {
+        if (const auto dirLight = dynamic_cast<DirectionalLightComponent*>(light))
+        {
+            DirectionLightData lightData = dirLight->GetLightData();
+            lightData.color = eyeData.isCam ? lightData.color : Vector4::Zero;
+            lightEye = dirLight->GetEyeData();
+            lightData.kaSpecPowKsX = Vector4{ambietKoeff, specPow, specKoeff*10.0f, playVertAnim ? engInst->GetTotalTime() : 0.0f};
+            lightData.mShadowTransform = (lightEye.GetViewProj() * T).Transpose();
+            //lightData.mShadowTransform = T.Transpose();
+            dirLight->UpdateSubresource(lightData);
+            if (engInst->GetCurrentRenderState() == RenderState::Normal) dirLight->UpdateShaderResources();
+        }
+    }
     Object::Draw();
 }
 

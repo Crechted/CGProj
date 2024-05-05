@@ -3,6 +3,7 @@
 #include <iostream>
 #include <d3d.h>
 #include <d3dcompiler.h>
+#include <string>
 
 #include "Core/CoreTypes.h"
 #include "Core/Engine.h"
@@ -34,6 +35,10 @@ void TriangleComponent::DestroyResource()
         //if (curDrawData->layout) curDrawData->layout->Release();
         if (curDrawData->vertexBuffer) curDrawData->vertexBuffer->Release();
         if (curDrawData->indexBuffer) curDrawData->indexBuffer->Release();
+        curShader->Destroy();
+        defShader->Destroy();
+        cascadeShader->Destroy();
+        shadowMappingShader->Destroy();
     }
 }
 
@@ -64,6 +69,17 @@ void TriangleComponent::UpdateData()
     rastState = curDrawData->rastState;
     vertexBuffer = curDrawData->vertexBuffer;
     indexBuffer = curDrawData->indexBuffer;
+    
+    /*D3D11_MAPPED_SUBRESOURCE res = {};
+    engInst->GetContext()->Map(vertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
+    auto dataPtr = reinterpret_cast<Vertex*>(res.pData);
+    for (int32_t i = 0; i < vertices.size(); i++)
+    {
+        dataPtr[i].position = vertices[i].pos;        
+        dataPtr[i].normal = vertices[i].norm;
+        dataPtr[i].texture = vertices[i].tex;
+    }
+    engInst->GetContext()->Unmap(vertexBuffer, 0);*/
 }
 
 void TriangleComponent::Update(float timeTick)
@@ -88,6 +104,7 @@ void TriangleComponent::AddVertex(const DirectX::XMFLOAT4& pos, const DirectX::X
 
 void TriangleComponent::SetVertices(const Array<Vertex>& verts)
 {
+    vertices.clear();
     for (const auto& vert : verts)
     {
         const D3DVertex tempVert{{vert.position.x, vert.position.y, vert.position.z, vert.position.w},
@@ -99,12 +116,28 @@ void TriangleComponent::SetVertices(const Array<Vertex>& verts)
 
 void TriangleComponent::SetVertices(const Array<D3DVertex>& pts)
 {
+    vertices.clear();
     vertices = pts;
+}
+
+void TriangleComponent::AddIndex(int32_t idx)
+{
+    indexes.insert(idx);
+}
+
+void TriangleComponent::SetIndexes(int32_t* idxs, int32_t count)
+{
+    indexes.clear();
+    for (int32_t i = 0; i < count; i++)
+    {
+        indexes.insert(idxs[i]);
+    }
+
 }
 
 void TriangleComponent::SetShader(Shader* difShader)
 {
-    curShader = difShader;
+    if (difShader) curShader = difShader;
 }
 
 void TriangleComponent::SetDefaultShader()
@@ -119,22 +152,9 @@ void TriangleComponent::CreateDefaultShader()
     defShader->AddInputElementDesc("POSITION");
     defShader->AddInputElementDesc("NORMAL");
     defShader->AddInputElementDesc("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT);
-    defShader->CreateShader(pFileName, ShaderType::Vertex);
-    defShader->CreateShader(pFileName, ShaderType::Pixel);
-}
-
-void TriangleComponent::AddIndex(int32_t idx)
-{
-    indexes.insert(idx);
-}
-
-void TriangleComponent::SetIndexes(int32_t* idxs, int32_t count)
-{
-    for (int32_t i = 0; i < count; i++)
-    {
-        indexes.insert(idxs[i]);
-    }
-
+    D3D_SHADER_MACRO* macro = engInst->useCascadeShadow ? new D3D_SHADER_MACRO[3]{"DO_CASCADE_SHADOW", "1", "CASCADE_COUNT", std::to_string(engInst->CASCADE_COUNT).c_str(), nullptr, nullptr} : nullptr;
+    defShader->CreateShader(pFileName, ShaderType::Vertex, macro);
+    defShader->CreateShader(pFileName, ShaderType::Pixel, macro);
 }
 
 void TriangleComponent::CreateVertexBuffer()
@@ -176,7 +196,7 @@ void TriangleComponent::CreateIndexBuffer()
 void TriangleComponent::CreateAndSetRasterizerState()
 {
     CD3D11_RASTERIZER_DESC rastDesc = {};
-    rastDesc.CullMode = D3D11_CULL_FRONT; // cullMode
+    rastDesc.CullMode = cullMode; // cullMode
     rastDesc.FillMode = fillMode; // fillMode
     //rastDesc.AntialiasedLineEnable = isAntialiasedLine;
     auto res = engInst->GetDevice()->CreateRasterizerState(&rastDesc, &rastState);
@@ -185,7 +205,7 @@ void TriangleComponent::CreateAndSetRasterizerState()
     rastDesc.FillMode = D3D11_FILL_SOLID;
     rastDesc.FrontCounterClockwise = false;
     rastDesc.DepthClipEnable = true;
-    rastDesc.DepthBias = 100000;
+    rastDesc.DepthBias = 100;
     rastDesc.DepthBiasClamp = 0.0f;
     rastDesc.SlopeScaledDepthBias = 1.0f;
     res = engInst->GetDevice()->CreateRasterizerState(&rastDesc, &rastStateShadow);
@@ -213,17 +233,19 @@ void TriangleComponent::OnChangeRenderState(RenderState state)
             SetShader(cascadeShader);
             break;
         }
+        default: break;
     }
 }
 
 void TriangleComponent::CreateCascadeShader()
 {
-    /*cascadeShader = new Shader();
+    cascadeShader = new Shader();
     cascadeShader->AddInputElementDesc("POSITION");
     cascadeShader->AddInputElementDesc("NORMAL");
     cascadeShader->AddInputElementDesc("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT);
-    cascadeShader->CreateShader(L"./Resource/Shaders/ShadowMappingShader.hlsl", ShaderType::Vertex);
-    cascadeShader->CreateShader(L"./Resource/Shaders/ShadowMappingShader.hlsl", ShaderType::Pixel);*/
+    D3D_SHADER_MACRO macro[] = {"DO_CASCADE_SHADOW", "1", "CASCADE_COUNT", std::to_string(engInst->CASCADE_COUNT).c_str(), nullptr, nullptr};
+    cascadeShader->CreateShader(L"./Resource/Shaders/CascadeShadowShader.hlsl", ShaderType::Vertex, macro);
+    cascadeShader->CreateShader(L"./Resource/Shaders/CascadeShadowShader.hlsl", ShaderType::Geometry, macro);
 }
 
 void TriangleComponent::CreateShadowMappingShader()
@@ -233,6 +255,4 @@ void TriangleComponent::CreateShadowMappingShader()
     shadowMappingShader->AddInputElementDesc("NORMAL");
     shadowMappingShader->AddInputElementDesc("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT);
     shadowMappingShader->CreateShader(L"./Resource/Shaders/ShadowMappingShader.hlsl", ShaderType::Vertex);
-    shadowMappingShader->CreateShader(L"./Resource/Shaders/ShadowMappingShader.hlsl", ShaderType::Pixel);
 }
-

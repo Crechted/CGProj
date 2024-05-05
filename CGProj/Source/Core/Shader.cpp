@@ -20,13 +20,17 @@ Shader::~Shader()
     Destroy();
 }
 
-ShaderData Shader::FindShader(LPCWSTR pFileName, ShaderType type)
+bool Shader::FindShader(LPCWSTR pFileName, ShaderType type, ShaderData& retShaderData)
 {
     for (const auto& globalData : GlobalShadersData)
     {
-        if (globalData.pFileName == pFileName && globalData.type == type) return globalData;
+        if (globalData.pFileName == pFileName && globalData.type == type)
+        {
+            retShaderData = globalData;
+            return true;
+        }
     }
-    return {};
+    return false;
 }
 
 bool Shader::ContainsShader(LPCWSTR pFileName, ShaderType type)
@@ -77,6 +81,9 @@ void Shader::Destroy()
 void Shader::Draw()
 {
     if (curLayout) engInst->GetContext()->IASetInputLayout(curLayout);
+    engInst->GetContext()->VSSetShader(nullptr, nullptr, 0);
+    engInst->GetContext()->PSSetShader(nullptr, nullptr, 0);
+    engInst->GetContext()->GSSetShader(nullptr, nullptr, 0);
     for (const auto& data : shadersData)
     {
         switch (data.type)
@@ -102,6 +109,17 @@ void Shader::Draw()
 
                 break;
             }
+            case ShaderType::Geometry:
+            {
+                ID3D11GeometryShader* shader;
+                if (S_OK == data.shader->QueryInterface(IID_ID3D11GeometryShader,
+                        reinterpret_cast<void**>(&shader)))
+                {
+                    engInst->GetContext()->GSSetShader(shader, nullptr, 0);
+                }
+
+                break;
+            }
             default: return;
         }
     }
@@ -111,6 +129,16 @@ bool Shader::CreateShader(LPCWSTR shaderPath, ShaderType type, const D3D_SHADER_
 {
     //D3D_SHADER_MACRO Shader_Macros[] = {"TEST", "1", "TCOLOR", "float4(0.0f, 1.0f, 0.0f, 1.0f)", nullptr, nullptr};
     if (ContainsLocalShader(shaderPath, type)) return true;
+    ShaderData data;
+    if (FindShader(shaderPath, type, data))
+    {
+        shadersData.insert(data);
+        UpdateShadersData();
+        if (!curLayout)
+            engInst->GetDevice()->CreateInputLayout(&inputElements[0], inputElements.size(), data.byteCode->GetBufferPointer(),
+                data.byteCode->GetBufferSize(), &curLayout);
+        return true;
+    }
 
     ID3DBlob* errorPixelCode;
     ID3DBlob* byteCode;
@@ -124,8 +152,8 @@ bool Shader::CreateShader(LPCWSTR shaderPath, ShaderType type, const D3D_SHADER_
 
     if (const auto shader = CreateShaderByType(type, byteCode))
     {
-        UpdateShadersData();
         shadersData.insert(ShaderData{type, shaderPath, shader, byteCode, curLayout});
+        UpdateShadersData();
         if (!curLayout)
             engInst->GetDevice()->CreateInputLayout(&inputElements[0], inputElements.size(), byteCode->GetBufferPointer(),
                 byteCode->GetBufferSize(), &curLayout);
@@ -152,6 +180,13 @@ ID3D11DeviceChild* Shader::CreateShaderByType(ShaderType type, ID3DBlob* byteCod
         {
             ID3D11PixelShader* shad;
             if (FAILED(engInst->GetDevice()->CreatePixelShader(bp, bs, nullptr, &shad))) return nullptr;
+            return shad;
+        }
+
+        case ShaderType::Geometry:
+        {
+            ID3D11GeometryShader* shad;
+            if (FAILED(engInst->GetDevice()->CreateGeometryShader(bp, bs, nullptr, &shad))) return nullptr;
             return shad;
         }
 

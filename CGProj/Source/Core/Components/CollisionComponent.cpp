@@ -22,6 +22,11 @@ void CollisionComponent::Update(float timeTick)
     UpdateCollision();
 }
 
+void CollisionComponent::Draw()
+{
+    if (showCollision) SceneComponent::Draw();
+}
+
 void CollisionComponent::OnBeginOverlap(CollisionComponent* other)
 {
     if (other) overlappedCollisions.insert(other);

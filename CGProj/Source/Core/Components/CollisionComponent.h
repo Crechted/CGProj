@@ -12,6 +12,7 @@ public:
 
     void Initialize() override;
     void Update(float timeTick) override;
+    void Draw() override;
     virtual void InitCollision() = 0;
     virtual void UpdateCollision() = 0;
 

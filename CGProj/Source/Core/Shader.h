@@ -40,7 +40,7 @@ public:
     void Destroy();
     void Draw();
 
-    static ShaderData FindShader(LPCWSTR pFileName, ShaderType type);
+    static bool FindShader(LPCWSTR pFileName, ShaderType type, ShaderData& retShaderData);
     static bool ContainsShader(LPCWSTR pFileName, ShaderType type);
     static bool ContainsShader(const ShaderData& data);
     static void RemoveShader(const ShaderData& data);

@@ -11,9 +11,7 @@ using namespace DirectX::SimpleMath;
 struct ViewData
 {
     Matrix mWorld;
-    Matrix mView;
-    Matrix mProj;
-    Matrix mShadowTransform;
+    Matrix mViewProj;
     Vector4 objPos;
     Vector4 camPos;
 };
@@ -92,7 +90,6 @@ public:
     bool attachTranslation = true;
     bool attachRotate = true;
     bool attachScale = true;
-    bool playVertAnim = false;
     
     SceneComponent* GetParentComponent() const { return parentComponent; }
 
@@ -103,10 +100,6 @@ protected:
     SceneComponent* parentComponent = nullptr;
     Transform transform;
     Matrix mTransform;
-
-    float ambietKoeff = 0.1f;
-    float specPow = 50.0f;
-    float specKoeff = 0.25f;
 
     //Array<BufStruct> buffers;
     ID3D11Buffer* viewBuffer = nullptr;

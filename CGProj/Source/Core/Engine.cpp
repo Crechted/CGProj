@@ -17,6 +17,7 @@
 #include "Core/Input/InputDevice.h"
 #include "Game/GameSquare.h"
 #include "Game/Camera.h"
+#include "Game/Components/DirectionalLightComponent.h"
 #include "Objects/Mesh.h"
 #include "Render/PostProcess.h"
 #include "Render/RenderTarget.h"
@@ -307,12 +308,17 @@ void Engine::Render()
 
     for (const auto light : lightComponents)
     {
-        OnChangeRenderStateDelegate.Broadcast(RenderState::ShadowMap);
+        OnChangeRenderStateDelegate.Broadcast(useCascadeShadow ? RenderState::CascadeShadow : RenderState::ShadowMap);
         curEyeData = light->GetEyeData();
         curEyeData.isCam = false;
-        light->SetRenderTarget();
-        light->ClearRenderTarget();
-        RenderScene();
+        light->SetDepthStencil();
+        light->ClearDepthStencil();
+
+        for (uint32_t i = 0; i < (useCascadeShadow ? CASCADE_COUNT : 1); i++)
+        {
+            if (useCascadeShadow) light->SetCurrentCascadeData(i);
+            RenderScene();
+        }
     }
 
     const auto texTargetView = texRenderTarget->GetRenderTargetView();
@@ -346,6 +352,10 @@ void Engine::Render()
 
 void Engine::RenderScene()
 {
+    for (const auto light : lightComponents)
+    {
+        light->Render();
+    }
     for (const auto Comp : gameComponents)
     {
         Comp->Render();

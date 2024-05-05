@@ -88,36 +88,15 @@ void SceneComponent::Update(float timeTick)
 }
 
 void SceneComponent::UpdateConstantBuffer()
-{    
+{
     const auto eyeData = engInst->GetCurEyeData();
-    
-    EyeViewData lightEye;
-    for (const auto light : engInst->GetLightComponents())
-    {
-        if (const auto dirLight = dynamic_cast<DirectionalLightComponent*>(light))
-        {
-            DirectionLightData lightData = dirLight->GetLightData();
-            lightData.color = eyeData.isCam ? lightData.color : Vector4::Zero;
-            lightEye = dirLight->GetEyeData();
-            lightData.kaSpecPowKsX = Vector4{ambietKoeff, specPow, specKoeff*10.0f, playVertAnim ? engInst->GetTotalTime() : 0.0f};
-            dirLight->UpdateSubresource(lightData);
-            if (engInst->GetCurrentRenderState() == RenderState::Normal) dirLight->UpdateShaderResources();
-        }
-    }
 
     const auto camLoc = engInst->GetCurCamera()->GetSceneComponent()->GetWorldLocation();
     auto worldMat = GetWorldMatrix();
-    Matrix T(
-        0.5f, 0.0f, 0.0f, 0.0f,
-        0.0f, -0.5f, 0.0f, 0.0f,
-        0.0f, 0.0f, 1.0f, 0.0f,
-        0.5f, 0.5f, 0.0f, 1.0f);
 
     ViewData viewData;
     viewData.mWorld = worldMat.Transpose();
-    viewData.mView = Matrix(eyeData.mView).Transpose();
-    viewData.mProj = Matrix(eyeData.mProj).Transpose();
-    viewData.mShadowTransform = (lightEye.mView * lightEye.mProj * T).Transpose();
+    viewData.mViewProj = Matrix(eyeData.mView * eyeData.mProj).Transpose();
     viewData.objPos = Vector4(worldMat.Translation().x, worldMat.Translation().y, worldMat.Translation().z, 1.0f);
     viewData.camPos = Vector4(camLoc.x, camLoc.y, camLoc.z, 1.0f);
 

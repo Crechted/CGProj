@@ -103,10 +103,12 @@ void Camera::UpdateProjMatrix()
     if (viewType == ViewType::General)
     {
         eyeData.mProj = isPerspective
-                    ? Matrix::CreatePerspective(width * scale, height * scale, nearPlane, farPlane)
-                    : Matrix::CreateOrthographic(widthOrt * scale, heightOrt * scale, nearPlane, farPlane);
+                            ? Matrix::CreatePerspective(width * scale, height * scale, nearPlane, farPlane)
+                            : Matrix::CreateOrthographic(widthOrt * scale, heightOrt * scale, nearPlane, farPlane);
     }
-    else if (viewType == ViewType::Perspective) eyeData.mProj = Matrix::CreatePerspective(width * scale, height * scale, nearPlane, farPlane);
+    else if (viewType == ViewType::Perspective)
+        //eyeData.mProj = Matrix::CreatePerspective(width * scale, height * scale, nearPlane, farPlane);
+        eyeData.mProj = Matrix::CreatePerspectiveFieldOfView(RadiansFromDegree(75) * scale, 1.0f, nearPlane, farPlane);
     else eyeData.mProj = Matrix::CreateOrthographic(widthOrt * scale, heightOrt * scale, nearPlane, farPlane);
 }
 
@@ -124,16 +126,34 @@ void Camera::OnKeyUp(Keys key)
 {
     if (key == Keys::OemPlus)
     {
-        delScale += -speedScale;
+        delScale -= speedScale;
         printf("Scale %f\n", scale);
     }
     if (key == Keys::OemMinus)
     {
-        delScale -= -speedScale;
+        delScale += speedScale;
         printf("Scale %f\n", scale);
     }
 }
 
 void Camera::OnMouse(const MouseMoveEventArgs& mouseData)
 {
+}
+
+void Camera::GetProjAndDistanceBySection(float nearLayer, float farLayer, Matrix& retProj, float& retDistanceToFar)
+{
+    nearLayer = nearLayer >= 0.0f && nearLayer <= 1.0f ? nearPlane + (farPlane - nearPlane) * nearLayer : nearPlane;
+    farLayer = farLayer >= 0.0f && farLayer <= 1.0f ? nearPlane + (farPlane - nearPlane) * farLayer : farPlane;
+    retDistanceToFar = farLayer;
+    if (viewType == ViewType::General)
+    {
+        retProj = isPerspective
+                      ? Matrix::CreatePerspective(width * scale, height * scale, nearLayer, farLayer)
+                      : Matrix::CreateOrthographic(widthOrt * scale, heightOrt * scale, nearLayer, farLayer);
+    }
+    if (viewType == ViewType::Perspective)
+        //return Matrix::CreatePerspective(width * scale, height * scale, nearLayer, farLayer);
+        retProj = Matrix::CreatePerspectiveFieldOfView(RadiansFromDegree(75) * scale, 1.0f, nearLayer, farLayer);
+    else
+        retProj = Matrix::CreateOrthographic(widthOrt * scale, heightOrt * scale, nearLayer, farLayer);
 }

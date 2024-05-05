@@ -19,10 +19,10 @@ PS_IN VS(uint id: SV_VertexID)
 float4 PS(PS_IN input) : SV_Target
 {
     float4 col = shaderTextures.Sample(SampleType, input.tex);
-    //const float GrayscaleValue = 0.2989 * col.x + 0.5870 * col.y + 0.1140 * col.z;
-    //const float color = GrayscaleValue;
-    const float4 color = col*2.0f;
-    return color;
+    const float GrayscaleValue = 0.2989 * col.x + 0.5870 * col.y + 0.1140 * col.z;
+    //col = GrayscaleValue;
+    //col = col*2.0f;
+    return col;
 }
 
 #endif
