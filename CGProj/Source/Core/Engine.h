@@ -3,7 +3,7 @@
 #include "Utils/Array/Array.h"
 #include "Core/Objects/Object.h"
 #include "Game/Camera.h"
-#include "Game/Components/LightComponent.h"
+#include "Game/Components/LightComponents/LightComponent.h"
 #include "Render/PostProcess.h"
 
 class PostProcess;
@@ -40,6 +40,8 @@ enum class RenderState
     Normal,
     PostProcess
 };
+
+static constexpr  uint32_t CASCADE_COUNT = 8;
 
 class Engine
 {
@@ -127,7 +129,6 @@ public:
     RenderState GetCurrentRenderState() const { return renderState; }
     MulticastDelegate<RenderState> OnChangeRenderStateDelegate;
 
-    const uint32_t CASCADE_COUNT = 4;
     bool useCascadeShadow = false;
 protected:
     //D3D_FEATURE_LEVEL featureLevel;

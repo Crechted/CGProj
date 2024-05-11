@@ -18,7 +18,7 @@ void LightComponent::Initialize()
     texDesc.Format = DXGI_FORMAT_R32_TYPELESS; //DXGI_FORMAT_R24G8_TYPELESS
     texDesc.Width = texWidth;
     texDesc.Height = texHeight;
-    texDesc.ArraySize = engInst->useCascadeShadow ? engInst->CASCADE_COUNT : 1;
+    texDesc.ArraySize = engInst->useCascadeShadow ? CASCADE_COUNT : 1;
     texDesc.MipLevels = 1;
     texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_DEPTH_STENCIL;
     texDesc.SampleDesc.Count = 1;
@@ -30,7 +30,7 @@ void LightComponent::Initialize()
     ZeroMemory(&dsvDesc, sizeof(dsvDesc));
     dsvDesc.Format = DXGI_FORMAT_D32_FLOAT; //DXGI_FORMAT_D24_UNORM_S8_UINT
     dsvDesc.ViewDimension = engInst->useCascadeShadow ? D3D11_DSV_DIMENSION_TEXTURE2DARRAY : D3D11_DSV_DIMENSION_TEXTURE2D;
-    if (engInst->useCascadeShadow) dsvDesc.Texture2DArray = {0, 0, engInst->CASCADE_COUNT};
+    if (engInst->useCascadeShadow) dsvDesc.Texture2DArray = {0, 0, CASCADE_COUNT};
 
     hr = engInst->GetDevice()->CreateDepthStencilView(depthTex, &dsvDesc, &outputTextureDSV);
     if (FAILED(hr)) return;
@@ -42,7 +42,7 @@ void LightComponent::Initialize()
     if (engInst->useCascadeShadow) srvDesc.Texture2DArray = {0, 1, 0, 4};*/
 
     CD3D11_SHADER_RESOURCE_VIEW_DESC srvCDesc(depthTex, engInst->useCascadeShadow ? D3D11_SRV_DIMENSION_TEXTURE2DARRAY : D3D11_SRV_DIMENSION_TEXTURE2D, DXGI_FORMAT_R32_FLOAT);
-    if (engInst->useCascadeShadow) srvCDesc.Texture2DArray = {0, 1, 0, engInst->CASCADE_COUNT};
+    if (engInst->useCascadeShadow) srvCDesc.Texture2DArray = {0, 1, 0, CASCADE_COUNT};
     hr = engInst->GetDevice()->CreateShaderResourceView(depthTex, &srvCDesc, &outputTextureSRV);
     if (FAILED(hr)) return;
 

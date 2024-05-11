@@ -3,9 +3,7 @@
 #include "Core/Components/SceneComponent.h"
 #include "Core/Engine.h"
 #include "Core/Input/InputDevice.h"
-#include "Components/SpringArmComponent.h"
-#include "Core/Windisplay.h"
-#include "Utils/Types.h"
+#include "Core/CoreTypes.h"
 
 Camera::Camera(Vector3 initPosition, Vector3 initRotation)
     : initPosition(initPosition), initRotation(initRotation)

@@ -16,8 +16,6 @@ public:
     SphereComponent* GetSphereComponent() const { return sphereComp; }
     PlayerMoveComponent* GetPlayerMoveComponent() const { return playerMoveComp; }
 
-    void Update(float timeTick) override;
-
 protected:
     SpringArmComponent* springArmComp = nullptr;
     SphereComponent* sphereComp = nullptr;

@@ -1,7 +1,7 @@
 #include "Box.h"
-
 #include "Core/Components/SceneComponent.h"
 #include "Core/Components/TriangleComponent.h"
+#include "Core/CoreTypes.h"
 
 Box::Box(const wchar_t* pathTex, Vector3 position, Vector3 size, Vector4 color, D3D_PRIMITIVE_TOPOLOGY topology)
     : initSize(size)
@@ -34,35 +34,59 @@ void Box::CreateBoxByTopology(Vector3 size, Array<Vertex>& vertices, Array<int32
     auto d2 = 0.5f * size.z;
 
     const float invU = 0.0f;
-    vertices.insert(Vertex{Vector4(-w2, -h2, -d2, 1.0f), Vector4(0.0f, 0.0f, -1.0f, 1.0f), Vector2(abs(invU + 0.0f), 1.0f)}); // front
-    vertices.insert(Vertex{Vector4(-w2, +h2, -d2, 1.0f), Vector4(0.0f, 0.0f, -1.0f, 1.0f), Vector2(abs(invU + 0.0f), 0.0f)});
-    vertices.insert(Vertex{Vector4(+w2, +h2, -d2, 1.0f), Vector4(0.0f, 0.0f, -1.0f, 1.0f), Vector2(abs(invU + 1.0f), 0.0f)});
-    vertices.insert(Vertex{Vector4(+w2, -h2, -d2, 1.0f), Vector4(0.0f, 0.0f, -1.0f, 1.0f), Vector2(abs(invU + 1.0f), 1.0f)});
-    vertices.insert(Vertex{Vector4(-w2, -h2, +d2, 1.0f), Vector4(0.0f, 0.0f, 1.0f, 1.0f), Vector2(abs(invU + 1.0f), 1.0f)}); // back
-    vertices.insert(Vertex{Vector4(+w2, -h2, +d2, 1.0f), Vector4(0.0f, 0.0f, 1.0f, 1.0f), Vector2(abs(invU + 0.0f), 1.0f)});
-    vertices.insert(Vertex{Vector4(+w2, +h2, +d2, 1.0f), Vector4(0.0f, 0.0f, 1.0f, 1.0f), Vector2(abs(invU + 0.0f), 0.0f)});
-    vertices.insert(Vertex{Vector4(-w2, +h2, +d2, 1.0f), Vector4(0.0f, 0.0f, 1.0f, 1.0f), Vector2(abs(invU + 1.0f), 0.0f)});
-    vertices.insert(Vertex{Vector4(-w2, +h2, -d2, 1.0f), Vector4(0.0f, 1.0f, 0.0f, 1.0f), Vector2(abs(invU + 0.0f), 1.0f)}); // top
-    vertices.insert(Vertex{Vector4(-w2, +h2, +d2, 1.0f), Vector4(0.0f, 1.0f, 0.0f, 1.0f), Vector2(abs(invU + 0.0f), 0.0f)});
-    vertices.insert(Vertex{Vector4(+w2, +h2, +d2, 1.0f), Vector4(0.0f, 1.0f, 0.0f, 1.0f), Vector2(abs(invU + 1.0f), 0.0f)});
-    vertices.insert(Vertex{Vector4(+w2, +h2, -d2, 1.0f), Vector4(0.0f, 1.0f, 0.0f, 1.0f), Vector2(abs(invU + 1.0f), 1.0f)});
-    vertices.insert(Vertex{Vector4(-w2, -h2, -d2, 1.0f), Vector4(0.0f, -1.0f, 0.0f, 1.0f), Vector2(abs(invU + 1.0f), 1.0f)}); // bottom
-    vertices.insert(Vertex{Vector4(+w2, -h2, -d2, 1.0f), Vector4(0.0f, -1.0f, 0.0f, 1.0f), Vector2(abs(invU + 0.0f), 1.0f)});
-    vertices.insert(Vertex{Vector4(+w2, -h2, +d2, 1.0f), Vector4(0.0f, -1.0f, 0.0f, 1.0f), Vector2(abs(invU + 0.0f), 0.0f)});
-    vertices.insert(Vertex{Vector4(-w2, -h2, +d2, 1.0f), Vector4(0.0f, -1.0f, 0.0f, 1.0f), Vector2(abs(invU + 1.0f), 0.0f)});
-    vertices.insert(Vertex{Vector4(-w2, -h2, +d2, 1.0f), Vector4(-1.0f, 0.0f, 0.0f, 1.0f), Vector2(abs(invU + 0.0f), 1.0f)}); // left
-    vertices.insert(Vertex{Vector4(-w2, +h2, +d2, 1.0f), Vector4(-1.0f, 0.0f, 0.0f, 1.0f), Vector2(abs(invU + 0.0f), 0.0f)});
-    vertices.insert(Vertex{Vector4(-w2, +h2, -d2, 1.0f), Vector4(-1.0f, 0.0f, 0.0f, 1.0f), Vector2(abs(invU + 1.0f), 0.0f)});
-    vertices.insert(Vertex{Vector4(-w2, -h2, -d2, 1.0f), Vector4(-1.0f, 0.0f, 0.0f, 1.0f), Vector2(abs(invU + 1.0f), 1.0f)});
-    vertices.insert(Vertex{Vector4(+w2, -h2, -d2, 1.0f), Vector4(1.0f, 0.0f, 0.0f, 1.0f), Vector2(abs(invU + 0.0f), 1.0f)}); // right
-    vertices.insert(Vertex{Vector4(+w2, +h2, -d2, 1.0f), Vector4(1.0f, 0.0f, 0.0f, 1.0f), Vector2(abs(invU + 0.0f), 0.0f)});
-    vertices.insert(Vertex{Vector4(+w2, +h2, +d2, 1.0f), Vector4(1.0f, 0.0f, 0.0f, 1.0f), Vector2(abs(invU + 1.0f), 0.0f)});
-    vertices.insert(Vertex{Vector4(+w2, -h2, +d2, 1.0f), Vector4(1.0f, 0.0f, 0.0f, 1.0f), Vector2(abs(invU + 1.0f), 1.0f)});
+    vertices.insert(Vertex{Vector3(-w2, -h2, -d2), Vector3::Zero, Vector3::Zero, Vector3(0.0f, 0.0f, -1.0f),
+                           Vector2(abs(invU + 0.0f), 1.0f)}); // front
+    vertices.insert(Vertex{Vector3(-w2, +h2, -d2), Vector3::Zero, Vector3::Zero, Vector3(0.0f, 0.0f, -1.0f),
+                           Vector2(abs(invU + 0.0f), 0.0f)});
+    vertices.insert(Vertex{Vector3(+w2, +h2, -d2), Vector3::Zero, Vector3::Zero, Vector3(0.0f, 0.0f, -1.0f),
+                           Vector2(abs(invU + 1.0f), 0.0f)});
+    vertices.insert(Vertex{Vector3(+w2, -h2, -d2), Vector3::Zero, Vector3::Zero, Vector3(0.0f, 0.0f, -1.0f),
+                           Vector2(abs(invU + 1.0f), 1.0f)});
+    vertices.insert(Vertex{Vector3(-w2, -h2, +d2), Vector3::Zero, Vector3::Zero, Vector3(0.0f, 0.0f, 1.0f),
+                           Vector2(abs(invU + 1.0f), 1.0f)}); // back
+    vertices.insert(Vertex{Vector3(+w2, -h2, +d2), Vector3::Zero, Vector3::Zero, Vector3(0.0f, 0.0f, 1.0f),
+                           Vector2(abs(invU + 0.0f), 1.0f)});
+    vertices.insert(Vertex{Vector3(+w2, +h2, +d2), Vector3::Zero, Vector3::Zero, Vector3(0.0f, 0.0f, 1.0f),
+                           Vector2(abs(invU + 0.0f), 0.0f)});
+    vertices.insert(Vertex{Vector3(-w2, +h2, +d2), Vector3::Zero, Vector3::Zero, Vector3(0.0f, 0.0f, 1.0f),
+                           Vector2(abs(invU + 1.0f), 0.0f)});
+    vertices.insert(Vertex{Vector3(-w2, +h2, -d2), Vector3::Zero, Vector3::Zero, Vector3(0.0f, 1.0f, 0.0f),
+                           Vector2(abs(invU + 0.0f), 1.0f)}); // top
+    vertices.insert(Vertex{Vector3(-w2, +h2, +d2), Vector3::Zero, Vector3::Zero, Vector3(0.0f, 1.0f, 0.0f),
+                           Vector2(abs(invU + 0.0f), 0.0f)});
+    vertices.insert(Vertex{Vector3(+w2, +h2, +d2), Vector3::Zero, Vector3::Zero, Vector3(0.0f, 1.0f, 0.0f),
+                           Vector2(abs(invU + 1.0f), 0.0f)});
+    vertices.insert(Vertex{Vector3(+w2, +h2, -d2), Vector3::Zero, Vector3::Zero, Vector3(0.0f, 1.0f, 0.0f),
+                           Vector2(abs(invU + 1.0f), 1.0f)});
+    vertices.insert(Vertex{Vector3(-w2, -h2, -d2), Vector3::Zero, Vector3::Zero, Vector3(0.0f, -1.0f, 0.0f),
+                           Vector2(abs(invU + 1.0f), 1.0f)}); // bottom
+    vertices.insert(Vertex{Vector3(+w2, -h2, -d2), Vector3::Zero, Vector3::Zero, Vector3(0.0f, -1.0f, 0.0f),
+                           Vector2(abs(invU + 0.0f), 1.0f)});
+    vertices.insert(Vertex{Vector3(+w2, -h2, +d2), Vector3::Zero, Vector3::Zero, Vector3(0.0f, -1.0f, 0.0f),
+                           Vector2(abs(invU + 0.0f), 0.0f)});
+    vertices.insert(Vertex{Vector3(-w2, -h2, +d2), Vector3::Zero, Vector3::Zero, Vector3(0.0f, -1.0f, 0.0f),
+                           Vector2(abs(invU + 1.0f), 0.0f)});
+    vertices.insert(Vertex{Vector3(-w2, -h2, +d2), Vector3::Zero, Vector3::Zero, Vector3(-1.0f, 0.0f, 0.0f),
+                           Vector2(abs(invU + 0.0f), 1.0f)}); // left
+    vertices.insert(Vertex{Vector3(-w2, +h2, +d2), Vector3::Zero, Vector3::Zero, Vector3(-1.0f, 0.0f, 0.0f),
+                           Vector2(abs(invU + 0.0f), 0.0f)});
+    vertices.insert(Vertex{Vector3(-w2, +h2, -d2), Vector3::Zero, Vector3::Zero, Vector3(-1.0f, 0.0f, 0.0f),
+                           Vector2(abs(invU + 1.0f), 0.0f)});
+    vertices.insert(Vertex{Vector3(-w2, -h2, -d2), Vector3::Zero, Vector3::Zero, Vector3(-1.0f, 0.0f, 0.0f),
+                           Vector2(abs(invU + 1.0f), 1.0f)});
+    vertices.insert(Vertex{Vector3(+w2, -h2, -d2), Vector3::Zero, Vector3::Zero, Vector3(1.0f, 0.0f, 0.0f),
+                           Vector2(abs(invU + 0.0f), 1.0f)}); // right
+    vertices.insert(Vertex{Vector3(+w2, +h2, -d2), Vector3::Zero, Vector3::Zero, Vector3(1.0f, 0.0f, 0.0f),
+                           Vector2(abs(invU + 0.0f), 0.0f)});
+    vertices.insert(Vertex{Vector3(+w2, +h2, +d2), Vector3::Zero, Vector3::Zero, Vector3(1.0f, 0.0f, 0.0f),
+                           Vector2(abs(invU + 1.0f), 0.0f)});
+    vertices.insert(Vertex{Vector3(+w2, -h2, +d2), Vector3::Zero, Vector3::Zero, Vector3(1.0f, 0.0f, 0.0f),
+                           Vector2(abs(invU + 1.0f), 1.0f)});
 
     GetIndexesByTopology(indexes, topology);
 }
 
-void Box::CreateDrawBoxByTopology(Vector3 pos, Vector3 size, Vector4 color, Array<VertexNoTex>& vertices, Array<int32_t>& indexes,
+void Box::CreateDrawBoxByTopology(Vector4 pos, Vector3 size, Vector4 color, Array<VertexNoTex>& vertices, Array<int32_t>& indexes,
     D3D_PRIMITIVE_TOPOLOGY topology)
 {
     auto w2 = 0.5f * size.x;

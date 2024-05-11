@@ -4,15 +4,13 @@
 #include <d3d.h>
 #include <d3dcompiler.h>
 #include <string>
+#include <strstream>
 
 #include "TriangleComponent.h"
 #include "Core/CoreTypes.h"
 #include "Core/Engine.h"
 #include "Core/Windisplay.h"
-#include "Game/Pong/Components/Movement2DComponent.h"
-
-
-
+#include "Core/Render/Shader.h"
 
 void DrawComponent::Initialize()
 {
@@ -48,6 +46,7 @@ void DrawComponent::DestroyResource()
 void DrawComponent::Draw()
 {
     if (!engInst) return;
+    if (engInst->GetCurrentRenderState() != RenderState::Normal) return;
     
     const uint32_t strides = sizeof(VertexNoTex);
     const uint32_t offsets = 0;
@@ -77,8 +76,8 @@ void DrawComponent::UpdateData()
     auto dataPtr = reinterpret_cast<VertexNoTex*>(res.pData);
     for (int32_t i = 0; i < vertices.size(); i++)
     {
-        dataPtr[i].position = vertices[i].pos;        
-        dataPtr[i].color = vertices[i].col;
+        dataPtr[i].position = vertices[i].position;        
+        dataPtr[i].color = vertices[i].color;
     }
     engInst->GetContext()->Unmap(vertexBuffer, 0);
 }
@@ -91,14 +90,12 @@ void DrawComponent::Update(float timeTick)
 
 void DrawComponent::AddVertex(const VertexNoTex& vertex)
 {
-    const D3DMinVertex vert{{vertex.position.x, vertex.position.y, vertex.position.z, vertex.position.w},
-                            {vertex.color.x, vertex.color.y, vertex.color.z, vertex.color.w}};
-    vertices.insert(vert);
+    vertices.insert(vertex);
 }
 
 void DrawComponent::AddVertex(const DirectX::XMFLOAT4& pos, const DirectX::XMFLOAT4& col)
 {
-    const D3DMinVertex vert{pos, col};
+    const VertexNoTex vert{pos, col};
     vertices.insert(vert);
 }
 
@@ -107,9 +104,7 @@ void DrawComponent::SetVertices(const Array<VertexNoTex>& verts)
     vertices.clear();
     for (const auto& vert : verts)
     {
-        const D3DMinVertex tempVert{{vert.position.x, vert.position.y, vert.position.z, vert.position.w},
-                                    {vert.color.x, vert.color.y, vert.color.z, vert.color.w}};
-        vertices.insert(tempVert);
+        vertices.insert(vert);
     }
 }
 
@@ -118,8 +113,8 @@ void DrawComponent::SetVertices(const Array<DirectX::XMFLOAT4>& pts)
     vertices.clear();
     for (int32_t i = 0; i < pts.size() - 1; i += 2)
     {
-        const D3DMinVertex tempVert{{pts[i].x, pts[i].y, pts[i].z, pts[i].w},
-                                    {pts[i + 1].x, pts[i + 1].y, pts[i + 1].z, pts[i + 1].w},};
+        const VertexNoTex tempVert{Vector4(pts[i].x, pts[i].y, pts[i].z, pts[i].w),
+                                    Vector4(pts[i + 1].x, pts[i + 1].y, pts[i + 1].z, pts[i + 1].w)};
         vertices.insert(tempVert);
     }
 }
@@ -134,8 +129,8 @@ void DrawComponent::SetVertices(DirectX::XMFLOAT4* pts, int32_t count)
     vertices.clear();
     for (int32_t i = 0; i < count - 1; i += 2)
     {
-        const D3DMinVertex tempVert{{pts[i].x, pts[i].y, pts[i].z, pts[i].w},
-                                    {pts[i + 1].x, pts[i + 1].y, pts[i + 1].z, pts[i + 1].w},};
+        const VertexNoTex tempVert{Vector4(pts[i].x, pts[i].y, pts[i].z, pts[i].w),
+                                    Vector4(pts[i + 1].x, pts[i + 1].y, pts[i + 1].z, pts[i + 1].w)};
         vertices.insert(tempVert);
     }
 }
@@ -156,7 +151,11 @@ void DrawComponent::CreateDefaultShader()
     defShader = new Shader();
     defShader->AddInputElementDesc("POSITION");
     defShader->AddInputElementDesc("COLOR");
-    D3D_SHADER_MACRO* macro = engInst->useCascadeShadow ? new D3D_SHADER_MACRO[3]{"DO_CASCADE_SHADOW", "1", "CASCADE_COUNT", std::to_string(engInst->CASCADE_COUNT).c_str(), nullptr, nullptr} : nullptr;
+    std::strstream s;
+    std::string res;
+    s << CASCADE_COUNT << "\x00";
+    s >> res;
+    D3D_SHADER_MACRO* macro = engInst->useCascadeShadow ? new D3D_SHADER_MACRO[3]{"DO_CASCADE_SHADOW", "1", "CASCADE_COUNT", res.c_str(), nullptr, nullptr} : nullptr;
     defShader->CreateShader(pFileName, ShaderType::Vertex, macro);
     defShader->CreateShader(pFileName, ShaderType::Pixel, macro);
 }
@@ -178,8 +177,8 @@ void DrawComponent::OnChangeRenderState(RenderState state)
         }
         case RenderState::CascadeShadow:
         {
-            if (!cascadeShader) CreateCascadeShader();
-            SetShader(cascadeShader);
+            /*if (!cascadeShader) CreateCascadeShader();
+            SetShader(cascadeShader);*/
             break;
         }
         default: break;
@@ -191,7 +190,11 @@ void DrawComponent::CreateCascadeShader()
     cascadeShader = new Shader();
     cascadeShader->AddInputElementDesc("POSITION");
     cascadeShader->AddInputElementDesc("COLOR");
-    D3D_SHADER_MACRO macro[] = {"DO_CASCADE_SHADOW", "1", "CASCADE_COUNT", std::to_string(engInst->CASCADE_COUNT).c_str(), nullptr, nullptr};
+    std::strstream s;
+    std::string res;
+    s << CASCADE_COUNT << "\x00";
+    s >> res;
+    D3D_SHADER_MACRO macro[] = {"DO_CASCADE_SHADOW", "1", "CASCADE_COUNT", res.c_str(), nullptr, nullptr};
     cascadeShader->CreateShader(L"./Resource/Shaders/CascadeShadowShader.hlsl", ShaderType::Vertex, macro);
     //cascadeShader->CreateShader(L"./Resource/Shaders/CascadeShadowShader.hlsl", ShaderType::Geometry, macro);
 }
@@ -221,7 +224,7 @@ void DrawComponent::CreateVertexBuffer()
     vertexBufDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
     vertexBufDesc.MiscFlags = 0; // 0
     vertexBufDesc.StructureByteStride = 0;
-    vertexBufDesc.ByteWidth = sizeof(D3DMinVertex) * vertices.size();
+    vertexBufDesc.ByteWidth = sizeof(VertexNoTex) * vertices.size();
 
     D3D11_SUBRESOURCE_DATA vertexData;
     vertexData.pSysMem = &vertices[0];

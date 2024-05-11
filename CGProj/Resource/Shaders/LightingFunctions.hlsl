@@ -1,8 +1,13 @@
 #ifndef LIGHTING_FUNCTIONS
 #define LIGHTING_FUNCTIONS
 
+#include "Structures.hlsl"
 static const float SMAP_SIZE = 2048.0f;
 static const float SMAP_DX = 1.0f / SMAP_SIZE;
+
+#ifndef NUM_LIGHTS
+#define NUM_LIGHTS 1
+#endif
 
 float CalcShadowFactor(SamplerComparisonState samShadow, Texture2D shadowMap, float4 shadowPosH)
 {
@@ -70,5 +75,124 @@ float CalcShadowFactor(SamplerState samShadow, Texture2D shadowMap, float4 shado
     // Perform bilinear interpolation on the comparison result
     return lerp(lerp(r0, r1, t.x), lerp(r2, r3, t.x), t.y);
 }
+
+float4 DoDiffuse(LightData light, float4 L, float4 N)
+{
+    const float NdotL = max(dot(N, L), 0);
+    return light.color * NdotL;
+}
+
+float4 DoSpecular(LightData light, Material mat, float4 V, float4 L, float4 N)
+{
+    float4 R = normalize(reflect(-L, N));
+    const float RdotV = max(dot(R, V), 0);
+    return light.color * pow(RdotV, mat.specularPower);
+}
+
+float DoAttenuation(LightData light, float d)
+{
+    return 1.0f - smoothstep(light.range * 0.75f, light.range, d);
+}
+
+struct LightingResult
+{
+    float4 diffuse;
+    float4 specular;
+};
+
+LightingResult DoPointLight(LightData light, Material mat, float4 V, float4 P, float4 N)
+{
+    LightingResult result;
+
+    float4 L = light.posVS - P;
+    const float distance = length(L);
+    L = L / distance;
+    const float attenuation = DoAttenuation(light, distance);
+
+    result.diffuse = DoDiffuse(light, L, N) * attenuation;
+    result.specular = DoSpecular(light, mat, V, L, N) * attenuation;
+
+    return result;
+}
+
+float DoSpotCone(LightData light, float4 L)
+{
+    const float minCos = cos(radians(light.spotlightAngle));
+    const float maxCos = lerp(minCos, 1, 0.5f);
+    const float cosAngle = dot(light.directionVS, -L);
+    return smoothstep(minCos, maxCos, cosAngle);
+}
+
+LightingResult DoSpotLight(LightData light, Material mat, float4 V, float4 P, float4 N)
+{
+    LightingResult result;
+
+    float4 L = light.posVS - P;
+    const float distance = length(L);
+    L = L / distance;
+
+    const float attenuation = DoAttenuation(light, distance);
+    const float spotIntensity = DoSpotCone(light, L);
+
+    result.diffuse = DoDiffuse(light, L, N) * attenuation * spotIntensity;
+    result.specular = DoSpecular(light, mat, V, L, N) * attenuation * spotIntensity;
+
+    return result;
+}
+
+
+LightingResult DoDirectionalLight(LightData light, Material mat, float4 V, float4 P, float4 N)
+{
+    LightingResult result;
+    float4 L = normalize(-light.directionVS);
+
+    result.diffuse = DoDiffuse(light, L, N);
+    result.specular = DoSpecular(light, mat, V, L, N);
+
+    return result;
+}
+
+LightingResult DoLighting(StructuredBuffer<LightData> lights, Material mat, float4 eyePos, float4 P, float4 N)
+{
+    float4 V = normalize(eyePos - P);
+
+    LightingResult totalResult = (LightingResult)0;
+
+    for (int i = 0; i < NUM_LIGHTS; ++i)
+    {
+        LightingResult result = (LightingResult)0;
+
+        // Skip lights that are not enabled.
+        if (!lights[i].enabled) continue;
+        // Skip point and spot lights that are out of range of the point being shaded.
+        if (lights[i].type != DIRECTIONAL_LIGHT &&
+            length(lights[i].posVS - P) > lights[i].range)
+            continue;
+
+        switch (lights[i].type)
+        {
+            case DIRECTIONAL_LIGHT:
+            {
+                result = DoDirectionalLight(lights[i], mat, V, P, N);
+            }
+            break;
+            case POINT_LIGHT:
+            {
+                result = DoPointLight(lights[i], mat, V, P, N);
+            }
+            break;
+            case SPOT_LIGHT:
+            {
+                result = DoSpotLight(lights[i], mat, V, P, N);
+            }
+            break;
+        }
+        totalResult.diffuse += result.diffuse;
+        totalResult.specular += result.specular;
+    }
+
+    return totalResult;
+}
+
 
 #endif

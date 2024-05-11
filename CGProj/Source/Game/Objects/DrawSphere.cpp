@@ -2,7 +2,7 @@
 
 #include "Core/Components/DrawComponent.h"
 #include "Core/Engine.h"
-#include "Utils/Types.h"
+#include "Core/CoreTypes.h"
 
 DrawSphere::DrawSphere()
 {

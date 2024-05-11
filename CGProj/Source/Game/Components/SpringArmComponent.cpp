@@ -1,9 +1,9 @@
 #include "SpringArmComponent.h"
 
-#include "../Camera.h"
-#include "..\..\Core\Engine.h"
-#include "../../Core/Input/InputDevice.h"
-#include "../../Utils/Types.h"
+#include "Game/Camera.h"
+#include "Core/Engine.h"
+#include "Core/Input/InputDevice.h"
+#include "Core/CoreTypes.h"
 
 SpringArmComponent::SpringArmComponent(Camera* cam)
 {

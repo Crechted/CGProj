@@ -1,8 +1,9 @@
 ﻿#pragma once
-#include "Core/Components/MovementComponent.h"
 #include "Core/Objects/Object.h"
 #include "SimpleMath.h"
 
+enum class Keys;
+struct MouseMoveEventArgs;
 class SpringArmComponent;
 class SceneComponent;
 using namespace DirectX::SimpleMath;

@@ -21,13 +21,6 @@ struct TriangleDrawData
     ID3D11Buffer* indexBuffer;
 };
 
-struct D3DVertex
-{
-    DirectX::XMFLOAT4 pos;
-    DirectX::XMFLOAT4 norm;
-    DirectX::XMFLOAT2 tex;
-};
-
 class TriangleComponent : public GameComponent
 {
 public:
@@ -40,9 +33,9 @@ public:
 
     int32_t GetNumVertices() const { return vertices.size(); }
     void AddVertex(const Vertex& vertex);
-    void AddVertex(const DirectX::XMFLOAT4& pos, const DirectX::XMFLOAT4& norm, const DirectX::XMFLOAT2& tex);
+    void AddVertex(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& norm, const DirectX::XMFLOAT2& tex);
     void SetVertices(const Array<Vertex>& verts);
-    void SetVertices(const Array<D3DVertex>& pts);
+    //void SetVertices(const Array<D3DVertex>& pts);
 
     void SetShader(Shader* difShader);
     void SetDefaultShader();
@@ -65,7 +58,7 @@ protected:
     void CreateAndSetRasterizerState();
 
     TriangleDrawData* curDrawData;
-    Array<D3DVertex> vertices;
+    Array<Vertex> vertices;
 
     Array<int32_t> indexes;
     Array<TriangleDrawData*> drawsData;

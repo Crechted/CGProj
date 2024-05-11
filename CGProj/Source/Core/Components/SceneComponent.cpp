@@ -2,8 +2,8 @@
 
 #include "Core/Engine.h"
 #include "Game/Camera.h"
-#include "Game/Components/DirectionalLightComponent.h"
-#include "Utils/Types.h"
+#include "Game/Components/LightComponents/DirectionalLightComponent.h"
+#include "Core/CoreTypes.h"
 
 Vector3 Transform::GetRight() const
 {
@@ -44,7 +44,7 @@ void SceneComponent::Initialize()
     transform.location = initPosition;
     transform.rotate = initRotation;
     transform.scale = initScale;
-    UpdateTransformMatrix();
+    UpdateTransformMatrix();    
 
     constBufDesc.Usage = D3D11_USAGE_DEFAULT;
     constBufDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -52,7 +52,6 @@ void SceneComponent::Initialize()
     constBufDesc.MiscFlags = 0;
     constBufDesc.StructureByteStride = 0;
     constBufDesc.ByteWidth = sizeof(ViewData);
-
     engInst->GetDevice()->CreateBuffer(&constBufDesc, nullptr, &viewBuffer);
 
     GameComponent::Initialize();

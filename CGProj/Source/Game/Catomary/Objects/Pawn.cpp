@@ -21,11 +21,6 @@ void Pawn::Initialize()
     Object::Initialize();
 }
 
-void Pawn::Update(float timeTick)
-{
-    Object::Update(timeTick);
-}
-
 void Pawn::OnKeyDown(Keys key)
 {
     if (key == Keys::R) Reload();

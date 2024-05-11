@@ -1,8 +1,9 @@
 ﻿#include "MovementComponent.h"
 
-#include "SceneComponent.h"
 #include "Core/Engine.h"
+#include "Core/Components/SceneComponent.h"
 #include "Core/Input/InputDevice.h"
+#include "Core/Objects/Object.h"
 
 
 bool MovementComponent::SearchSceneComponent()

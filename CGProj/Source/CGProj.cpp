@@ -8,9 +8,11 @@
 #include "Game/Catomary/Objects/CatamaryObjects.h"
 #include "Game/Catomary/Objects/Pawn.h"
 #include "Game/Components/BoxComponent.h"
-#include "Game/Components/DirectionalLightComponent.h"
+#include "Game/Components/LightComponents/DirectionalLightComponent.h"
+#include "Game/Components/MovementComponent.h"
 #include "Game/Components/SphereComponent.h"
 #include "Game/Objects/SkySphere.h"
+#include "Game/Objects/Spectator.h"
 
 int main()
 {
@@ -18,8 +20,10 @@ int main()
     //auto grids = engine->CreateObject<Grids>(1.0f, 41);
 
     auto pawn = engine->CreateObject<Pawn>(5.0f, Vector3(-3.0f, 0.5f, 0.0f));
-    //pawn->GetSphereComponent()->GetMesh()->SetCollisionVisibility(true);
+    pawn->GetSphereComponent()->GetMesh()->SetCollisionVisibility(true);
     pawn->GetPlayerMoveComponent()->speed = 2.0f;
+    //engine->CreateObject<Spectator>(0.0f, Vector3(-3.0f, 0.5f, 0.0f))->GetMovementComponent()->speed = 2.0f;
+
     engine->CreateComponent<BoxComponent>(L"Resource/Textures/grass.png", Vector3(-10.0f, -0.05f, -10.0f), Vector3(20.0f, 0.1f, 20.0f))->
             GetMeshCollision()->SetCollisionEnabled(false);
     engine->CreateComponent<BoxComponent>(L"Resource/Textures/grass.png", Vector3(-10.0f, -0.05f, 10.0f), Vector3(20.0f, 0.1f, 20.0f))->

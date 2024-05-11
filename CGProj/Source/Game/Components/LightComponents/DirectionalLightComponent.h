@@ -3,6 +3,7 @@
 
 #include "LightComponent.h"
 #include "SimpleMath.h"
+#include "Core/Engine.h"
 
 class DrawBoxComponent;
 
@@ -18,8 +19,8 @@ struct DirectionLightData
 
 struct CascadeData
 {
-    Matrix ViewProj[4];
-    float Distances[4];
+    Matrix ViewProj[CASCADE_COUNT];
+    float Distances[CASCADE_COUNT];
 };
 
 class DirectionalLightComponent : public LightComponent

@@ -25,7 +25,7 @@ void TextureComponent::DestroyResource()
 void TextureComponent::PreDraw()
 {
     GameComponent::PreDraw();
-    engInst->GetContext()->PSSetShaderResources(0, 1, &textureRV);
+    engInst->GetContext()->PSSetShaderResources(2, 1, &textureRV);
     engInst->GetContext()->PSSetSamplers(0, 1, &samplerLinear);
 }
 

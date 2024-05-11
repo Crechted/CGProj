@@ -56,8 +56,10 @@ void MeshImporter::FillMeshData(const aiScene* sce, Mesh* resMesh, bool centerin
         Vector3::Min(minAABB, Vector3(mesh->mAABB.mMin.x, mesh->mAABB.mMin.y, mesh->mAABB.mMin.z), minAABB);
         for (uint32_t j = 0; j < mesh->mNumVertices; j++)
         {
-            Vertex newVert = {Vector4(mesh->mVertices[j].x, mesh->mVertices[j].y, mesh->mVertices[j].z, 1.0f),
-                              Vector4(mesh->mNormals[j].x, mesh->mNormals[j].y, mesh->mNormals[j].z, 0.0f),
+            Vertex newVert = {Vector3(mesh->mVertices[j].x, mesh->mVertices[j].y, mesh->mVertices[j].z),
+                              mesh->mTangents ? Vector3(mesh->mTangents[j].x, mesh->mTangents[j].y, mesh->mTangents[j].z) : Vector3::Zero, 
+                              mesh->mBitangents ? Vector3(mesh->mBitangents[j].x, mesh->mBitangents[j].y, mesh->mBitangents[j].z) : Vector3::Zero,
+                              Vector3(mesh->mNormals[j].x, mesh->mNormals[j].y, mesh->mNormals[j].z),
                               mesh->HasTextureCoords(0)
                                   ? Vector2(mesh->mTextureCoords[0][j].x, mesh->mTextureCoords[0][j].y)
                                   : Vector2((float)((count + j) % sideSize) / (float)sideSize, (float)((count + j) / sideSize) /(float)sideSize)
@@ -91,7 +93,7 @@ void MeshImporter::FillMeshData(const aiScene* sce, Mesh* resMesh, bool centerin
         if (center != Vector3::Zero)
             for (auto& vert : importingVert)
             {
-                vert.position -= Vector4(center.x, center.y, center.z, 0.0f);
+                vert.position -= Vector3(center.x, center.y, center.z);
             }
         maxAABB -= center;
         minAABB -= center;

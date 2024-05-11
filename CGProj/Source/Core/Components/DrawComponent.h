@@ -2,20 +2,11 @@
 #include <d3d11.h>
 #include <directxmath.h>
 #include "GameComponent.h"
-#include "Utils/Array/Array.h"
-
+#include "Core/CoreTypes.h"
 
 enum class RenderState;
 class Shader;
 struct TriangleDrawData;
-struct VertexNoTex;
-class Movement2DComponent;
-
-struct D3DMinVertex
-{
-    DirectX::XMFLOAT4 pos;
-    DirectX::XMFLOAT4 col;
-};
 
 class DrawComponent : public GameComponent
 {
@@ -64,7 +55,7 @@ protected:
     D3D11_SUBRESOURCE_DATA indexData;*/
 
     TriangleDrawData* curDrawData;
-    Array<D3DMinVertex> vertices;
+    Array<VertexNoTex> vertices;
 
     Array<int32_t> indexes;    
     Array<TriangleDrawData*> drawsData;

@@ -8,7 +8,7 @@
 #include "Core/Components/TextureComponent.h"
 #include "Core/Components/TriangleComponent.h"
 #include "Core/Components/Collisions/BoxCollision.h"
-#include "Game/Components/DirectionalLightComponent.h"
+#include "Game/Components/LightComponents/DirectionalLightComponent.h"
 
 Mesh::Mesh(const std::string& pathModel, const wchar_t* pathTex, bool centering)
     : initPathModel(pathModel), initPathTex(pathTex), centering(centering)

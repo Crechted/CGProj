@@ -29,7 +29,7 @@ void BoxCollision::InitCollision()
     }
     Array<VertexNoTex> vertices;
     Array<int32_t> indexes;
-    Box::CreateDrawBoxByTopology(Vector3::Zero, size, Vector4(0.5f, 0.0f, 1.0f, 1.0f), vertices, indexes,
+    Box::CreateDrawBoxByTopology(Vector4::Zero, size, Vector4(0.5f, 0.0f, 1.0f, 1.0f), vertices, indexes,
         D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
     debugCollision->topology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
     debugCollision->SetVertices(vertices);

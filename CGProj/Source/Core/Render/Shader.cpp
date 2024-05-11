@@ -3,9 +3,8 @@
 #include <d3dcompiler.h>
 #include <iostream>
 
-#include "Engine.h"
-#include "Windisplay.h"
-#include "Utils/Array/Array.h"
+#include "Core/Engine.h"
+#include "Core/Windisplay.h"
 
 static Array<ShaderData> GlobalShadersData;
 

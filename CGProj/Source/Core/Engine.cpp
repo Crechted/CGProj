@@ -17,10 +17,11 @@
 #include "Core/Input/InputDevice.h"
 #include "Game/GameSquare.h"
 #include "Game/Camera.h"
-#include "Game/Components/DirectionalLightComponent.h"
+#include "Game/Components/LightComponents/DirectionalLightComponent.h"
 #include "Objects/Mesh.h"
 #include "Render/PostProcess.h"
 #include "Render/RenderTarget.h"
+#include "Render/Shader.h"
 
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxgi.lib")
@@ -207,6 +208,9 @@ void Engine::Update()
     for (const auto cam : GetCamerasOnViewport())
     {
         cam->Update(deltaTime);
+    }for (const auto postProc : postProcesses)
+    {
+        postProc->Update(deltaTime);
     }
 
     DetectOverlapped();
@@ -304,7 +308,7 @@ void Engine::DetectOverlapped()
 void Engine::Render()
 {
     float color[] = {0.0f, 0.0f, 0.0f, 1.0f};
-    //curPlData->context->ClearState();
+    curPlData->context->ClearState();
 
     for (const auto light : lightComponents)
     {

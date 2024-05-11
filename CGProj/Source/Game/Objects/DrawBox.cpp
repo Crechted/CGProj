@@ -17,7 +17,7 @@ void DrawBox::Initialize()
 {
     Array<VertexNoTex> vertices;
     Array<int32_t> indexes;
-    Box::CreateDrawBoxByTopology(Vector3::Zero, initSize, initColor, vertices, indexes, topology);
+    Box::CreateDrawBoxByTopology(Vector4::Zero, initSize, initColor, vertices, indexes, topology);
     drawComp->topology = topology;
     drawComp->SetVertices(vertices);
     drawComp->SetIndexes(indexes);

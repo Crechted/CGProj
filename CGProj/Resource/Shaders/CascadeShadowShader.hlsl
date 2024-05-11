@@ -28,11 +28,11 @@ GS_IN VS(VS_IN input)
     GS_IN output = (GS_IN)0;
 
     output.pos = mul(float4(input.pos.xyz, 1.0f), viewData.mWorld);
-    output.pos += sin(output.pos.x * 10.0f * lightData.kaSpecPowKsX.w);
+    //output.pos += sin(output.pos.x * 10.0f * lightData.kaSpecPowKsX.w);
     return output;
 }
 
-[instance(4)]
+[instance(CASCADE_COUNT)]
 [maxvertexcount(3)]
 void GS(triangle GS_IN p[3], in uint id : SV_GSInstanceID, inout TriangleStream<GS_OUT> stream)
 {

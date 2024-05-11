@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "GameComponent.h"
+#include "Core/Components/GameComponent.h"
 #include "SimpleMath.h"
 #include "Core/Input/Keys.h"
 

@@ -1,6 +1,6 @@
 #include "DirectionalLightComponent.h"
 
-#include "DrawBoxComponent.h"
+#include "Game/Components/DrawBoxComponent.h"
 #include "Core/CoreTypes.h"
 #include "Core/Engine.h"
 #include "Core/Components/DrawComponent.h"
@@ -77,7 +77,7 @@ void DirectionalLightComponent::UpdateSubresource(DirectionLightData Data)
 
 void DirectionalLightComponent::UpdateShaderResources()
 {
-    engInst->GetContext()->PSSetShaderResources(engInst->useCascadeShadow ? 2 : 1,
+    engInst->GetContext()->PSSetShaderResources(engInst->useCascadeShadow ? 10 : 9,
         /*engInst->useCascadeShadow ? engInst->CASCADE_COUNT :*/ 1, &outputTextureSRV);
     engInst->GetContext()->PSSetSamplers(1, 1, &sampShadow);
 }
@@ -98,8 +98,8 @@ void DirectionalLightComponent::Update(float timeTick)
         //cascData.Distances = new float[engInst->CASCADE_COUNT];
 
         const auto camData = engInst->GetCurCamera()->GetEyeData();
-        float percentDist = 1.0f / static_cast<float>(engInst->CASCADE_COUNT);
-        for (uint32_t i = 0; i < engInst->CASCADE_COUNT; ++i)
+        float percentDist = 1.0f / static_cast<float>(CASCADE_COUNT);
+        for (uint32_t i = 0; i < CASCADE_COUNT; ++i)
         {
             Matrix subProj;
             engInst->GetCurCamera()->GetProjAndDistanceBySection(percentDist * i, percentDist * static_cast<float>(i + 1), subProj,
@@ -143,8 +143,8 @@ void DirectionalLightComponent::Draw()
     const auto camData = engInst->GetCurCamera()->GetEyeData();
     if (engInst->useCascadeShadow)
     {
-        float percentDist = 1.0f / static_cast<float>(engInst->CASCADE_COUNT);
-        for (uint32_t i = 0; i < engInst->CASCADE_COUNT; ++i)
+        float percentDist = 1.0f / static_cast<float>(CASCADE_COUNT);
+        for (uint32_t i = 0; i < CASCADE_COUNT; ++i)
         {
             Matrix subProj;
             float dist;

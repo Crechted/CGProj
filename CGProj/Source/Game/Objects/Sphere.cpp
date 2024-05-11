@@ -1,7 +1,7 @@
 #include "Sphere.h"
 
 #include "Core/Components/SceneComponent.h"
-#include "Utils/Types.h"
+#include "Core/CoreTypes.h"
 using namespace DirectX::SimpleMath;
 
 Sphere::Sphere(const wchar_t* pathTex, Vector3 position, float radius, int32_t sliceCount, int32_t stackCount, bool drawFirstHalf,
@@ -33,9 +33,11 @@ void Sphere::InitSphere()
     auto phiStep = Pi / stackCount;
     auto thetaStep = 2.0f * Pi / sliceCount;
 
-    AddVertex(Vertex{DirectX::XMFLOAT4(initPos.x, initPos.y + radius, initPos.z, 1.0f),
-                     DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
-                     DirectX::XMFLOAT2(0.5f, 0.0f)});
+    AddVertex(Vertex{Vector3(initPos.x, initPos.y + radius, initPos.z),
+                     Vector3::Zero,
+                     Vector3::Zero,
+                     Vector3(0.0f, 1.0f, 0.0f),
+                     Vector2(0.5f, 0.0f)});
 
     for (int i = 1; i <= stackCount - 1; i++)
     {
@@ -43,22 +45,23 @@ void Sphere::InitSphere()
         for (int j = 0; j <= sliceCount; j++)
         {
             const auto theta = j * thetaStep;
-            const auto pos = Vector4(
+            const auto pos = Vector3(
                 static_cast<float>(initPos.x + radius * sin(phi) * cos(theta)),
                 static_cast<float>(initPos.y + radius * cos(phi)),
-                static_cast<float>(initPos.z + radius * sin(phi) * sin(theta)),
-                1.0f
+                static_cast<float>(initPos.z + radius * sin(phi) * sin(theta))
                 );
             //var t = new Vector3(-radius*MathF.Sin(phi)*MathF.Sin(theta), 0, radius*MathF.Sin(phi)*MathF.Cos(theta)); - tangent
             auto norm = pos;
             norm.Normalize();
             const auto tex = Vector2(theta / (Pi * 2), phi / Pi);
-            AddVertex(Vertex{pos, norm, tex});
+            AddVertex(Vertex{pos, Vector3::Zero, Vector3::Zero, norm, tex});
         }
     }
-    AddVertex(Vertex{DirectX::XMFLOAT4(initPos.x, initPos.y - radius, initPos.z, 1.0f),
-                     DirectX::XMFLOAT4(0.0f, -1.0f, 0.0f, 1.0f),
-                     DirectX::XMFLOAT2(0.5f, 1.0f)});
+    AddVertex(Vertex{Vector3(initPos.x, initPos.y - radius, initPos.z),
+                     Vector3::Zero,
+                     Vector3::Zero,
+                     Vector3(0.0f, -1.0f, 0.0f),
+                     Vector2(0.5f, 1.0f)});
 
     if (drawUp)
         for (int i = 1; i <= sliceCount; i++)

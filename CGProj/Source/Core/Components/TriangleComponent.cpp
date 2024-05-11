@@ -7,7 +7,7 @@
 
 #include "Core/CoreTypes.h"
 #include "Core/Engine.h"
-#include "Core/Shader.h"
+#include "Core/Render/Shader.h"
 #include "Core/Windisplay.h"
 
 
@@ -89,15 +89,12 @@ void TriangleComponent::Update(float timeTick)
 
 void TriangleComponent::AddVertex(const Vertex& vertex)
 {
-    const D3DVertex tempVert{{vertex.position.x, vertex.position.y, vertex.position.z, vertex.position.w},
-                             {vertex.normal.x, vertex.normal.y, vertex.normal.z, vertex.normal.w},
-                             {vertex.texture.x, vertex.texture.y}};
-    vertices.insert(tempVert);
+    vertices.insert(vertex);
 }
 
-void TriangleComponent::AddVertex(const DirectX::XMFLOAT4& pos, const DirectX::XMFLOAT4& norm, const DirectX::XMFLOAT2& tex)
+void TriangleComponent::AddVertex(const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& norm, const DirectX::XMFLOAT2& tex)
 {
-    const D3DVertex vert{pos, norm, tex};
+    const Vertex vert{pos, Vector3::Zero, Vector3::Zero, norm, tex};
     vertices.insert(vert);
 }
 
@@ -106,18 +103,15 @@ void TriangleComponent::SetVertices(const Array<Vertex>& verts)
     vertices.clear();
     for (const auto& vert : verts)
     {
-        const D3DVertex tempVert{{vert.position.x, vert.position.y, vert.position.z, vert.position.w},
-                                 {vert.normal.x, vert.normal.y, vert.normal.z, vert.normal.w},
-                                 {vert.texture.x, vert.texture.y}};
-        vertices.insert(tempVert);
+        vertices.insert(vert);
     }
 }
 
-void TriangleComponent::SetVertices(const Array<D3DVertex>& pts)
+/*void TriangleComponent::SetVertices(const Array<D3DVertex>& pts)
 {
     vertices.clear();
     vertices = pts;
-}
+}*/
 
 void TriangleComponent::AddIndex(int32_t idx)
 {
@@ -148,10 +142,16 @@ void TriangleComponent::CreateDefaultShader()
 {
     if (defShader) return;
     defShader = new Shader();
-    defShader->AddInputElementDesc("POSITION");
-    defShader->AddInputElementDesc("NORMAL");
+    defShader->AddInputElementDesc("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT);
+    defShader->AddInputElementDesc("TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT);
+    defShader->AddInputElementDesc("BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT);
+    defShader->AddInputElementDesc("NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT);
     defShader->AddInputElementDesc("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT);
-    D3D_SHADER_MACRO* macro = engInst->useCascadeShadow ? new D3D_SHADER_MACRO[3]{"DO_CASCADE_SHADOW", "1", "CASCADE_COUNT", std::to_string(engInst->CASCADE_COUNT).c_str(), nullptr, nullptr} : nullptr;
+    std::strstream s;
+    std::string res;
+    s << CASCADE_COUNT << "\x00";
+    s >> res;
+    D3D_SHADER_MACRO* macro = engInst->useCascadeShadow ? new D3D_SHADER_MACRO[3]{"DO_CASCADE_SHADOW", "1", "CASCADE_COUNT", res.c_str(), nullptr, nullptr} : nullptr;
     defShader->CreateShader(pFileName, ShaderType::Vertex, macro);
     defShader->CreateShader(pFileName, ShaderType::Pixel, macro);
 }
@@ -164,7 +164,7 @@ void TriangleComponent::CreateVertexBuffer()
     vertexBufDesc.CPUAccessFlags = 0;
     vertexBufDesc.MiscFlags = 0; // 0
     vertexBufDesc.StructureByteStride = 0;
-    vertexBufDesc.ByteWidth = sizeof(D3DVertex) * vertices.size();
+    vertexBufDesc.ByteWidth = sizeof(Vertex) * vertices.size();
 
     D3D11_SUBRESOURCE_DATA vertexData;
     vertexData.pSysMem = &vertices[0];
@@ -239,10 +239,17 @@ void TriangleComponent::OnChangeRenderState(RenderState state)
 void TriangleComponent::CreateCascadeShader()
 {
     cascadeShader = new Shader();
-    cascadeShader->AddInputElementDesc("POSITION");
-    cascadeShader->AddInputElementDesc("NORMAL");
+    cascadeShader->AddInputElementDesc("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT);
+    cascadeShader->AddInputElementDesc("TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT);
+    cascadeShader->AddInputElementDesc("BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT);
+    cascadeShader->AddInputElementDesc("NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT);
     cascadeShader->AddInputElementDesc("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT);
-    D3D_SHADER_MACRO macro[] = {"DO_CASCADE_SHADOW", "1", "CASCADE_COUNT", std::to_string(engInst->CASCADE_COUNT).c_str(), nullptr, nullptr};
+
+    std::strstream s;
+    std::string res;
+    s << CASCADE_COUNT << "\x00";
+    s >> res;
+    D3D_SHADER_MACRO macro[] = {"DO_CASCADE_SHADOW", "1", "CASCADE_COUNT", res.c_str(), nullptr, nullptr};
     cascadeShader->CreateShader(L"./Resource/Shaders/CascadeShadowShader.hlsl", ShaderType::Vertex, macro);
     cascadeShader->CreateShader(L"./Resource/Shaders/CascadeShadowShader.hlsl", ShaderType::Geometry, macro);
 }
@@ -250,8 +257,10 @@ void TriangleComponent::CreateCascadeShader()
 void TriangleComponent::CreateShadowMappingShader()
 {
     shadowMappingShader = new Shader();
-    shadowMappingShader->AddInputElementDesc("POSITION");
-    shadowMappingShader->AddInputElementDesc("NORMAL");
+    shadowMappingShader->AddInputElementDesc("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT);
+    shadowMappingShader->AddInputElementDesc("TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT);
+    shadowMappingShader->AddInputElementDesc("BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT);
+    shadowMappingShader->AddInputElementDesc("NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT);
     shadowMappingShader->AddInputElementDesc("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT);
     shadowMappingShader->CreateShader(L"./Resource/Shaders/ShadowMappingShader.hlsl", ShaderType::Vertex);
 }
