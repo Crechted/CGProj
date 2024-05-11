@@ -1,6 +1,12 @@
 #ifndef STRUCTURES
 #define STRUCTURES
 
+static matrix mT = {
+    {0.5f, 0.0f, 0.0f, 0.0f},
+    {0.0f, -0.5f, 0.0f, 0.0f},
+    {0.0f, 0.0f, 1.0f, 0.0f},
+    {0.5f, 0.5f, 0.0f, 1.0f}};
+
 struct ViewData
 {
     matrix mWorld;
@@ -14,7 +20,9 @@ struct ViewData
 #define DIRECTIONAL_LIGHT 2
 
 struct LightData
-{
+{    
+    matrix mViewProj;
+    
     float4 posWS;
     float4 directionWS;
     float4 posVS;
@@ -24,19 +32,16 @@ struct LightData
     float spotlightAngle;
     float range;
     bool enabled;
-    bool selected;
-
     uint type;
-    float3 padding;
 };
 
-struct DirectionLightData
+/*struct DirectionLightData
 {
     float4 direction;
     float4 color;
     float4 kaSpecPowKsX;
     matrix mShadowTransform;
-};
+};*/
 
 struct Material
 {
@@ -49,7 +54,7 @@ struct Material
 
     float opacity;
     float specularPower;
-    float indexofRefraction;
+    float indexOfRefraction;
     bool hasAmbientTex;
     
     bool hasEmissiveTex;
@@ -87,11 +92,11 @@ struct VS_IN
 struct PS_IN
 {
     float4 pos : SV_POSITION;
-    float3 tangVS : TANGENT;
-    float3 binormVS : BINORMAL;
-    float3 normVS : NORMAL;
     float4 posWS : TEXCOORD1;
-    float4 ShadowPosH : TEXCOORD2;
+    //float3 posWS : TEXCOORD2;
+    float3 tangWS : TANGENT;
+    float3 binormWS : BINORMAL;
+    float3 normWS : NORMAL;
     float2 tex : TEXCOORD0;
 };
 

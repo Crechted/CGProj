@@ -69,6 +69,8 @@ void Engine::Destroy()
         delete postProc;
     }
     delete texRenderTarget;
+    if (lightsBuffer) lightsBuffer->Release();
+    if (lightsSRV) lightsSRV->Release();
     TextureComponent::Clear();
     Shader::Clear();
 }
@@ -110,6 +112,17 @@ void Engine::AddWindow(int32_t scrWidth, int32_t scrHeight, int32_t posX, int32_
     pipelinesData.insert(plData);
 }
 
+void Engine::UpdateLightsBuffer()
+{
+    Array<LightData> lightsData;
+    for (const auto lightComp : lightComponents)
+    {
+        lightsData.insert(lightComp->GetLightData());
+    }
+    GetContext()->UpdateSubresource(lightsBuffer, 0, nullptr, &lightsData[0], 0, 0);
+    GetContext()->PSSetShaderResources(8, 1, &lightsSRV);
+}
+
 
 void Engine::Initialize()
 {
@@ -126,6 +139,7 @@ void Engine::Initialize()
         CreateDeviceAndSwapChain();
         CreateTargetViewAndViewport();
         CreateDepthStencilView();
+        CreateLightsBuffer();
         const auto postPro = CreateObject<PostProcess>(GetDisplay()->screenWidth, GetDisplay()->screenHeight);
         postPro->GetRenderTarget()->SetTargetType(TargetViewType::BackBuffer);
         texRenderTarget = new RenderTarget(TargetViewType::Texture, GetDisplay()->screenWidth, GetDisplay()->screenHeight);
@@ -208,7 +222,8 @@ void Engine::Update()
     for (const auto cam : GetCamerasOnViewport())
     {
         cam->Update(deltaTime);
-    }for (const auto postProc : postProcesses)
+    }
+    for (const auto postProc : postProcesses)
     {
         postProc->Update(deltaTime);
     }
@@ -312,6 +327,7 @@ void Engine::Render()
 
     for (const auto light : lightComponents)
     {
+        if (light->GetLightData().type != 2) continue;
         OnChangeRenderStateDelegate.Broadcast(useCascadeShadow ? RenderState::CascadeShadow : RenderState::ShadowMap);
         curEyeData = light->GetEyeData();
         curEyeData.isCam = false;
@@ -463,4 +479,26 @@ void Engine::CreateDepthStencilView()
     descDSV.Texture2D.MipSlice = 0;
     res = curPlData->device->CreateDepthStencilView(curPlData->depthStencil, &descDSV, &curPlData->depthStencilView);
     if (FAILED(res)) return;
+}
+
+void Engine::CreateLightsBuffer()
+{
+    HRESULT hr;
+    D3D11_BUFFER_DESC constBufDesc;
+    constBufDesc.Usage = D3D11_USAGE_DEFAULT;
+    constBufDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    constBufDesc.CPUAccessFlags = 0;
+    constBufDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+    constBufDesc.ByteWidth = sizeof(LightData) * lightComponents.size();
+    constBufDesc.StructureByteStride = sizeof(LightData);
+    hr = GetDevice()->CreateBuffer(&constBufDesc, nullptr, &lightsBuffer);
+    if (FAILED(hr)) return;
+
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+    srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+    srvDesc.Buffer.FirstElement = 0;
+    srvDesc.Buffer.NumElements = lightComponents.size();
+    hr = GetDevice()->CreateShaderResourceView(lightsBuffer, &srvDesc, &lightsSRV);
+    if (FAILED(hr)) return;
 }

@@ -148,10 +148,13 @@ void TriangleComponent::CreateDefaultShader()
     defShader->AddInputElementDesc("NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT);
     defShader->AddInputElementDesc("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT);
     std::strstream s;
-    std::string res;
+    std::string cascade, numLights;
     s << CASCADE_COUNT << "\x00";
-    s >> res;
-    D3D_SHADER_MACRO* macro = engInst->useCascadeShadow ? new D3D_SHADER_MACRO[3]{"DO_CASCADE_SHADOW", "1", "CASCADE_COUNT", res.c_str(), nullptr, nullptr} : nullptr;
+    s >> cascade;
+    s.clear();
+    s << engInst->GetLightComponents().size() << "\x00";
+    s >> numLights;
+    D3D_SHADER_MACRO* macro = engInst->useCascadeShadow ? new D3D_SHADER_MACRO[4]{"DO_CASCADE_SHADOW", "1", "CASCADE_COUNT", cascade.c_str(), "NUM_LIGHTS", numLights.c_str(), nullptr, nullptr} : nullptr;
     defShader->CreateShader(pFileName, ShaderType::Vertex, macro);
     defShader->CreateShader(pFileName, ShaderType::Pixel, macro);
 }
@@ -246,10 +249,13 @@ void TriangleComponent::CreateCascadeShader()
     cascadeShader->AddInputElementDesc("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT);
 
     std::strstream s;
-    std::string res;
+    std::string cascade, numLights;
     s << CASCADE_COUNT << "\x00";
-    s >> res;
-    D3D_SHADER_MACRO macro[] = {"DO_CASCADE_SHADOW", "1", "CASCADE_COUNT", res.c_str(), nullptr, nullptr};
+    s >> cascade;
+    s.clear();
+    s << engInst->GetLightComponents().size() << "\x00";
+    s >> numLights;
+    D3D_SHADER_MACRO macro[] = {"DO_CASCADE_SHADOW", "1", "CASCADE_COUNT", cascade.c_str(), "NUM_LIGHTS", numLights.c_str(), nullptr, nullptr};
     cascadeShader->CreateShader(L"./Resource/Shaders/CascadeShadowShader.hlsl", ShaderType::Vertex, macro);
     cascadeShader->CreateShader(L"./Resource/Shaders/CascadeShadowShader.hlsl", ShaderType::Geometry, macro);
 }

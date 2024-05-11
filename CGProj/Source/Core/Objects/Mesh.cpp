@@ -57,8 +57,6 @@ void Mesh::Update(float timeTick)
 
 void Mesh::Draw()
 {
-    const auto eyeData = engInst->GetCurEyeData();
-    EyeViewData lightEye;    
     Matrix T(
         0.5f, 0.0f, 0.0f, 0.0f,
         0.0f, -0.5f, 0.0f, 0.0f,
@@ -68,16 +66,12 @@ void Mesh::Draw()
     {
         if (const auto dirLight = dynamic_cast<DirectionalLightComponent*>(light))
         {
-            DirectionLightData lightData = dirLight->GetLightData();
-            lightData.color = eyeData.isCam ? lightData.color : Vector4::Zero;
-            lightEye = dirLight->GetEyeData();
-            lightData.kaSpecPowKsX = Vector4{ambietKoeff, specPow, specKoeff*10.0f, playVertAnim ? engInst->GetTotalTime() : 0.0f};
-            lightData.mShadowTransform = (lightEye.GetViewProj() * T).Transpose();
-            //lightData.mShadowTransform = T.Transpose();
-            dirLight->UpdateSubresource(lightData);
+            dirLight->UpdateSubresource();
             if (engInst->GetCurrentRenderState() == RenderState::Normal) dirLight->UpdateShaderResources();
         }
     }
+    engInst->UpdateLightsBuffer();
+    
     Object::Draw();
 }
 

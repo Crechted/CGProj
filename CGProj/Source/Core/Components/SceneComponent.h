@@ -24,7 +24,7 @@ struct Transform
     Matrix GetMatrix() const;
     Vector3 location;
     Vector3 rotate;
-    Vector3 scale;
+    Vector3 scale = Vector3::One;
 };
 
 struct BufStruct

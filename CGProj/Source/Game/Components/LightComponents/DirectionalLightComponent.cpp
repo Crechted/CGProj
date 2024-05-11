@@ -18,27 +18,19 @@ DirectionalLightComponent::DirectionalLightComponent()
 
 void DirectionalLightComponent::Initialize()
 {
-    D3D11_BUFFER_DESC constBufDesc;
-    constBufDesc.Usage = D3D11_USAGE_DEFAULT;
-    constBufDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    constBufDesc.CPUAccessFlags = 0;
-    constBufDesc.MiscFlags = 0;
-    constBufDesc.StructureByteStride = 0;
-    constBufDesc.ByteWidth = sizeof(DirectionLightData);
-    engInst->GetDevice()->CreateBuffer(&constBufDesc, nullptr, &lightBuffer);
-
     if (engInst->useCascadeShadow)
     {
+        D3D11_BUFFER_DESC constBufDesc;
+        constBufDesc.Usage = D3D11_USAGE_DEFAULT;
+        constBufDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+        constBufDesc.CPUAccessFlags = 0;
+        constBufDesc.MiscFlags = 0;
+        constBufDesc.StructureByteStride = 0;
         constBufDesc.ByteWidth = sizeof(CascadeData);
         engInst->GetDevice()->CreateBuffer(&constBufDesc, nullptr, &cascadeBuffer);
     }
 
-    lightData.color = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
     sceneComponent->initRotation = Vector3(-45.0f, 45.0f, 0.0f);
-    const auto forward = sceneComponent->GetForward();
-    lightData.direction = Vector4(forward.x, forward.y, forward.z, 0.0f);
-    lightData.direction.Normalize();
-    lightData.kaSpecPowKsX = Vector4{ambietKoeff, specPow, specKoeff, 0.0f};
 
     Vector3 tar = sceneComponent->GetWorldMatrix().Translation() + sceneComponent->GetForward();
     eyeData.mView = Matrix::CreateLookAt(sceneComponent->GetLocation(), tar, sceneComponent->GetUp());
@@ -49,36 +41,32 @@ void DirectionalLightComponent::Initialize()
     eyeData.mProj = Matrix::CreateOrthographic(50.0f, 50.0f, screenNear, screenDepth);
     eyesData[0].mView = eyeData.mView;
     eyesData[0].mProj = eyeData.mProj;
-    //eyeData.mProj = Matrix::CreatePerspectiveFieldOfView(((float)Pi / 4.0f), ((float)texWidth / (float)texHeight), screenNear, screenDepth);
+    lightData.type = 2;
+    lightData.enabled = true;
     LightComponent::Initialize();
 }
 
 void DirectionalLightComponent::DestroyResource()
 {
     LightComponent::DestroyResource();
-    if (lightBuffer) lightBuffer->Release();
     if (cascadeBuffer) cascadeBuffer->Release();
 }
 
-void DirectionalLightComponent::UpdateSubresource(DirectionLightData Data)
+void DirectionalLightComponent::UpdateSubresource()
 {
-    engInst->GetContext()->UpdateSubresource(lightBuffer, 0, nullptr, &Data, 0, 0);
-
-    engInst->GetContext()->VSSetConstantBuffers(1, 1, &lightBuffer);
-    engInst->GetContext()->PSSetConstantBuffers(1, 1, &lightBuffer);
+    LightComponent::UpdateSubresource();
 
     if (engInst->useCascadeShadow)
     {
         engInst->GetContext()->UpdateSubresource(cascadeBuffer, 0, nullptr, &cascData, 0, 0);
-        engInst->GetContext()->GSSetConstantBuffers(2, 1, &cascadeBuffer);
-        engInst->GetContext()->PSSetConstantBuffers(2, 1, &cascadeBuffer);
+        engInst->GetContext()->GSSetConstantBuffers(3, 1, &cascadeBuffer);
+        engInst->GetContext()->PSSetConstantBuffers(3, 1, &cascadeBuffer);
     }
 }
 
 void DirectionalLightComponent::UpdateShaderResources()
 {
-    engInst->GetContext()->PSSetShaderResources(engInst->useCascadeShadow ? 10 : 9,
-        /*engInst->useCascadeShadow ? engInst->CASCADE_COUNT :*/ 1, &outputTextureSRV);
+    engInst->GetContext()->PSSetShaderResources(engInst->useCascadeShadow ? 10 : 9, 1, &outputTextureSRV);
     engInst->GetContext()->PSSetSamplers(1, 1, &sampShadow);
 }
 
@@ -86,17 +74,10 @@ void DirectionalLightComponent::Update(float timeTick)
 {
     LightComponent::Update(timeTick);
 
-    const auto forward = sceneComponent->GetForward();
-    lightData.direction = Vector4(forward.x, forward.y, forward.z, 0.0f);
+    const auto forward = sceneComponent->GetWorldTransform().GetForward();
 
     if (engInst->useCascadeShadow)
     {
-        //delete[] cascData.ViewProj;
-        //delete[] cascData.Distances;
-
-        //cascData.ViewProj = new Matrix[engInst->CASCADE_COUNT];
-        //cascData.Distances = new float[engInst->CASCADE_COUNT];
-
         const auto camData = engInst->GetCurCamera()->GetEyeData();
         float percentDist = 1.0f / static_cast<float>(CASCADE_COUNT);
         for (uint32_t i = 0; i < CASCADE_COUNT; ++i)
@@ -111,12 +92,7 @@ void DirectionalLightComponent::Update(float timeTick)
             const auto proj = CascadeShaderManager::GetOrthographicProjByCorners(corners, view);
             eyesData[i].mView = view;
             eyesData[i].mProj = proj;
-            Matrix T(
-                0.5f, 0.0f, 0.0f, 0.0f,
-                0.0f, -0.5f, 0.0f, 0.0f,
-                0.0f, 0.0f, 1.0f, 0.0f,
-                0.5f, 0.5f, 0.0f, 1.0f);
-            cascData.ViewProj[i] = (eyesData[i].GetViewProj() ).Transpose();
+            cascData.ViewProj[i] = (eyesData[i].GetViewProj()).Transpose();
         }
     }
     else
@@ -132,7 +108,6 @@ void DirectionalLightComponent::Update(float timeTick)
         eyeData.mView = view;
         eyeData.mProj = proj;
     }
-
 }
 
 

@@ -70,8 +70,7 @@ void DrawComponent::UpdateData()
     vertexBuffer = curDrawData->vertexBuffer;
     indexBuffer = curDrawData->indexBuffer;
 
-    D3D11_MAPPED_SUBRESOURCE res = {};
-    
+    D3D11_MAPPED_SUBRESOURCE res = {};    
     engInst->GetContext()->Map(vertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
     auto dataPtr = reinterpret_cast<VertexNoTex*>(res.pData);
     for (int32_t i = 0; i < vertices.size(); i++)

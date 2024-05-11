@@ -2,12 +2,12 @@
 
 #include "Core/CoreTypes.h"
 
-void DebugDrawing::CreateDrawConeByTopology(Vector3 pos, float range, float lenght, int32_t density, Vector4 color, Matrix transform,
+void DebugDrawing::CreateDrawConeByTopology(Vector3 pos, float angle, float lenght, int32_t density, Vector4 color, Matrix transform,
     Array<VertexNoTex>& vertices, Array<int32_t>& indexes,
     bool fill)
 {
     double angleStep = Pi * 2 / density;
-    double radius = tan(range) * lenght;
+    double radius = tan(RadiansFromDegree(angle)) * lenght;
 
     const auto up = Vector3::Transform(pos, transform);
     vertices.insert(VertexNoTex{Vector4(up.x, up.y, up.z, 1.0f), color});

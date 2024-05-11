@@ -11,6 +11,25 @@ LightComponent::LightComponent()
 
 void LightComponent::Initialize()
 {
+    CreateShadowMappingData();
+    CreateLightBuffer();
+
+    GameComponent::Initialize();
+
+    const auto location = sceneComponent->GetWorldLocation();
+    const auto forward = sceneComponent->GetWorldTransform().GetForward();
+    const auto camData = engInst->GetCurCamera()->GetEyeData();
+    const auto camViewProj = camData.GetViewProj();
+    
+    lightData.mViewProj = eyeData.GetViewProj();
+    lightData.posWS = Vector4(location.x, location.y, location.z, 1.0f);
+    lightData.posVS = Vector4::Transform(lightData.posWS, camViewProj);
+    lightData.directionWS = Vector4(forward.x, forward.y, forward.z, 0.0f);
+    lightData.directionVS = Vector4::Transform(lightData.directionWS, camViewProj);
+    lightData.color = Vector4::One;
+}
+void LightComponent::CreateShadowMappingData()
+{
     HRESULT hr;
 
     D3D11_TEXTURE2D_DESC texDesc;
@@ -71,8 +90,18 @@ void LightComponent::Initialize()
     outputViewPort.Height = static_cast<float>(texHeight);
     outputViewPort.MinDepth = 0.0f;
     outputViewPort.MaxDepth = 1.0f;
+}
 
-    GameComponent::Initialize();
+void LightComponent::CreateLightBuffer()
+{
+    D3D11_BUFFER_DESC constBufDesc;
+    constBufDesc.Usage = D3D11_USAGE_DEFAULT;
+    constBufDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    constBufDesc.CPUAccessFlags = 0;
+    constBufDesc.MiscFlags = 0;
+    constBufDesc.StructureByteStride = 0;
+    constBufDesc.ByteWidth = sizeof(LightData);
+    engInst->GetDevice()->CreateBuffer(&constBufDesc, nullptr, &lightBuffer);
 }
 
 void LightComponent::DestroyResource()
@@ -82,6 +111,7 @@ void LightComponent::DestroyResource()
     if (outputTextureDSV) outputTextureDSV->Release();
     if (depthTex) depthTex->Release();
     if (sampShadow) sampShadow->Release();
+    if (lightBuffer) lightBuffer->Release();
 }
 
 void LightComponent::AddShadowMap()
@@ -93,6 +123,14 @@ void LightComponent::AddShadowMap()
 void LightComponent::RemoveShadowMap()
 {
     //TextureComponent::RemoveTexture(shadowMapName, GetOutputTexture());
+}
+
+void LightComponent::UpdateSubresource()
+{
+    engInst->GetContext()->UpdateSubresource(lightBuffer, 0, nullptr, &lightData, 0, 0);
+
+    engInst->GetContext()->VSSetConstantBuffers(1, 1, &lightBuffer);
+    engInst->GetContext()->PSSetConstantBuffers(1, 1, &lightBuffer);
 }
 
 void LightComponent::SetDepthStencil()
@@ -108,6 +146,19 @@ void LightComponent::SetDepthStencil()
 void LightComponent::ClearDepthStencil()
 {
     engInst->GetContext()->ClearDepthStencilView(outputTextureDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
+}
+
+void LightComponent::Update(float timeTick)
+{
+    GameComponent::Update(timeTick);
+    const auto location = sceneComponent->GetWorldLocation();
+    const auto forward = sceneComponent->GetWorldTransform().GetForward();
+    const auto camData = engInst->GetCurCamera()->GetEyeData();
+    const auto viewProj = camData.GetViewProj();
+    lightData.posWS = Vector4(location.x, location.y, location.z, 1.0f);
+    lightData.posVS = Vector4::Transform(lightData.posWS, viewProj);
+    lightData.directionWS = Vector4(forward.x, forward.y, forward.z, 0.0f);
+    lightData.directionVS = Vector4::Transform(lightData.directionWS, viewProj);
 }
 
 

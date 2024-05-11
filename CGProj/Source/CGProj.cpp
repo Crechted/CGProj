@@ -11,6 +11,8 @@
 #include "Game/Components/LightComponents/DirectionalLightComponent.h"
 #include "Game/Components/MovementComponent.h"
 #include "Game/Components/SphereComponent.h"
+#include "Game/Components/LightComponents/PointLightComponent.h"
+#include "Game/Components/LightComponents/SpotLightComponent.h"
 #include "Game/Objects/SkySphere.h"
 #include "Game/Objects/Spectator.h"
 
@@ -60,6 +62,13 @@ int main()
     sky->SetCollisionVisibility(false);
     sky->SetCollisionEnabled(false);*/
     engine->CreateComponent<DirectionalLightComponent>();
+    Transform trans{Vector3::One};
+    engine->CreateComponent<PointLightComponent>(trans, 4.0f, Vector4(1.0f, 0.0f, 0.0f, 0.0f)*10.0f, true);
+    Transform trans1{Vector3(0.0f, 1.0f, 2.0f)};
+    engine->CreateComponent<PointLightComponent>(trans1, 6.0f, Vector4(0.0f, 0.0f, 1.0f, 0.0f)*10.0f, true);
+
+    Transform trans2{Vector3(-3.0f, 4.0f, -2.0f), Vector3(-45.0f, -135.0f, 0.0f)};
+    engine->CreateComponent<SpotLightComponent>(trans2, 6.0f, 15.0f, Vector4(0.0f, 2.0f, 1.0f, 0.0f)*10.0f, true);
 
     engine->useCascadeShadow = true;
 

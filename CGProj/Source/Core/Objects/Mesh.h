@@ -59,9 +59,9 @@ protected:
     TextureComponent* textureComp;
     CollisionComponent* collisionComp;
 
-    float ambietKoeff = 0.1f;
+    /*float ambietKoeff = 0.1f;
     float specPow = 50.0f;
-    float specKoeff = 0.25f;
+    float specKoeff = 0.25f;*/
     
     std::string initPathModel;
     const wchar_t* initPathTex = nullptr;

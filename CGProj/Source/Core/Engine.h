@@ -126,6 +126,7 @@ public:
         return nullptr;
     }
 
+    void UpdateLightsBuffer();
     RenderState GetCurrentRenderState() const { return renderState; }
     MulticastDelegate<RenderState> OnChangeRenderStateDelegate;
 
@@ -136,6 +137,8 @@ protected:
     InputDevice* inputDevice;
     PipelineData* curPlData;
 
+    ID3D11Buffer* lightsBuffer;
+    ID3D11ShaderResourceView* lightsSRV;    
 
     explicit Engine();
 
@@ -158,6 +161,7 @@ private:
     void CreateDeviceAndSwapChain();
     void CreateTargetViewAndViewport();
     void CreateDepthStencilView();
+    void CreateLightsBuffer();
     void RenderScene();
 
     RenderTarget* texRenderTarget;

@@ -2,6 +2,9 @@
 
 #include "DDSTextureLoader.h"
 #include "GameComponent.h"
+#include "SimpleMath.h"
+
+using namespace DirectX::SimpleMath;
 
 struct LoadedTex
 {
@@ -9,8 +12,38 @@ struct LoadedTex
     {
         return textureRV == other.textureRV && other.name == name;
     }
+
     const wchar_t* name;
     ID3D11ShaderResourceView* textureRV;
+};
+
+struct Material
+{
+    Vector4 globalAmbient = Vector4(0.1f);
+    Vector4 ambientColor;
+    Vector4 emissiveColor;
+    Vector4 diffuseColor;
+    Vector4 specularColor;
+    Vector4 reflectance;
+
+    float opacity = 1.0f;
+    float specularPower = 50.0f;
+    float indexOfRefraction = 0.0f;
+    alignas(4) bool hasAmbientTex = false;
+
+    alignas(4) bool hasEmissiveTex = false;
+    alignas(4) bool hasDiffuseTex = false;
+    alignas(4) bool hasSpecularTex = false;
+    alignas(4) bool hasSpecularPowerTex = false;
+
+    alignas(4) bool hasNormalTex = false;
+    alignas(4) bool hasBumpTex = false;
+    alignas(4) bool hasOpacityTex = false;
+    float bumpIntensity = 1.0f;
+
+    float specularScale = 0.25f;
+    float alphaThreshold = 0.01f;
+    Vector2 padding;
 };
 
 
@@ -36,14 +69,16 @@ public:
     static bool ContainsTextures(const wchar_t* name);
     static bool ContainsTextures(ID3D11ShaderResourceView* resource);
     static void Clear();
-    
-protected:    
+
+protected:
     void LoadTexture(const wchar_t* path);
     D3D11_SAMPLER_DESC sampDesc;
 
 private:
+    Material material;
     ID3D11ShaderResourceView* textureRV = nullptr;
     ID3D11SamplerState* samplerLinear = nullptr;
+    ID3D11Buffer* materialBuffer = nullptr;
 
     const wchar_t* defPath;
     const wchar_t* pathForLoad;

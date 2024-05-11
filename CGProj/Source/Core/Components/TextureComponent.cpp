@@ -13,6 +13,15 @@ TextureComponent::TextureComponent(const wchar_t* path)
 void TextureComponent::Initialize()
 {
     GameComponent::Initialize();
+    D3D11_BUFFER_DESC constBufDesc;
+    constBufDesc.Usage = D3D11_USAGE_DEFAULT;
+    constBufDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    constBufDesc.CPUAccessFlags = 0;
+    constBufDesc.MiscFlags = 0;
+    constBufDesc.StructureByteStride = 0;
+    constBufDesc.ByteWidth = sizeof(Material);
+    engInst->GetDevice()->CreateBuffer(&constBufDesc, nullptr, &materialBuffer);
+
     CreateSampler();
 }
 
@@ -20,13 +29,16 @@ void TextureComponent::DestroyResource()
 {
     GameComponent::DestroyResource();
     if (samplerLinear) samplerLinear->Release();
+    if (materialBuffer) materialBuffer->Release();
 }
 
 void TextureComponent::PreDraw()
 {
     GameComponent::PreDraw();
     engInst->GetContext()->PSSetShaderResources(2, 1, &textureRV);
-    engInst->GetContext()->PSSetSamplers(0, 1, &samplerLinear);
+    engInst->GetContext()->PSSetSamplers(0, 1, &samplerLinear);    
+    engInst->GetContext()->UpdateSubresource(materialBuffer, 0, nullptr, &material, 0, 0);
+    engInst->GetContext()->PSSetConstantBuffers(2, 1, &materialBuffer);
 }
 
 void TextureComponent::CreateSampler()
@@ -69,7 +81,7 @@ void TextureComponent::SetTexture(const wchar_t* path)
     pathForLoad = path;
 }
 
-Array<LoadedTex> TextureComponent::GetLoadTextures() {return LoadedTextures;}
+Array<LoadedTex> TextureComponent::GetLoadTextures() { return LoadedTextures; }
 
 ID3D11ShaderResourceView* TextureComponent::FindTexture(const wchar_t* name)
 {

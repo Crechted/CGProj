@@ -13,12 +13,12 @@ cbuffer ViewBuf : register(b0)
 ViewData viewData;
 }
 
-cbuffer DirLightBuf : register(b1)
+cbuffer LightBuf : register(b1)
 {
-DirectionLightData lightData;
+LightData lightData;
 }
 
-cbuffer CascadeBuf : register(b2)
+cbuffer CascadeBuf : register(b3)
 {
 CascadeData CascData;
 }

@@ -6,23 +6,49 @@
 
 class SceneComponent;
 
+struct LightData
+{
+    Matrix mViewProj;
+    
+    Vector4 posWS;
+    Vector4 directionWS;
+    Vector4 posVS;
+    Vector4 directionVS;
+    Vector4 color;
+
+    float spotlightAngle = 0.0f;
+    float range = 0.0f;
+    alignas(4) bool enabled = true;
+    uint32_t type = 0;
+};
+
 class LightComponent : public GameComponent
 {
 public:
     LightComponent();
+    void CreateShadowMappingData();
+    void CreateLightBuffer();
     void Initialize() override;
     void DestroyResource() override;
     ID3D11ShaderResourceView* GetOutputTexture() const { return (&outputTextureSRV)[currentCascadeID]; }
     D3D11_VIEWPORT* GetViewport() { return &outputViewPort; }
-
+    virtual void UpdateSubresource();
     SceneComponent* GetSceneComponent() const { return sceneComponent; }
-    EyeViewData GetEyeData() const { return eyeData; }
     void SetDepthStencil();
     void ClearDepthStencil();
+    void Update(float timeTick) override;
 
     virtual void SetCurrentCascadeData(uint32_t idx) { currentCascadeID = idx; }
 
+    EyeViewData GetEyeData() const { return eyeData; }
+    LightData GetLightData() const { return lightData; }
+    virtual void SetLightData(const LightData& data) { lightData = data; }
+    void SetColor(Vector4 col) { lightData.color = col; }
+
 protected:
+    LightData lightData;
+    ID3D11Buffer* lightBuffer = nullptr;
+
     SceneComponent* sceneComponent;
     ID3D11ShaderResourceView* outputTextureSRV = nullptr; // Shader resource view corresponding to the output texture (or shadow map)
     ID3D11DepthStencilView* outputTextureDSV = nullptr;   // Depth/template view (or shadow map) used for output texture
