@@ -59,5 +59,5 @@ void WinDisplay::WindowInit()
     SetForegroundWindow(hWnd);
     SetFocus(hWnd);
 
-    ShowCursor(false);
+    ShowCursor(true);
 }

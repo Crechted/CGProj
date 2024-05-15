@@ -97,7 +97,7 @@ struct PS_IN
     float3 tangWS : TANGENT;
     float3 binormWS : BINORMAL;
     float3 normWS : NORMAL;
-    float2 tex : TEXCOORD0;
+    float2 texCoord : TEXCOORD0;
 };
 
 struct GS_IN

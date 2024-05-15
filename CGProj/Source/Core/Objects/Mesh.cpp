@@ -38,7 +38,7 @@ void Mesh::InitTexture()
 void Mesh::InitMesh()
 {
     if (!initPathModel.empty())
-    {        
+    {
         MeshImporter::ImportMesh(initPathModel, this, centering);
     }
 }
@@ -57,21 +57,6 @@ void Mesh::Update(float timeTick)
 
 void Mesh::Draw()
 {
-    Matrix T(
-        0.5f, 0.0f, 0.0f, 0.0f,
-        0.0f, -0.5f, 0.0f, 0.0f,
-        0.0f, 0.0f, 1.0f, 0.0f,
-        0.5f, 0.5f, 0.0f, 1.0f);
-    for (const auto light : engInst->GetLightComponents())
-    {
-        if (const auto dirLight = dynamic_cast<DirectionalLightComponent*>(light))
-        {
-            dirLight->UpdateSubresource();
-            if (engInst->GetCurrentRenderState() == RenderState::Normal) dirLight->UpdateShaderResources();
-        }
-    }
-    engInst->UpdateLightsBuffer();
-    
     Object::Draw();
 }
 

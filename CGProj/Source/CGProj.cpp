@@ -68,10 +68,10 @@ int main()
     engine->CreateComponent<PointLightComponent>(trans1, 6.0f, Vector4(0.0f, 0.0f, 1.0f, 0.0f)*10.0f, true);
 
     Transform trans2{Vector3(-3.0f, 4.0f, -2.0f), Vector3(-45.0f, -135.0f, 0.0f)};
-    engine->CreateComponent<SpotLightComponent>(trans2, 6.0f, 15.0f, Vector4(0.0f, 2.0f, 1.0f, 0.0f)*10.0f, true);
+    engine->CreateComponent<SpotLightComponent>(trans2, 6.0f, 15.0f, Vector4(0.0f, 2.0f, 0.5f, 0.0f), true);
 
     engine->useCascadeShadow = true;
-
+    engine->SetRenderType(RenderType::Deferred);
     engine->Initialize();
     engine->Run();
     return 0;

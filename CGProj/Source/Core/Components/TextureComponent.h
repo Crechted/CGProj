@@ -19,8 +19,8 @@ struct LoadedTex
 
 struct Material
 {
-    Vector4 globalAmbient = Vector4(0.1f);
-    Vector4 ambientColor;
+    Vector4 globalAmbient = Vector4::One;
+    Vector4 ambientColor = Vector4(0.01f);
     Vector4 emissiveColor;
     Vector4 diffuseColor;
     Vector4 specularColor;
@@ -32,7 +32,7 @@ struct Material
     alignas(4) bool hasAmbientTex = false;
 
     alignas(4) bool hasEmissiveTex = false;
-    alignas(4) bool hasDiffuseTex = false;
+    alignas(4) bool hasDiffuseTex = true;
     alignas(4) bool hasSpecularTex = false;
     alignas(4) bool hasSpecularPowerTex = false;
 

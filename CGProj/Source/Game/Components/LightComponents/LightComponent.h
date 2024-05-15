@@ -33,6 +33,7 @@ public:
     ID3D11ShaderResourceView* GetOutputTexture() const { return (&outputTextureSRV)[currentCascadeID]; }
     D3D11_VIEWPORT* GetViewport() { return &outputViewPort; }
     virtual void UpdateSubresource();
+    virtual void UpdateShaderResources();
     SceneComponent* GetSceneComponent() const { return sceneComponent; }
     void SetDepthStencil();
     void ClearDepthStencil();

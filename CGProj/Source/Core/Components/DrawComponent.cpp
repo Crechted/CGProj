@@ -46,7 +46,7 @@ void DrawComponent::DestroyResource()
 void DrawComponent::Draw()
 {
     if (!engInst) return;
-    if (engInst->GetCurrentRenderState() != RenderState::Normal) return;
+    if (engInst->GetRenderState() != RenderState::DrawDebug) return;
     
     const uint32_t strides = sizeof(VertexNoTex);
     const uint32_t offsets = 0;
@@ -155,15 +155,15 @@ void DrawComponent::CreateDefaultShader()
     s << CASCADE_COUNT << "\x00";
     s >> res;
     D3D_SHADER_MACRO* macro = engInst->useCascadeShadow ? new D3D_SHADER_MACRO[3]{"DO_CASCADE_SHADOW", "1", "CASCADE_COUNT", res.c_str(), nullptr, nullptr} : nullptr;
-    defShader->CreateShader(pFileName, ShaderType::Vertex, macro);
-    defShader->CreateShader(pFileName, ShaderType::Pixel, macro);
+    defShader->CreateShader(pFileName, SVertex, macro);
+    defShader->CreateShader(pFileName, SPixel, macro);
 }
 
 void DrawComponent::OnChangeRenderState(RenderState state)
 {
     switch (state)
     {
-        case RenderState::Normal:
+        case RenderState::Forward_Normal:
         {
             SetDefaultShader();
             break;
@@ -194,7 +194,7 @@ void DrawComponent::CreateCascadeShader()
     s << CASCADE_COUNT << "\x00";
     s >> res;
     D3D_SHADER_MACRO macro[] = {"DO_CASCADE_SHADOW", "1", "CASCADE_COUNT", res.c_str(), nullptr, nullptr};
-    cascadeShader->CreateShader(L"./Resource/Shaders/CascadeShadowShader.hlsl", ShaderType::Vertex, macro);
+    cascadeShader->CreateShader(L"./Resource/Shaders/CascadeShadowShader.hlsl", SVertex, macro);
     //cascadeShader->CreateShader(L"./Resource/Shaders/CascadeShadowShader.hlsl", ShaderType::Geometry, macro);
 }
 
@@ -203,7 +203,7 @@ void DrawComponent::CreateShadowMappingShader()
     shadowMappingShader = new Shader();
     shadowMappingShader->AddInputElementDesc("POSITION");
     shadowMappingShader->AddInputElementDesc("COLOR");
-    shadowMappingShader->CreateShader(L"./Resource/Shaders/ShadowMappingShader.hlsl", ShaderType::Vertex);
+    shadowMappingShader->CreateShader(L"./Resource/Shaders/ShadowMappingShader.hlsl", SVertex);
 }
 
 void DrawComponent::SetIndexes(int32_t* idxs, int32_t count)

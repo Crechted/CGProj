@@ -3,12 +3,12 @@
 #include <directxmath.h>
 #include "GameComponent.h"
 #include "SimpleMath.h"
+#include "Core/CoreTypes.h"
 #include "Utils/Array/Array.h"
 
 
 enum class RenderState;
 class Shader;
-struct Vertex;
 class Movement2DComponent;
 
 struct TriangleDrawData
@@ -57,7 +57,7 @@ protected:
     void CreateIndexBuffer();
     void CreateAndSetRasterizerState();
 
-    TriangleDrawData* curDrawData;
+    TriangleDrawData* curDrawData = nullptr;
     Array<Vertex> vertices;
 
     Array<int32_t> indexes;
@@ -77,8 +77,10 @@ private:
 
     Shader* cascadeShader = nullptr;
     Shader* shadowMappingShader = nullptr;
+    Shader* deferredGeometryPassShader = nullptr;
     
     void OnChangeRenderState(RenderState state);
     void CreateCascadeShader();
     void CreateShadowMappingShader();
+    void CreateDeferredGeometryShader();
 };

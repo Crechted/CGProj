@@ -6,15 +6,15 @@
 
 class Engine;
 
-enum class ShaderType : uint8_t
+typedef enum
 {
-    Vertex,
-    Pixel,
-    Geometry,
-    Compute,
-    Hull,
-    Domain
-};
+    SVertex = 0x1L,
+    SPixel = 0x2L,
+    SGeometry = 0x4L,
+    SCompute = 0x8L,
+    SHull = 0x10L,
+    SDomain = 0x20L
+} ShaderType;
 
 struct ShaderData
 {
@@ -28,7 +28,7 @@ struct ShaderData
     ShaderType type;
     LPCWSTR pFileName = nullptr;
     ID3D11DeviceChild* shader = nullptr;
-    ID3DBlob* byteCode;    
+    ID3DBlob* byteCode;
     //ID3D11InputLayout* layout;
 };
 

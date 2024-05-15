@@ -20,7 +20,7 @@ void LightComponent::Initialize()
     const auto forward = sceneComponent->GetWorldTransform().GetForward();
     const auto camData = engInst->GetCurCamera()->GetEyeData();
     const auto camViewProj = camData.GetViewProj();
-    
+
     lightData.mViewProj = eyeData.GetViewProj();
     lightData.posWS = Vector4(location.x, location.y, location.z, 1.0f);
     lightData.posVS = Vector4::Transform(lightData.posWS, camViewProj);
@@ -28,6 +28,7 @@ void LightComponent::Initialize()
     lightData.directionVS = Vector4::Transform(lightData.directionWS, camViewProj);
     lightData.color = Vector4::One;
 }
+
 void LightComponent::CreateShadowMappingData()
 {
     HRESULT hr;
@@ -60,7 +61,8 @@ void LightComponent::CreateShadowMappingData()
     srvDesc.ViewDimension = engInst->useCascadeShadow ? D3D11_SRV_DIMENSION_TEXTURE2DARRAY : D3D11_SRV_DIMENSION_TEXTURE2D ;
     if (engInst->useCascadeShadow) srvDesc.Texture2DArray = {0, 1, 0, 4};*/
 
-    CD3D11_SHADER_RESOURCE_VIEW_DESC srvCDesc(depthTex, engInst->useCascadeShadow ? D3D11_SRV_DIMENSION_TEXTURE2DARRAY : D3D11_SRV_DIMENSION_TEXTURE2D, DXGI_FORMAT_R32_FLOAT);
+    CD3D11_SHADER_RESOURCE_VIEW_DESC srvCDesc(depthTex,
+        engInst->useCascadeShadow ? D3D11_SRV_DIMENSION_TEXTURE2DARRAY : D3D11_SRV_DIMENSION_TEXTURE2D, DXGI_FORMAT_R32_FLOAT);
     if (engInst->useCascadeShadow) srvCDesc.Texture2DArray = {0, 1, 0, CASCADE_COUNT};
     hr = engInst->GetDevice()->CreateShaderResourceView(depthTex, &srvCDesc, &outputTextureSRV);
     if (FAILED(hr)) return;
@@ -127,19 +129,17 @@ void LightComponent::RemoveShadowMap()
 
 void LightComponent::UpdateSubresource()
 {
-    engInst->GetContext()->UpdateSubresource(lightBuffer, 0, nullptr, &lightData, 0, 0);
+}
 
-    engInst->GetContext()->VSSetConstantBuffers(1, 1, &lightBuffer);
-    engInst->GetContext()->PSSetConstantBuffers(1, 1, &lightBuffer);
+void LightComponent::UpdateShaderResources()
+{
+    engInst->GetContext()->PSSetShaderResources(9, 1, &outputTextureSRV);
+    engInst->GetContext()->PSSetSamplers(1, 1, &sampShadow);
 }
 
 void LightComponent::SetDepthStencil()
 {
-    // Set rendering target and depth template view
-    engInst->GetContext()->OMSetRenderTargets(0,
-        nullptr,
-        outputTextureDSV);
-    // Set the viewport
+    engInst->GetContext()->OMSetRenderTargets(0, nullptr, outputTextureDSV);
     engInst->GetContext()->RSSetViewports(1, &outputViewPort);
 }
 
@@ -217,8 +217,8 @@ Matrix CascadeShaderManager::GetOrthographicProjByCorners(const Array<Vector4>& 
     {
         Vector4 vTempTranslateCornerPoints = Vector4::Transform(corner, lightView);
 
-         Vector4::Min(FrustumMin, vTempTranslateCornerPoints, FrustumMin);
-         Vector4::Max(FrustumMax, vTempTranslateCornerPoints, FrustumMax);
+        Vector4::Min(FrustumMin, vTempTranslateCornerPoints, FrustumMin);
+        Vector4::Max(FrustumMax, vTempTranslateCornerPoints, FrustumMax);
     }
 
     const float zMult = 10.0f;

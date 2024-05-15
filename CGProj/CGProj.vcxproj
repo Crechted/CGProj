@@ -146,6 +146,8 @@
     <ClInclude Include="Source\Core\Input\Keys.h" />
     <ClInclude Include="Source\Core\Objects\Mesh.h" />
     <ClInclude Include="Source\Core\Objects\Object.h" />
+    <ClInclude Include="Source\Core\Render\Buffer.h" />
+    <ClInclude Include="Source\Core\Render\DeferredLightTechnique.h" />
     <ClInclude Include="Source\Core\Render\PostProcess.h" />
     <ClInclude Include="Source\Core\Render\RenderTarget.h" />
     <ClInclude Include="Source\Core\Render\Shader.h" />
@@ -197,6 +199,8 @@
     <None Include="Resource\Shaders\ShadowMappingShader.hlsl" />
     <None Include="Resource\Shaders\Structures.hlsl" />
     <None Include="Resource\Shaders\PostProcessShader.hlsl" />
+    <None Include="Resource\Shaders\DeferredLightShader.hlsl" />
+    <None Include="Resource\Shaders\GBufferShader.hlsl" />
     <ClCompile Include="Source\CGProj.cpp" />
     <ClCompile Include="Source\Core\Components\CollisionComponent.cpp" />
     <ClCompile Include="Source\Core\Components\Collisions\BoxCollision.cpp" />
@@ -282,6 +286,8 @@
       <AdditionalIncludeDirectories>Z:\Univer\maga\2sem\CG\CGProj\CGProj/Source/;Z:\Univer\maga\2sem\CG\CGProj\CGProj\Libs\Inc\;Z:\Univer\maga\2sem\CG\CGProj\CGProj\Libs\Assimp\include\;Z:\Univer\maga\2sem\CG\vcpkg\installed\x64-windows\include</AdditionalIncludeDirectories>
       <LinkCompiled>true</LinkCompiled>
     </ClCompile>
+    <ClInclude Include="Source\Core\Render\Buffer.hpp" />
+    <ClCompile Include="Source\Core\Render\DeferredLightTechnique.cpp" />
     <ClCompile Include="Source\Core\Render\PostProcess.cpp" />
     <ClCompile Include="Source\Core\Render\RenderTarget.cpp" />
     <ClCompile Include="Source\Core\Render\Shader.cpp">

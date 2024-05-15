@@ -30,7 +30,7 @@ public:
     void Initialize() override;
     void DestroyResource() override;
     void UpdateSubresource() override;
-    void UpdateShaderResources();
+    void UpdateShaderResources() override;
     void DrawDebugBoxes(Array<Vector4> corners);
     void Update(float timeTick) override;
     void Draw() override;

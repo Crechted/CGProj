@@ -100,7 +100,7 @@ void Shader::Draw()
     {
         switch (data.type)
         {
-            case ShaderType::Vertex:
+            case SVertex:
             {
                 ID3D11VertexShader* shader;
                 if (S_OK == data.shader->QueryInterface(IID_ID3D11VertexShader,
@@ -110,7 +110,7 @@ void Shader::Draw()
                 }
                 break;
             }
-            case ShaderType::Pixel:
+            case SPixel:
             {
                 ID3D11PixelShader* shader;
                 if (S_OK == data.shader->QueryInterface(IID_ID3D11PixelShader,
@@ -121,7 +121,7 @@ void Shader::Draw()
 
                 break;
             }
-            case ShaderType::Geometry:
+            case SGeometry:
             {
                 ID3D11GeometryShader* shader;
                 if (S_OK == data.shader->QueryInterface(IID_ID3D11GeometryShader,
@@ -181,21 +181,21 @@ ID3D11DeviceChild* Shader::CreateShaderByType(ShaderType type, ID3DBlob* byteCod
     //curLayout = nullptr;
     switch (type)
     {
-        case ShaderType::Vertex:
+        case SVertex:
         {
             ID3D11VertexShader* shad;
             if (FAILED(engInst->GetDevice()->CreateVertexShader(bp, bs, nullptr, &shad))) return nullptr;
             return shad;
         }
 
-        case ShaderType::Pixel:
+        case SPixel:
         {
             ID3D11PixelShader* shad;
             if (FAILED(engInst->GetDevice()->CreatePixelShader(bp, bs, nullptr, &shad))) return nullptr;
             return shad;
         }
 
-        case ShaderType::Geometry:
+        case SGeometry:
         {
             ID3D11GeometryShader* shad;
             if (FAILED(engInst->GetDevice()->CreateGeometryShader(bp, bs, nullptr, &shad))) return nullptr;
@@ -245,9 +245,9 @@ Shader::DefData Shader::GetEntryPointAndTargetByType(ShaderType type) const
 {
     switch (type)
     {
-        case ShaderType::Vertex: return {defVSEntry, defVSTarget};
-        case ShaderType::Pixel: return {defPSEntry, defPSTarget};
-        case ShaderType::Geometry: return {defGSEntry, defGSTarget};
+        case SVertex: return {defVSEntry, defVSTarget};
+        case SPixel: return {defPSEntry, defPSTarget};
+        case SGeometry: return {defGSEntry, defGSTarget};
         default: return {};
     }
 }

@@ -44,7 +44,8 @@ void TriangleComponent::DestroyResource()
 void TriangleComponent::Draw()
 {
     if (!engInst) return;
-
+    if (engInst->GetRenderState() == RenderState::DrawDebug) return;
+    
     const uint32_t stride = sizeof(Vertex);
     const uint32_t offset = 0;
 
@@ -68,7 +69,7 @@ void TriangleComponent::UpdateData()
     rastState = curDrawData->rastState;
     vertexBuffer = curDrawData->vertexBuffer;
     indexBuffer = curDrawData->indexBuffer;
-    
+
     /*D3D11_MAPPED_SUBRESOURCE res = {};
     engInst->GetContext()->Map(vertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
     auto dataPtr = reinterpret_cast<Vertex*>(res.pData);
@@ -130,33 +131,12 @@ void TriangleComponent::SetIndexes(int32_t* idxs, int32_t count)
 
 void TriangleComponent::SetShader(Shader* difShader)
 {
-    if (difShader) curShader = difShader;
+    curShader = difShader ? difShader : curShader;
 }
 
 void TriangleComponent::SetDefaultShader()
 {
     curShader = defShader;
-}
-
-void TriangleComponent::CreateDefaultShader()
-{
-    if (defShader) return;
-    defShader = new Shader();
-    defShader->AddInputElementDesc("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT);
-    defShader->AddInputElementDesc("TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT);
-    defShader->AddInputElementDesc("BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT);
-    defShader->AddInputElementDesc("NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT);
-    defShader->AddInputElementDesc("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT);
-    std::strstream s;
-    std::string cascade, numLights;
-    s << CASCADE_COUNT << "\x00";
-    s >> cascade;
-    s.clear();
-    s << engInst->GetLightComponents().size() << "\x00";
-    s >> numLights;
-    D3D_SHADER_MACRO* macro = engInst->useCascadeShadow ? new D3D_SHADER_MACRO[4]{"DO_CASCADE_SHADOW", "1", "CASCADE_COUNT", cascade.c_str(), "NUM_LIGHTS", numLights.c_str(), nullptr, nullptr} : nullptr;
-    defShader->CreateShader(pFileName, ShaderType::Vertex, macro);
-    defShader->CreateShader(pFileName, ShaderType::Pixel, macro);
 }
 
 void TriangleComponent::CreateVertexBuffer()
@@ -218,7 +198,7 @@ void TriangleComponent::OnChangeRenderState(RenderState state)
 {
     switch (state)
     {
-        case RenderState::Normal:
+        case RenderState::Forward_Normal:
         {
             SetDefaultShader();
             break;
@@ -235,8 +215,38 @@ void TriangleComponent::OnChangeRenderState(RenderState state)
             SetShader(cascadeShader);
             break;
         }
+        case RenderState::Deferred_GBuffer:
+        {
+            if (!deferredGeometryPassShader) CreateDeferredGeometryShader();
+            SetShader(deferredGeometryPassShader);
+            break;
+        }
         default: break;
     }
+}
+
+void TriangleComponent::CreateDefaultShader()
+{
+    if (defShader) return;
+    defShader = new Shader();
+    defShader->AddInputElementDesc("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT);
+    defShader->AddInputElementDesc("TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT);
+    defShader->AddInputElementDesc("BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT);
+    defShader->AddInputElementDesc("NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT);
+    defShader->AddInputElementDesc("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT);
+    std::strstream s;
+    std::string cascade, numLights;
+    s << CASCADE_COUNT << "\x00";
+    s >> cascade;
+    s.clear();
+    s << engInst->GetLightComponents().size() << "\x00";
+    s >> numLights;
+    D3D_SHADER_MACRO* macro = engInst->useCascadeShadow
+                                  ? new D3D_SHADER_MACRO[]{"DO_CASCADE_SHADOW", "1", "CASCADE_COUNT", cascade.c_str(), "NUM_LIGHTS",
+                                                           numLights.c_str(), nullptr, nullptr}
+                                  : new D3D_SHADER_MACRO[]{"NUM_LIGHTS", numLights.c_str(), nullptr, nullptr};
+    defShader->CreateShader(pFileName, SVertex, macro);
+    defShader->CreateShader(pFileName, SPixel, macro);
 }
 
 void TriangleComponent::CreateCascadeShader()
@@ -255,9 +265,10 @@ void TriangleComponent::CreateCascadeShader()
     s.clear();
     s << engInst->GetLightComponents().size() << "\x00";
     s >> numLights;
-    D3D_SHADER_MACRO macro[] = {"DO_CASCADE_SHADOW", "1", "CASCADE_COUNT", cascade.c_str(), "NUM_LIGHTS", numLights.c_str(), nullptr, nullptr};
-    cascadeShader->CreateShader(L"./Resource/Shaders/CascadeShadowShader.hlsl", ShaderType::Vertex, macro);
-    cascadeShader->CreateShader(L"./Resource/Shaders/CascadeShadowShader.hlsl", ShaderType::Geometry, macro);
+    D3D_SHADER_MACRO macro[] = {"DO_CASCADE_SHADOW", "1", "CASCADE_COUNT", cascade.c_str(), "NUM_LIGHTS", numLights.c_str(), nullptr,
+                                nullptr};
+    cascadeShader->CreateShader(L"./Resource/Shaders/CascadeShadowShader.hlsl", SVertex, macro);
+    cascadeShader->CreateShader(L"./Resource/Shaders/CascadeShadowShader.hlsl", SGeometry, macro);
 }
 
 void TriangleComponent::CreateShadowMappingShader()
@@ -268,5 +279,18 @@ void TriangleComponent::CreateShadowMappingShader()
     shadowMappingShader->AddInputElementDesc("BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT);
     shadowMappingShader->AddInputElementDesc("NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT);
     shadowMappingShader->AddInputElementDesc("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT);
-    shadowMappingShader->CreateShader(L"./Resource/Shaders/ShadowMappingShader.hlsl", ShaderType::Vertex);
+    shadowMappingShader->CreateShader(L"./Resource/Shaders/ShadowMappingShader.hlsl", SVertex);
+}
+
+
+void TriangleComponent::CreateDeferredGeometryShader()
+{
+    deferredGeometryPassShader = new Shader();
+    deferredGeometryPassShader->AddInputElementDesc("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT);
+    deferredGeometryPassShader->AddInputElementDesc("TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT);
+    deferredGeometryPassShader->AddInputElementDesc("BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT);
+    deferredGeometryPassShader->AddInputElementDesc("NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT);
+    deferredGeometryPassShader->AddInputElementDesc("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT);
+    deferredGeometryPassShader->CreateShader(L"./Resource/Shaders/GBufferShader.hlsl", SVertex);
+    deferredGeometryPassShader->CreateShader(L"./Resource/Shaders/GBufferShader.hlsl", SPixel);
 }

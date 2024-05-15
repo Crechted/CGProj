@@ -6,6 +6,7 @@
 #include "Game/Components/LightComponents/LightComponent.h"
 #include "Render/PostProcess.h"
 
+class DeferredLightTechnique;
 class PostProcess;
 class LightComponent;
 enum class ViewType : uint8_t;
@@ -20,28 +21,28 @@ struct PipelineData
     ID3D11Device* device;
     ID3D11DeviceContext* context;
     IDXGISwapChain* swapChain;
-    DXGI_SWAP_CHAIN_DESC swapDesc;
 
-    ID3D11RenderTargetView* renderTargetView;
-
-    Array<D3D11_VIEWPORT> viewports;
-    Array<Camera*> cameras;
-    int32_t viewportsNum = 1;
-    int32_t curViewport = 0;
-
-    ID3D11Texture2D* depthStencil;
-    ID3D11DepthStencilView* depthStencilView;
+    PostProcess* lastPostProc = nullptr;
 };
 
 enum class RenderState
 {
     ShadowMap,
     CascadeShadow,
-    Normal,
+    Forward_Normal,
+    Deferred_GBuffer,
+    Deferred_Lighting,
+    DrawDebug,
     PostProcess
 };
 
-static constexpr  uint32_t CASCADE_COUNT = 8;
+enum class RenderType
+{
+    Forward,
+    Deferred
+};
+
+static constexpr uint32_t CASCADE_COUNT = 8;
 
 class Engine
 {
@@ -54,6 +55,7 @@ public:
     virtual void Run();
     virtual void Update();
     virtual void Render();
+    void RenderScene();
     virtual void Initialize();
     void Input(bool& isExitRequested);
     float UpdateTime();
@@ -67,30 +69,26 @@ public:
     WinDisplay* GetDisplay() const { return curPlData->display; }
     IDXGISwapChain* GetSwapChain() const { return curPlData->swapChain; }
 
-    void SetCurCamera(Camera* cam) { curCam = cam; }
+    void SetCurCamera(Camera* cam);
+    Camera* GetCurCamera() const;
 
-    Camera* GetCurCamera() const
-    {
-        return curCam ? curCam : curPlData->cameras[curPlData->curViewport];
-    }
+    void SetRenderState(RenderState state);
+    RenderState GetRenderState() const { return renderState; }
+    
+    void SetRenderType(RenderType type);
+    RenderType GetRenderType() const { return renderType; }
 
     EyeViewData GetCurEyeData() const { return curEyeData; }
 
-    Array<Camera*>& GetCamerasOnViewport() const
-    {
-        return curPlData->cameras;
-    }
+    Array<Camera*> GetCamerasOnViewport() const { return cameras; }
+    Array<Object*> GetGameObjects() const {return gameObjects;}
+    Array<GameComponent*> GetGameComponents() const {return gameComponents;}
+    Array<LightComponent*> GetLightComponents() const {return lightComponents;}
 
-    Array<LightComponent*>& GetLightComponents()
-    {
-        return lightComponents;
-    }
+    Array<LightComponent*>& GetLightComponents() { return lightComponents; }
 
     InputDevice* GetInputDevice() const { return inputDevice; }
     int32_t GetIdxCurrentPipeline();
-
-
-    //PipelineData plData;
 
     void AddWindow(int32_t scrWidth = -1, int32_t scrHeight = -1, int32_t posX = -1, int32_t posY = -1, ViewType = ViewType::General);
 
@@ -126,19 +124,22 @@ public:
         return nullptr;
     }
 
-    void UpdateLightsBuffer();
-    RenderState GetCurrentRenderState() const { return renderState; }
+    void UpdateLightsData();
+    void BindLightsBuffer();
+    RenderTarget* GetTexRenderTarget() const {return texRenderTarget;}
     MulticastDelegate<RenderState> OnChangeRenderStateDelegate;
-
     bool useCascadeShadow = false;
+
 protected:
     //D3D_FEATURE_LEVEL featureLevel;
+    RenderType renderType = RenderType::Forward;
     RenderState renderState;
     InputDevice* inputDevice;
     PipelineData* curPlData;
-
+    DeferredLightTechnique* deferredLight = nullptr;
+    
     ID3D11Buffer* lightsBuffer;
-    ID3D11ShaderResourceView* lightsSRV;    
+    ID3D11ShaderResourceView* lightsSRV;
 
     explicit Engine();
 
@@ -148,6 +149,7 @@ protected:
     Array<LightComponent*> lightComponents;
     Array<GameComponent*> gameComponents;
     Array<PipelineData*> pipelinesData;
+    Array<LightData> lightsData;
     Camera* curCam;
 
     std::chrono::time_point<std::chrono::steady_clock> PrevTime;
@@ -156,14 +158,15 @@ protected:
     unsigned int frameCount = 0;
 
     MSG msg;
+
 private:
     EyeViewData curEyeData;
+
+    virtual void ForwardRender();
+    virtual void DeferredRender();
+
     void CreateDeviceAndSwapChain();
-    void CreateTargetViewAndViewport();
-    void CreateDepthStencilView();
     void CreateLightsBuffer();
-    void RenderScene();
 
     RenderTarget* texRenderTarget;
-    void OnChangeRenderState(RenderState state);
 };

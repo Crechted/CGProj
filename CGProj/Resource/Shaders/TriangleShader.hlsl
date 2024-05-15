@@ -11,11 +11,6 @@ cbuffer ViewBuf : register(b0)
 ViewData viewData;
 }
 
-cbuffer LightBuf : register(b1)
-{
-LightData lightData;
-}
-
 cbuffer MaterialBuf : register(b2)
 {
 Material material;
@@ -54,7 +49,7 @@ PS_IN VS(VS_IN input)
     output.tangWS = mul(float4(input.tang.xyz, 0.0f), viewData.mWorld).xyz;
     output.binormWS = mul(float4(input.binorm.xyz, 0.0f), viewData.mWorld).xyz;
     output.normWS = mul(float4(input.norm.xyz, 0.0f), viewData.mWorld).xyz;
-    output.tex = input.texCoord;
+    output.texCoord = input.texCoord;
     float4 pos = mul(float4(input.pos.xyz, 1.0f), viewData.mWorld);
 
     //pos += sin(pos.x * 10.0f * lightData.kaSpecPowKsX.w);
@@ -66,24 +61,11 @@ PS_IN VS(VS_IN input)
 
 float4 PS(PS_IN input) : SV_Target
 {
-    float4 diffVal = DiffuseTex.Sample(DiffSamp, float2(input.tex.x, 1.0f - input.tex.y));
+    float4 diffVal = DiffuseTex.Sample(DiffSamp, float2(input.texCoord.x, 1.0f - input.texCoord.y));
     clip(diffVal.a - 0.01f);
 
-    float3 kd = diffVal.xyz;
-    float3 normal = normalize(input.normWS.xyz);
-
-    /*LightData light = Lights[0];
-
-    float3 viewDir = normalize(viewData.camPos.xyz - input.posWS.xyz);
-    float3 ambient = kd * material.globalAmbient;
-    float3 lightDir = -light.directionWS.xyz;
-    float3 diffuse = max(0, dot(lightDir, normal)) * kd;
-
-    float3 refVec = normalize(reflect(lightDir, normal));
-    float3 specular = pow(max(0, dot(-viewDir, refVec)), material.specularPower) * material.specularScale;*/
-
     float4 emissive = material.emissiveColor;
-    float4 ambient = material.globalAmbient;
+    float4 ambient = material.ambientColor * material.globalAmbient;
     float4 diffuse = diffVal;
     float4 specular;
     ambient *= diffVal;
@@ -91,7 +73,7 @@ float4 PS(PS_IN input) : SV_Target
 
     LightingResult lit;
 
-    float shadow;
+    float shadow = 1.0f;
 
 #ifdef DO_CASCADE_SHADOW
     uint layer = 0;
@@ -124,8 +106,11 @@ float4 PS(PS_IN input) : SV_Target
 #endif
 
 #ifndef DO_CASCADE_SHADOW
-    float4 shadowPosH = mul(input.posWS, mul(lightData.mViewProj, mT));
-    shadow = CalcShadowFactor(ShadCompSamp, ShadowMap, shadowPosH);
+    if (Lights[0].type == DIRECTIONAL_LIGHT)
+    {
+        float4 shadowPosH = mul(input.posWS, mul(Lights[0].mViewProj, mT));
+        shadow = CalcShadowFactor(ShadCompSamp, ShadowMap, shadowPosH);
+    }
     lit = DoLighting(Lights, material, viewData.camPos, input.posWS, N, shadow);
     diffuse *= lit.diffuse;
     specular = lit.specular * material.specularScale;

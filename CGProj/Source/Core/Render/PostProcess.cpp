@@ -56,13 +56,11 @@ void PostProcess::Draw()
     }
     engInst->GetContext()->Unmap(vertexBuffer, 0);*/
     
-    renderTarget->SetTarget();
+    renderTarget->BindTarget();
     renderTarget->ClearTarget();
     engInst->GetContext()->PSSetConstantBuffers(0, 1, &constBuffer);
     engInst->GetContext()->RSSetState(nullptr);
     engInst->GetContext()->PSSetShaderResources(0, 1, &texSRV);
-    //engInst->GetContext()->PSSetSamplers(0, 1, &);
-    //engInst->GetContext()->RSSetState(rastState);
     engInst->GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     engInst->GetContext()->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
     engInst->GetContext()->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
@@ -75,8 +73,8 @@ void PostProcess::CreateShader()
     shader = new Shader();
     shader->AddInputElementDesc("POSITION");
     shader->AddInputElementDesc("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT);
-    shader->CreateShader(shaderPath, ShaderType::Vertex);
-    shader->CreateShader(shaderPath, ShaderType::Pixel);
+    shader->CreateShader(shaderPath, SVertex);
+    shader->CreateShader(shaderPath, SPixel);
 }
 
 void PostProcess::Initialize()
@@ -94,7 +92,7 @@ void PostProcess::Initialize()
     CreateVertexBuffer();
     CreateIndexBuffer();
     
-    renderTarget->Initialize();
+    renderTarget->CreateRenderTarget();
     Object::Initialize();
 }
 
