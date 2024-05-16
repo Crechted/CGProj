@@ -20,7 +20,7 @@ void SphereCollision::InitCollision()
 {   
     Array<VertexNoTex> vertices;
     Array<int32_t> indexes;
-    Sphere::CreateDrawSphereByTopology(Vector3::Zero, radius, Vector4(0.5f, 0.0f, 1.0f, 1.0f), vertices, indexes, D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+    Sphere::CreateDrawSphere(Vector3::Zero, radius, 16, 16, Vector4(0.5f, 0.0f, 1.0f, 1.0f), vertices, indexes);
     debugCollision->topology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
     debugCollision->SetVertices(vertices);
     debugCollision->SetIndexes(indexes);

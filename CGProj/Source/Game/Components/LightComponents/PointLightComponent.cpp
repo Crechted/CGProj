@@ -3,7 +3,7 @@
 #include "Core/Components/DrawComponent.h"
 #include "Game/Objects/Sphere.h"
 
-PointLightComponent::PointLightComponent(const Transform& transform, float range, Vector4 color,  bool drawDebug)
+PointLightComponent::PointLightComponent(const Transform& transform, float range, Vector4 color, bool drawDebug)
     : range(range), color(color), drawDebug(drawDebug)
 {
     sphereComp = CreateComponent<DrawComponent>();
@@ -16,11 +16,13 @@ void PointLightComponent::Initialize()
 {
     Array<VertexNoTex> vertexes;
     Array<int32_t> indexes;
-    Sphere::CreateDrawSphereByTopology(Vector3::Zero, range, color, vertexes, indexes, D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+    Sphere::CreateDrawSphere(Vector3::Zero, range, 16, 16, color, vertexes, indexes);
     sphereComp->topology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
     sphereComp->SetVertices(vertexes);
     sphereComp->SetIndexes(indexes);
-    
+
+    Sphere::CreateDrawSphere(Vector3::Zero, range, 16, 16, color, volumeVertices, volumeIndexes);
+
     LightComponent::Initialize();
 
     Vector3 tar = sceneComponent->GetWorldMatrix().Translation() + sceneComponent->GetForward();

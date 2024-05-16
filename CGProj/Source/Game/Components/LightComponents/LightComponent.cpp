@@ -13,7 +13,7 @@ void LightComponent::Initialize()
 {
     CreateShadowMappingData();
     CreateLightBuffer();
-
+    if (!volumeVertices.isEmpty()) CreateVertices();
     GameComponent::Initialize();
 
     const auto location = sceneComponent->GetWorldLocation();
@@ -106,6 +106,48 @@ void LightComponent::CreateLightBuffer()
     engInst->GetDevice()->CreateBuffer(&constBufDesc, nullptr, &lightBuffer);
 }
 
+void LightComponent::CreateVertices()
+{
+    CreateVertexBuffer();
+    CreateIndexBuffer();
+}
+
+void LightComponent::CreateVertexBuffer()
+{
+    D3D11_BUFFER_DESC vertexBufDesc;
+    vertexBufDesc.Usage = D3D11_USAGE_DYNAMIC;          // D3D11_USAGE_DEFAULT
+    vertexBufDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER; // D3D11_BIND_VERTEX_BUFFER
+    vertexBufDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    vertexBufDesc.MiscFlags = 0; // 0
+    vertexBufDesc.StructureByteStride = 0;
+    vertexBufDesc.ByteWidth = sizeof(VertexNoTex) * volumeVertices.size();
+
+    D3D11_SUBRESOURCE_DATA vertexData;
+    vertexData.pSysMem = &volumeVertices[0];
+    vertexData.SysMemPitch = 0;
+    vertexData.SysMemSlicePitch = 0;
+
+    engInst->GetDevice()->CreateBuffer(&vertexBufDesc, &vertexData, &vertexBuf);
+}
+
+void LightComponent::CreateIndexBuffer()
+{
+    D3D11_BUFFER_DESC indexBufDesc;
+    indexBufDesc.Usage = D3D11_USAGE_DEFAULT;
+    indexBufDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+    indexBufDesc.CPUAccessFlags = 0;
+    indexBufDesc.MiscFlags = 0;
+    indexBufDesc.StructureByteStride = 0;
+    indexBufDesc.ByteWidth = sizeof(int32_t) * volumeIndexes.size();
+
+    D3D11_SUBRESOURCE_DATA indexData;
+    indexData.pSysMem = &volumeIndexes[0];
+    indexData.SysMemPitch = 0;
+    indexData.SysMemSlicePitch = 0;
+
+    engInst->GetDevice()->CreateBuffer(&indexBufDesc, &indexData, &indexBuf);
+}
+
 void LightComponent::DestroyResource()
 {
     GameComponent::DestroyResource();
@@ -114,6 +156,8 @@ void LightComponent::DestroyResource()
     if (depthTex) depthTex->Release();
     if (sampShadow) sampShadow->Release();
     if (lightBuffer) lightBuffer->Release();
+    if (vertexBuf) vertexBuf->Release();
+    if (indexBuf) indexBuf->Release();
 }
 
 void LightComponent::AddShadowMap()
@@ -159,6 +203,18 @@ void LightComponent::Update(float timeTick)
     lightData.posVS = Vector4::Transform(lightData.posWS, viewProj);
     lightData.directionWS = Vector4(forward.x, forward.y, forward.z, 0.0f);
     lightData.directionVS = Vector4::Transform(lightData.directionWS, viewProj);
+}
+
+void LightComponent::GetLightVolume(Array<VertexNoTex>& vertices, Array<int32_t>& indexes)
+{
+    vertices = volumeVertices;
+    indexes = volumeIndexes;
+}
+
+void LightComponent::GetLightVolumeBuffers(ID3D11Buffer** vertexBuffer, ID3D11Buffer** indexBuffer)
+{
+    *vertexBuffer = vertexBuf;
+    *indexBuffer = indexBuf;
 }
 
 

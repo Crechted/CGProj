@@ -18,16 +18,18 @@ void SpotLightComponent::Initialize()
 
     Array<VertexNoTex> vertexes;
     Array<int32_t> indexes;
-    DebugDrawing::CreateDrawConeByTopology(Vector3::Zero, angle, range, 16, color,
+    DebugDrawing::CreateDrawCone(Vector3::Zero, angle, range, 16, color,
         sceneComponent->GetTransform().GetMatrix(), vertexes, indexes);
     coneComp->topology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
     coneComp->SetVertices(vertexes);
     coneComp->SetIndexes(indexes);
 
+     DebugDrawing::CreateDrawCone(Vector3::Zero, angle, range, 16, color, sceneComponent->GetTransform().GetMatrix(), volumeVertices, volumeIndexes, true);
+
     LightComponent::Initialize();
     Vector3 tar = sceneComponent->GetWorldMatrix().Translation() + sceneComponent->GetForward();
     eyeData.mView = Matrix::CreateLookAt(sceneComponent->GetLocation(), tar, sceneComponent->GetUp());
-    eyeData.mProj = Matrix::CreatePerspectiveFieldOfView(RadiansFromDegree(angle), 1.0f, 0.01, range);
+    eyeData.mProj = Matrix::CreatePerspectiveFieldOfView(RadiansFromDegree(angle), 1.0f, 0.01f, range);
     lightData.type = 1;
     lightData.enabled = true;
     lightData.mViewProj = eyeData.GetViewProj();

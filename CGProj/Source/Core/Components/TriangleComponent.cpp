@@ -44,7 +44,7 @@ void TriangleComponent::DestroyResource()
 void TriangleComponent::Draw()
 {
     if (!engInst) return;
-    if (engInst->GetRenderState() == RenderState::DrawDebug) return;
+    if (engInst->GetRenderState() == RenderState::DrawDebug || engInst->GetRenderState() == RenderState::Deferred_Lighting) return;
     
     const uint32_t stride = sizeof(Vertex);
     const uint32_t offset = 0;

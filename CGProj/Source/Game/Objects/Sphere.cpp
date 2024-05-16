@@ -30,14 +30,24 @@ void Sphere::Initialize()
 
 void Sphere::InitSphere()
 {
+    Array<Vertex> vertices;
+    Array<int32_t> indexes;
+    CreateSphere(initPos, radius, stackCount, sliceCount, vertices, indexes);
+    SetVertices(vertices);
+    SetIndices(indexes);
+}
+
+void Sphere::CreateSphere(Vector3 initPos, float radius, int32_t stackCount, int32_t sliceCount, Array<Vertex>& vertices,
+    Array<int32_t>& indexes)
+{
     auto phiStep = Pi / stackCount;
     auto thetaStep = 2.0f * Pi / sliceCount;
 
-    AddVertex(Vertex{Vector3(initPos.x, initPos.y + radius, initPos.z),
-                     Vector3::Zero,
-                     Vector3::Zero,
-                     Vector3(0.0f, 1.0f, 0.0f),
-                     Vector2(0.5f, 0.0f)});
+    vertices.insert(Vertex{Vector3(initPos.x, initPos.y + radius, initPos.z),
+                           Vector3(1.0f, 0.0f, 0.0f),
+                           Vector3::Zero,
+                           Vector3(0.0f, 1.0f, 0.0f),
+                           Vector2(0.5f, 0.0f)});
 
     for (int i = 1; i <= stackCount - 1; i++)
     {
@@ -50,76 +60,63 @@ void Sphere::InitSphere()
                 static_cast<float>(initPos.y + radius * cos(phi)),
                 static_cast<float>(initPos.z + radius * sin(phi) * sin(theta))
                 );
-            //var t = new Vector3(-radius*MathF.Sin(phi)*MathF.Sin(theta), 0, radius*MathF.Sin(phi)*MathF.Cos(theta)); - tangent
+            auto tang = Vector3(-radius * sin(phi) * sin(theta), 0, radius * sin(phi) * cos(theta));
             auto norm = pos;
             norm.Normalize();
             const auto tex = Vector2(theta / (Pi * 2), phi / Pi);
-            AddVertex(Vertex{pos, Vector3::Zero, Vector3::Zero, norm, tex});
+            vertices.insert(Vertex{pos, tang, Vector3::Zero, norm, tex});
         }
     }
-    AddVertex(Vertex{Vector3(initPos.x, initPos.y - radius, initPos.z),
-                     Vector3::Zero,
-                     Vector3::Zero,
-                     Vector3(0.0f, -1.0f, 0.0f),
-                     Vector2(0.5f, 1.0f)});
+    vertices.insert(Vertex{Vector3(initPos.x, initPos.y - radius, initPos.z),
+                           Vector3(-1.0f, 0.0f, 0.0f),
+                           Vector3::Zero,
+                           Vector3(0.0f, -1.0f, 0.0f),
+                           Vector2(0.5f, 1.0f)});
 
-    if (drawUp)
-        for (int i = 1; i <= sliceCount; i++)
-        {
-            AddIndex(0);
-            AddIndex(i + 1);
-            AddIndex(i);
-        }
+    for (int i = 1; i <= sliceCount; i++)
+    {
+        indexes.insert(0);
+        indexes.insert(i + 1);
+        indexes.insert(i);
+    }
 
     auto baseIndex = 1;
-    auto ringVertexCount = sliceCount + 1;
+    const auto ringVertexCount = sliceCount + 1;
     for (int i = 0; i < stackCount - 2; i++)
     {
         for (int j = 0; j < sliceCount; j++)
         {
-            if (drawFirstHalf)
-            {
-                AddIndex(baseIndex + (i + 1) * ringVertexCount + j);
-                AddIndex(baseIndex + i * ringVertexCount + j);
-                AddIndex(baseIndex + i * ringVertexCount + j + 1);
-            }
-            if (drawSecondHalf)
-            {
-                AddIndex(baseIndex + (i + 1) * ringVertexCount + j + 1);
-                AddIndex(baseIndex + (i + 1) * ringVertexCount + j);
-                AddIndex(baseIndex + i * ringVertexCount + j + 1);
-            }
+            indexes.insert(baseIndex + (i + 1) * ringVertexCount + j);
+            indexes.insert(baseIndex + i * ringVertexCount + j);
+            indexes.insert(baseIndex + i * ringVertexCount + j + 1);
+
+            indexes.insert(baseIndex + (i + 1) * ringVertexCount + j + 1);
+            indexes.insert(baseIndex + (i + 1) * ringVertexCount + j);
+            indexes.insert(baseIndex + i * ringVertexCount + j + 1);
+
         }
     }
 
-    if (drawDown)
+    const auto southPoleIndex = vertices.size() - 1;
+    baseIndex = southPoleIndex - ringVertexCount;
+    for (int i = 0; i < sliceCount; i++)
     {
-        auto southPoleIndex = GetNumVertices() - 1;
-        baseIndex = southPoleIndex - ringVertexCount;
-        for (int i = 0; i < sliceCount; i++)
-        {
-            AddIndex(southPoleIndex);
-            AddIndex(baseIndex + i);
-            AddIndex(baseIndex + i + 1);
-        }
+        indexes.insert(southPoleIndex);
+        indexes.insert(baseIndex + i);
+        indexes.insert(baseIndex + i + 1);
     }
-}
-
-void Sphere::CreateSphereByTopology(float radius, Array<Vertex>& vertices, Array<int32_t>& indexes, D3D_PRIMITIVE_TOPOLOGY topology)
-{
 
 }
 
-void Sphere::CreateDrawSphereByTopology(Vector3 position, float radius, Vector4 color, Array<VertexNoTex>& vertices,
-    Array<int32_t>& indexes, D3D_PRIMITIVE_TOPOLOGY topology)
+void Sphere::CreateDrawSphere(Vector3 initPos, float radius, int32_t stackCount, int32_t sliceCount, Vector4 color,
+    Array<VertexNoTex>& vertices,
+    Array<int32_t>& indexes)
 {
-    const int32_t stackCount = 8;
-    const int32_t sliceCount = 8;
 
     auto phiStep = Pi / stackCount;
     auto thetaStep = 2.0f * Pi / sliceCount;
 
-    vertices.insert(VertexNoTex{Vector4(position.x, position.y + radius, position.z, 1.0f), color});
+    vertices.insert(VertexNoTex{Vector4(initPos.x, initPos.y + radius, initPos.z, 1.0f), color});
 
     for (int i = 1; i <= stackCount - 1; i++)
     {
@@ -128,9 +125,9 @@ void Sphere::CreateDrawSphereByTopology(Vector3 position, float radius, Vector4 
         {
             auto theta = j * thetaStep;
             auto pos = Vector4(
-                static_cast<float>(position.x + radius * sin(phi) * cos(theta)),
-                static_cast<float>(position.y + radius * cos(phi)),
-                static_cast<float>(position.z + radius * sin(phi) * sin(theta)),
+                static_cast<float>(initPos.x + radius * sin(phi) * cos(theta)),
+                static_cast<float>(initPos.y + radius * cos(phi)),
+                static_cast<float>(initPos.z + radius * sin(phi) * sin(theta)),
                 1.0f
                 );
             //var t = new Vector3(-radius*MathF.Sin(phi)*MathF.Sin(theta), 0, radius*MathF.Sin(phi)*MathF.Cos(theta)); - tangent
@@ -140,7 +137,7 @@ void Sphere::CreateDrawSphereByTopology(Vector3 position, float radius, Vector4 
         }
     }
 
-    vertices.insert(VertexNoTex{Vector4(position.x, position.y - radius, position.z, 1.0f), color});
+    vertices.insert(VertexNoTex{Vector4(initPos.x, initPos.y - radius, initPos.z, 1.0f), color});
 
     for (int i = 1; i <= sliceCount; i++)
     {
@@ -158,8 +155,8 @@ void Sphere::CreateDrawSphereByTopology(Vector3 position, float radius, Vector4 
             indexes.insert(baseIndex + (i + 1) * ringVertexCount + j);
             indexes.insert(baseIndex + i * ringVertexCount + j);
             indexes.insert(baseIndex + i * ringVertexCount + j + 1);
-            indexes.insert(baseIndex + (i + 1) * ringVertexCount + j);
             indexes.insert(baseIndex + (i + 1) * ringVertexCount + j + 1);
+            indexes.insert(baseIndex + (i + 1) * ringVertexCount + j);
             indexes.insert(baseIndex + i * ringVertexCount + j + 1);
 
         }

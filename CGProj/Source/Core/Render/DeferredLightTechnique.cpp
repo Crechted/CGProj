@@ -16,7 +16,8 @@ void DeferredLightTechnique::Render()
 {
     GBufferPass();
     LightingPass();
-    engInst->GetTexRenderTarget()->CopyDepthStencilView(tarDepthStencil->GetDepthStencilView(), tarDepthStencil->GetDepthStencilSRV(), tarDepthStencil->GetDepthStencilTexture());
+    engInst->GetTexRenderTarget()->CopyDepthStencilView(tarDepthStencil->GetDepthStencilView(), tarDepthStencil->GetDepthStencilSRV(),
+        tarDepthStencil->GetDepthStencilTexture());
 }
 
 void DeferredLightTechnique::Initialize()
@@ -55,10 +56,11 @@ void DeferredLightTechnique::Initialize()
     GBufferViewports.insert(tarDepthStencil->GetViewport());
 
     CreateConstantBuffers();
-    CreateShader();
-    CreateVertexes();
+    CreateShaders();
+    CreateVertices();
     CreateBlendState();
     CreateRasterizerState();
+    CreateDepthStencilStates();
 }
 
 void DeferredLightTechnique::Destroy()
@@ -73,7 +75,20 @@ void DeferredLightTechnique::Destroy()
     if (lightIndexBuf) lightIndexBuf->Destroy();
     if (screenToWorldBuf) screenToWorldBuf->Destroy();
 
-    if (deferredLightShader) deferredLightShader->Destroy();
+    if (vertexBuffer) vertexBuffer->Release();
+    if (indexBuffer) indexBuffer->Release();
+    if (blendState) blendState->Release();
+
+    if (rastStateCullFront) rastStateCullFront->Release();
+    if (rastStateCullBack) rastStateCullBack->Release();
+
+    if (quadShader) quadShader->Destroy();
+    if (volumeShader) volumeShader->Destroy();
+    if (allQuadShader) allQuadShader->Destroy();
+    if (allVolumeShader) allVolumeShader->Destroy();
+
+    if (DSSGreater) DSSGreater->Release();
+    if (DSSLess) DSSLess->Release();
 }
 
 void DeferredLightTechnique::GBufferPass()
@@ -92,28 +107,71 @@ void DeferredLightTechnique::GBufferPass()
 void DeferredLightTechnique::LightingPass()
 {
     engInst->SetRenderState(RenderState::Deferred_Lighting);
-    engInst->GetTexRenderTarget()->BindTarget(false);
-    engInst->GetTexRenderTarget()->SetDepthStencilState();
     engInst->GetTexRenderTarget()->Clear();
     float blendFactor[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     UINT sampleMask = 0xffffffff;
+
     auto lights = engInst->GetLightComponents();
     for (int32_t i = 0; i < lights.size(); ++i)
     {
         if (!lights[i]->GetLightData().enabled) continue;
+        engInst->GetContext()->OMSetBlendState(nullptr, blendFactor, sampleMask);
+
+        engInst->GetContext()->RSSetState(rastStateCullFront);
+        engInst->GetTexRenderTarget()->SetDepthStencilState(DSSGreater);
+        engInst->GetTexRenderTarget()->BindDepthStencil();
+        lights[i]->Render();
+        if (lights[i]->GetLightData().type == DIRECTIONAL_LIGHT) DrawDirectionalLightVolume(quadShader);
+        else DrawLightVolume(lights[i], volumeShader);
+
+        engInst->GetContext()->RSSetState(rastStateCullBack);
+        engInst->GetTexRenderTarget()->SetDepthStencilState(DSSLess);
+        engInst->GetTexRenderTarget()->BindDepthStencil();
+        lights[i]->Render();
+        if (lights[i]->GetLightData().type == DIRECTIONAL_LIGHT) DrawDirectionalLightVolume(quadShader);
+        else DrawLightVolume(lights[i], volumeShader);
+
         PreRenderLightPassByLightID(i);
+        engInst->GetContext()->RSSetState(rastStateCullBack);
+        engInst->GetTexRenderTarget()->SetDepthStencilState(DSSLess);
+        engInst->GetTexRenderTarget()->BindTarget();        
         engInst->GetContext()->OMSetBlendState(blendState, blendFactor, sampleMask);
-        engInst->GetContext()->RSSetState(nullptr);
-        //engInst->GetContext()->RSSetState(rastState);
-        const uint32_t stride = sizeof(PostProcessVertex);
-        const uint32_t offset = 0;
-        engInst->GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        engInst->GetContext()->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
-        engInst->GetContext()->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-        deferredLightShader->Draw();
-        engInst->GetContext()->DrawIndexed(indexes.size(), 0, 0);
-        //engInst->GetContext()->DrawAuto();
+        lights[i]->Render();
+        if (lights[i]->GetLightData().type == DIRECTIONAL_LIGHT) DrawDirectionalLightVolume(allQuadShader);
+        else DrawLightVolume(lights[i], allVolumeShader);
     }
+    
+    engInst->GetContext()->OMSetBlendState(nullptr, blendFactor, sampleMask);
+}
+
+void DeferredLightTechnique::DrawLightVolume(LightComponent* light, Shader* curShader)
+{
+    ID3D11Buffer* vertBuf = nullptr;
+    ID3D11Buffer* indBuf = nullptr;
+    Array<VertexNoTex> verts;
+    Array<int32_t> idxs;
+    light->GetLightVolume(verts, idxs);
+    light->GetLightVolumeBuffers(&vertBuf, &indBuf);
+
+    const uint32_t stride = sizeof(VertexNoTex);
+    const uint32_t offset = 0;
+    engInst->GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    engInst->GetContext()->IASetVertexBuffers(0, 1, &vertBuf, &stride, &offset);
+    engInst->GetContext()->IASetIndexBuffer(indBuf, DXGI_FORMAT_R32_UINT, 0);
+    curShader->Draw();
+    engInst->GetContext()->DrawIndexed(idxs.size(), 0, 0);
+
+}
+
+void DeferredLightTechnique::DrawDirectionalLightVolume(Shader* curShader)
+{
+    const uint32_t stride = sizeof(PostProcessVertex);
+    const uint32_t offset = 0;
+    engInst->GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    engInst->GetContext()->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+    engInst->GetContext()->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+    curShader->Draw();
+    engInst->GetContext()->DrawIndexed(indexes.size(), 0, 0);
 }
 
 void DeferredLightTechnique::PreRenderLightPassByLightID(int32_t lightId)
@@ -142,29 +200,45 @@ void DeferredLightTechnique::CreateConstantBuffers()
     screenToWorldBuf = (new Buffer<ScreenToWorldParams>())->CreateBuffer();
 }
 
-void DeferredLightTechnique::CreateShader()
+void DeferredLightTechnique::CreateShaders()
 {
-    deferredLightShader = new Shader();
-    deferredLightShader->AddInputElementDesc("POSITION");
-    deferredLightShader->AddInputElementDesc("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT);
     std::strstream s;
     std::string numLights;
     s << engInst->GetLightComponents().size() << "\x00";
     s >> numLights;
-    D3D_SHADER_MACRO macro[] = {"NUM_LIGHTS", numLights.c_str(), nullptr,
-                                nullptr};
-    deferredLightShader->CreateShader(L"./Resource/Shaders/DeferredLightShader.hlsl", SVertex, macro);
-    deferredLightShader->CreateShader(L"./Resource/Shaders/DeferredLightShader.hlsl", SPixel, macro);
+    D3D_SHADER_MACRO macro[] = {"NUM_LIGHTS", numLights.c_str(), nullptr, nullptr};
+
+    quadShader = new Shader();
+    quadShader->AddInputElementDesc("POSITION");
+    quadShader->AddInputElementDesc("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT);
+    quadShader->CreateShader(L"./Resource/Shaders/PostProcessShader.hlsl", SVertex, macro, (LPSTR)"VS");
+
+    volumeShader = new Shader();
+    volumeShader->AddInputElementDesc("POSITION");
+    volumeShader->AddInputElementDesc("COLOR");
+    volumeShader->CreateShader(L"./Resource/Shaders/DeferredLightShader.hlsl", SVertex, macro);
+
+    allVolumeShader = new Shader();
+    allVolumeShader->AddInputElementDesc("POSITION");
+    allVolumeShader->AddInputElementDesc("COLOR");
+    allVolumeShader->CreateShader(L"./Resource/Shaders/DeferredLightShader.hlsl", SVertex, macro);
+    allVolumeShader->CreateShader(L"./Resource/Shaders/DeferredLightShader.hlsl", SPixel, macro);
+
+    allQuadShader = new Shader();
+    allQuadShader->AddInputElementDesc("POSITION");
+    allQuadShader->AddInputElementDesc("COLOR");
+    allQuadShader->CreateShader(L"./Resource/Shaders/PostProcessShader.hlsl", SVertex, macro);
+    allQuadShader->CreateShader(L"./Resource/Shaders/DeferredLightShader.hlsl", SPixel, macro);
 }
 
-void DeferredLightTechnique::CreateVertexes()
+void DeferredLightTechnique::CreateVertices()
 {
     signed int centreW = engInst->GetDisplay()->screenWidth / 2 * -1;
     signed int centreH = engInst->GetDisplay()->screenHeight / 2;
     float left = (float)centreW;
-    float right = left + engInst->GetDisplay()->screenWidth;
+    float right = left + static_cast<float>(engInst->GetDisplay()->screenWidth);
     float top = (float)centreH;
-    float bottom = top - engInst->GetDisplay()->screenHeight;
+    float bottom = top - static_cast<float>(engInst->GetDisplay()->screenHeight);
 
     vertices.insert({Vector4(left, top, 0.0f, 1.0f), Vector4::Zero, Vector2(0.0f, 0.0f)});
     vertices.insert({Vector4(right, top, 0.0f, 1.0f), Vector4::Zero, Vector2(1.0f, 1.0f)});
@@ -233,6 +307,33 @@ void DeferredLightTechnique::CreateBlendState()
     engInst->GetDevice()->CreateBlendState(&blendStateDesc, &blendState);
 }
 
+void DeferredLightTechnique::CreateDepthStencilStates()
+{
+    CD3D11_DEPTH_STENCIL_DESC descDSS(D3D11_DEFAULT);
+    descDSS.DepthEnable = true;
+    descDSS.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+    descDSS.DepthFunc = D3D11_COMPARISON_GREATER_EQUAL;
+    descDSS.StencilEnable = true;
+    descDSS.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+    descDSS.BackFace.StencilPassOp = D3D11_STENCIL_OP_REPLACE;
+    descDSS.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+    descDSS.FrontFace.StencilPassOp = D3D11_STENCIL_OP_REPLACE;
+    engInst->GetDevice()->CreateDepthStencilState(&descDSS, &DSSGreater);
+
+    descDSS.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+    descDSS.BackFace.StencilFunc = D3D11_COMPARISON_EQUAL;
+    descDSS.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+    descDSS.FrontFace.StencilFunc = D3D11_COMPARISON_EQUAL;
+    descDSS.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+    engInst->GetDevice()->CreateDepthStencilState(&descDSS, &DSSLess);
+}
+
 void DeferredLightTechnique::CreateRasterizerState()
 {
+    CD3D11_RASTERIZER_DESC rastDesc(D3D11_DEFAULT);
+    rastDesc.CullMode = D3D11_CULL_FRONT;
+    engInst->GetDevice()->CreateRasterizerState(&rastDesc, &rastStateCullFront);
+
+    rastDesc.CullMode = D3D11_CULL_BACK;
+    engInst->GetDevice()->CreateRasterizerState(&rastDesc, &rastStateCullBack);
 }

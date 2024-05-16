@@ -49,19 +49,16 @@ PS_IN VS(VS_IN input)
     output.tangWS = mul(float4(input.tang.xyz, 0.0f), viewData.mWorld).xyz;
     output.binormWS = mul(float4(input.binorm.xyz, 0.0f), viewData.mWorld).xyz;
     output.normWS = mul(float4(input.norm.xyz, 0.0f), viewData.mWorld).xyz;
-    output.texCoord = input.texCoord;
-    float4 pos = mul(float4(input.pos.xyz, 1.0f), viewData.mWorld);
+    output.texCoord = float2(input.texCoord.x, 1.0f - input.texCoord.y);
 
-    //pos += sin(pos.x * 10.0f * lightData.kaSpecPowKsX.w);
-    output.posWS = pos;
-    output.pos = pos;
-    output.pos = mul(output.pos, viewData.mViewProj);
+    output.posWS = mul(float4(input.pos.xyz, 1.0f), viewData.mWorld);
+    output.pos = mul(output.posWS, viewData.mViewProj);
     return output;
 }
 
 float4 PS(PS_IN input) : SV_Target
 {
-    float4 diffVal = DiffuseTex.Sample(DiffSamp, float2(input.texCoord.x, 1.0f - input.texCoord.y));
+    float4 diffVal = DiffuseTex.Sample(DiffSamp, input.texCoord);
     clip(diffVal.a - 0.01f);
 
     float4 emissive = material.emissiveColor;

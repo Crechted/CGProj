@@ -42,6 +42,9 @@ enum class RenderType
     Deferred
 };
 
+#define POINT_LIGHT 0
+#define SPOT_LIGHT 1
+#define DIRECTIONAL_LIGHT 2
 static constexpr uint32_t CASCADE_COUNT = 8;
 
 class Engine

@@ -34,7 +34,7 @@ ID3D11Texture2D* RenderTarget::GetDepthStencilTexture() const
     return depthStencilTex;
 }
 
-void RenderTarget::CopyDepthStencilView(ID3D11DepthStencilView* DSV, ID3D11ShaderResourceView* depthSRV, ID3D11Texture2D* depthTex )
+void RenderTarget::CopyDepthStencilView(ID3D11DepthStencilView* DSV, ID3D11ShaderResourceView* depthSRV, ID3D11Texture2D* depthTex)
 {
     /*if (!DSV || !depthSRV || !depthTex) return;
     if (depthStencilView) depthStencilView->Release();
@@ -159,9 +159,15 @@ void RenderTarget::BindTarget(bool bindStencilView)
     engInst->GetContext()->RSSetViewports(1, &outputViewPort);
 }
 
-void RenderTarget::SetDepthStencilState()
+void RenderTarget::BindDepthStencil()
 {
-    engInst->GetContext()->OMSetDepthStencilState(depthStencilState, 0);
+    engInst->GetContext()->OMSetRenderTargets(0, nullptr, depthStencilView);
+    engInst->GetContext()->RSSetViewports(1, &outputViewPort);
+}
+
+void RenderTarget::SetDepthStencilState(ID3D11DepthStencilState* state, uint32_t stencilRef)
+{
+    engInst->GetContext()->OMSetDepthStencilState(state ? state : depthStencilState, stencilRef);
 }
 
 void RenderTarget::Clear()

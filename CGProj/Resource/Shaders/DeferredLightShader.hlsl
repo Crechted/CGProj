@@ -4,6 +4,11 @@
 #include "Structures.hlsl"
 #include "LightingFunctions.hlsl"
 
+cbuffer ViewBuf : register(b0)
+{
+ViewData viewData;
+}
+
 cbuffer ScreenToWorldParams : register( b2 )
 {
 matrix InverseProjView;
@@ -51,12 +56,13 @@ PS_IN VS(uint id: SV_VertexID)
     return output;
 }
 */
-PS_IN VS(uint id: SV_VertexID)
+PS_IN VS(float4 pos : POSITION,
+    float4 col : COLOR)
 {
     PS_IN output = (PS_IN)0;
 
-    output.texCoord = float2(id & 1, (id & 2) >> 1);
-    output.pos = float4(output.texCoord * float2(2, -2) + float2(-1, 1), 0, 1);
+    output.pos = mul(pos, viewData.mWorld);
+    output.pos = mul(output.pos, viewData.mViewProj);
     return output;
 }
 

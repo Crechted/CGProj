@@ -1,15 +1,18 @@
 #pragma once
 
 #include <d3d11.h>
+
+#include "Core/CoreTypes.h"
 #include "Core/Components/GameComponent.h"
 #include "Game/Camera.h"
 
+class TriangleComponent;
 class SceneComponent;
 
 struct LightData
 {
     Matrix mViewProj;
-    
+
     Vector4 posWS;
     Vector4 directionWS;
     Vector4 posVS;
@@ -26,8 +29,6 @@ class LightComponent : public GameComponent
 {
 public:
     LightComponent();
-    void CreateShadowMappingData();
-    void CreateLightBuffer();
     void Initialize() override;
     void DestroyResource() override;
     ID3D11ShaderResourceView* GetOutputTexture() const { return (&outputTextureSRV)[currentCascadeID]; }
@@ -46,9 +47,16 @@ public:
     virtual void SetLightData(const LightData& data) { lightData = data; }
     void SetColor(Vector4 col) { lightData.color = col; }
 
+    virtual void GetLightVolume(Array<VertexNoTex>& vertices, Array<int32_t>& indexes);
+    virtual void GetLightVolumeBuffers(ID3D11Buffer** vertexBuffer, ID3D11Buffer** indexBuffer);
+
 protected:
     LightData lightData;
     ID3D11Buffer* lightBuffer = nullptr;
+    Array<VertexNoTex> volumeVertices;
+    Array<int32_t> volumeIndexes;
+    ID3D11Buffer* vertexBuf = nullptr;
+    ID3D11Buffer* indexBuf = nullptr;
 
     SceneComponent* sceneComponent;
     ID3D11ShaderResourceView* outputTextureSRV = nullptr; // Shader resource view corresponding to the output texture (or shadow map)
@@ -70,6 +78,12 @@ protected:
     uint32_t currentCascadeID = 0;
 
 private:
+    void CreateShadowMappingData();
+    void CreateLightBuffer();
+    void CreateVertices();
+    void CreateVertexBuffer();
+    void CreateIndexBuffer();
+
     void AddShadowMap();
     void RemoveShadowMap();
 };
