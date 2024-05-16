@@ -71,7 +71,8 @@ void Engine::Destroy()
     if (lightsBuffer) lightsBuffer->Release();
     if (lightsSRV) lightsSRV->Release();
 
-    deferredLight->Destroy();
+    if (blendState) blendState->Release();
+    if (deferredLight) deferredLight->Destroy();
 
     TextureComponent::Clear();
     Shader::Clear();
@@ -169,6 +170,7 @@ void Engine::Initialize()
         curPlData = plData;
         curPlData->display->WindowInit();
         CreateDeviceAndSwapChain();
+        CreateBlendState();
         CreateLightsBuffer();
         texRenderTarget = new RenderTarget(TargetViewType::Texture, GetDisplay()->screenWidth, GetDisplay()->screenHeight);
         texRenderTarget->CreateAll();
@@ -361,6 +363,7 @@ void Engine::Render()
 {
     curPlData->context->ClearState();
     UpdateLightsData();
+    SortMeshesByTransparency();
 
     for (const auto light : lightComponents)
     {
@@ -392,10 +395,13 @@ void Engine::Render()
         }
     }
 
-    SetRenderState(RenderState::DrawDebug);
     texRenderTarget->BindTarget();
-    RenderScene();
+    SetRenderState(RenderState::DrawDebug);
+    RenderScene(true, false);
     
+    SetRenderState(RenderState::Forward_Transparent);
+    RenderScene(false, true);
+
     SetRenderState(RenderState::PostProcess);
     auto prevResourceView = texRenderTarget->GetRenderTargetSRV();
     for (int32_t i = 0; i < postProcesses.size(); i++)
@@ -409,6 +415,76 @@ void Engine::Render()
     curPlData->lastPostProc->Draw();
 
     curPlData->swapChain->Present(1, /*DXGI_PRESENT_DO_NOT_WAIT*/ 0);
+}
+
+void Engine::SortMeshesByTransparency()
+{
+    opaqueObjects.clear();
+    transparentObjects.clear();
+    opaqueComponents.clear();
+    transparentComponents.clear();
+
+    for (const auto obj : gameObjects)
+    {
+        if (const auto mesh = dynamic_cast<Mesh*>(obj))
+        {
+            if (mesh->GetOpacity() < 1.0f)
+            {
+                InsertNewTransparentMesh(mesh);
+                continue;
+            }
+        }
+        opaqueObjects.insert(obj);
+    }
+
+    for (const auto comp : gameComponents)
+    {
+        if (const auto mesh = dynamic_cast<MeshComponent*>(comp))
+        {
+            if (mesh->GetMesh()->GetOpacity() < 1.0f)
+            {
+                InsertNewTransparentMeshComponent(mesh);
+                continue;
+            }
+        }
+        opaqueComponents.insert(comp);
+    }
+}
+
+void Engine::InsertNewTransparentMesh(Mesh* const mesh)
+{
+    const auto camScene = GetCurCamera()->GetSceneComponent();
+    if (transparentObjects.isEmpty()) transparentObjects.insert(mesh);
+    else
+        for (int32_t i = 0; i < transparentObjects.size(); ++i)
+        {
+            const float meshDistanceToCam = mesh->GetSceneComponent()->GetDistanceTo(camScene);
+            const float transDistanceToCam = transparentObjects[i]->GetSceneComponent()->GetDistanceTo(camScene);
+            if (meshDistanceToCam > transDistanceToCam)
+            {
+                transparentObjects.insert(i, mesh);
+                return;
+            }
+        }
+    transparentObjects.insert(mesh);
+}
+
+void Engine::InsertNewTransparentMeshComponent(MeshComponent* const mesh)
+{
+    const auto camScene = GetCurCamera()->GetSceneComponent();
+    if (transparentComponents.isEmpty()) transparentComponents.insert(mesh);
+    else
+        for (int32_t i = 0; i < transparentComponents.size(); ++i)
+        {
+            const float meshDistanceToCam = mesh->GetMesh()->GetSceneComponent()->GetDistanceTo(camScene);
+            const float transDistanceToCam = transparentComponents[i]->GetMesh()->GetSceneComponent()->GetDistanceTo(camScene);
+            if (meshDistanceToCam > transDistanceToCam)
+            {
+                transparentComponents.insert(i, mesh);
+                return;
+            }
+        }
+    transparentComponents.insert(mesh);
 }
 
 void Engine::ForwardRender()
@@ -425,27 +501,65 @@ void Engine::DeferredRender()
     deferredLight->Render();
 }
 
-void Engine::RenderScene()
+void Engine::CreateBlendState()
 {
-    BindLightsBuffer();
+    D3D11_BLEND_DESC blendStateDesc = {};
+    ZeroMemory(&blendStateDesc, sizeof(D3D11_BLEND_DESC));
+
+    blendStateDesc.RenderTarget[0].BlendEnable = true;
+    blendStateDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+    blendStateDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+    blendStateDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+    blendStateDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_INV_DEST_ALPHA;
+    blendStateDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
+    blendStateDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+    blendStateDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+    GetDevice()->CreateBlendState(&blendStateDesc, &blendState);
+}
+
+void Engine::RenderScene(bool renderOpaque, bool renderTransparent)
+{
+
     for (const auto light : lightComponents)
     {
         light->Render();
     }
-    for (const auto Comp : gameComponents)
+
+    if (renderOpaque)
     {
-        BindLightsBuffer();
-        Comp->Render();
+        for (const auto Comp : opaqueComponents)
+        {
+            BindLightsBuffer();
+            Comp->Render();
+        }
+        for (const auto Obj : opaqueObjects)
+        {
+            BindLightsBuffer();
+            Obj->Render();
+        }
     }
-    for (const auto Obj : gameObjects)
+
+    if (renderTransparent)
     {
-        BindLightsBuffer();
-        Obj->Render();
+        float blendFactor[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+        UINT sampleMask = 0xffffffff;
+        GetContext()->OMSetBlendState(blendState, blendFactor, sampleMask);
+        for (const auto Comp : transparentComponents)
+        {
+            BindLightsBuffer();
+            Comp->Render();
+        }
+        for (const auto Obj : transparentObjects)
+        {
+            BindLightsBuffer();
+            Obj->Render();
+        }
+        GetContext()->OMSetBlendState(nullptr, blendFactor, sampleMask);
     }
+
     for (const auto cam : GetCamerasOnViewport())
     {
         curEyeData = cam->GetEyeData();
-        BindLightsBuffer();
         cam->Render();
     }
 }

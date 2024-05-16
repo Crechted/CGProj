@@ -257,3 +257,10 @@ Matrix SceneComponent::MatrixFromTransform(const Transform& trans)
     resMat.Translation(trans.location);
     return resMat;
 }
+
+float SceneComponent::GetDistanceTo(const SceneComponent* otherScene) const
+{
+    const auto thisWorldLoc = GetWorldLocation();
+    const auto otherWorldLoc = otherScene->GetWorldLocation();
+    return Vector3::Distance(thisWorldLoc, otherWorldLoc);
+}

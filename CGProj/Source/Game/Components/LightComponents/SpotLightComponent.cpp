@@ -38,6 +38,12 @@ void SpotLightComponent::Initialize()
     lightData.color = color;
 }
 
+void SpotLightComponent::Update(float timeTick)
+{
+    sceneComponent->AddQuatRotation(Vector3(0.0f, timeTick*50.0f, 0.0f));
+    LightComponent::Update(timeTick);
+}
+
 void SpotLightComponent::Draw()
 {
     if (drawDebug)

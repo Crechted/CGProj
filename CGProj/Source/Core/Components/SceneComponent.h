@@ -95,6 +95,7 @@ public:
 
     static Transform TransformFromMatrix(Matrix& mTrans);
     static Matrix MatrixFromTransform(const Transform& mTrans);
+    float GetDistanceTo(const SceneComponent* otherScene) const;
 
 protected:
     SceneComponent* parentComponent = nullptr;

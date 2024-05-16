@@ -6,6 +6,7 @@
 #include "Core/CoreTypes.h"
 
 
+struct Material;
 class CollisionComponent;
 class DrawComponent;
 class TriangleComponent;
@@ -52,6 +53,10 @@ public:
     bool GetCentering() const {return centering;};
     bool CollisionEnabled() const;
 
+    void SetOpacity(float opacity);
+    float GetOpacity() const;
+    void SetMaterial(const Material& mat);
+    Material GetMaterial() const;
     bool playVertAnim = false;
 protected:
     SceneComponent* sceneComp;

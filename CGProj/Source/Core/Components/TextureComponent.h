@@ -70,12 +70,17 @@ public:
     static bool ContainsTextures(ID3D11ShaderResourceView* resource);
     static void Clear();
 
+    void SetMaterial(const Material& mat) { material = mat; }
+    Material GetMaterial() const { return material; }
+    void SetOpacity(float opacity) { material.opacity = opacity; }
+    float GetOpacity() const { return material.opacity; }
+
 protected:
     void LoadTexture(const wchar_t* path);
     D3D11_SAMPLER_DESC sampDesc;
+    Material material;
 
 private:
-    Material material;
     ID3D11ShaderResourceView* textureRV = nullptr;
     ID3D11SamplerState* samplerLinear = nullptr;
     ID3D11Buffer* materialBuffer = nullptr;

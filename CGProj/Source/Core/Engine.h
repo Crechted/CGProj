@@ -6,6 +6,8 @@
 #include "Game/Components/LightComponents/LightComponent.h"
 #include "Render/PostProcess.h"
 
+class Mesh;
+class MeshComponent;
 class DeferredLightTechnique;
 class PostProcess;
 class LightComponent;
@@ -30,6 +32,7 @@ enum class RenderState
     ShadowMap,
     CascadeShadow,
     Forward_Normal,
+    Forward_Transparent,
     Deferred_GBuffer,
     Deferred_Lighting,
     DrawDebug,
@@ -58,7 +61,7 @@ public:
     virtual void Run();
     virtual void Update();
     virtual void Render();
-    void RenderScene();
+    void RenderScene(bool renderOpaque = true, bool renderTransparent = false);
     virtual void Initialize();
     void Input(bool& isExitRequested);
     float UpdateTime();
@@ -77,16 +80,16 @@ public:
 
     void SetRenderState(RenderState state);
     RenderState GetRenderState() const { return renderState; }
-    
+
     void SetRenderType(RenderType type);
     RenderType GetRenderType() const { return renderType; }
 
     EyeViewData GetCurEyeData() const { return curEyeData; }
 
     Array<Camera*> GetCamerasOnViewport() const { return cameras; }
-    Array<Object*> GetGameObjects() const {return gameObjects;}
-    Array<GameComponent*> GetGameComponents() const {return gameComponents;}
-    Array<LightComponent*> GetLightComponents() const {return lightComponents;}
+    Array<Object*> GetGameObjects() const { return gameObjects; }
+    Array<GameComponent*> GetGameComponents() const { return gameComponents; }
+    Array<LightComponent*> GetLightComponents() const { return lightComponents; }
 
     Array<LightComponent*>& GetLightComponents() { return lightComponents; }
 
@@ -129,7 +132,7 @@ public:
 
     void UpdateLightsData();
     void BindLightsBuffer();
-    RenderTarget* GetTexRenderTarget() const {return texRenderTarget;}
+    RenderTarget* GetTexRenderTarget() const { return texRenderTarget; }
     MulticastDelegate<RenderState> OnChangeRenderStateDelegate;
     bool useCascadeShadow = false;
 
@@ -140,17 +143,23 @@ protected:
     InputDevice* inputDevice;
     PipelineData* curPlData;
     DeferredLightTechnique* deferredLight = nullptr;
-    
+
     ID3D11Buffer* lightsBuffer;
     ID3D11ShaderResourceView* lightsSRV;
+    
+    ID3D11BlendState* blendState = nullptr;
 
     explicit Engine();
 
     Array<Object*> gameObjects;
+    Array<Object*> opaqueObjects;
+    Array<Mesh*> transparentObjects;
+    Array<GameComponent*> gameComponents;
+    Array<GameComponent*> opaqueComponents;
+    Array<MeshComponent*> transparentComponents;
     Array<Camera*> cameras;
     Array<PostProcess*> postProcesses;
     Array<LightComponent*> lightComponents;
-    Array<GameComponent*> gameComponents;
     Array<PipelineData*> pipelinesData;
     Array<LightData> lightsData;
     Camera* curCam;
@@ -162,12 +171,17 @@ protected:
 
     MSG msg;
 
+    void SortMeshesByTransparency();
 private:
     EyeViewData curEyeData;
 
+    void InsertNewTransparentMesh(Mesh* mesh);
+    void InsertNewTransparentMeshComponent(MeshComponent* mesh);
     virtual void ForwardRender();
     virtual void DeferredRender();
 
+    
+    void CreateBlendState();
     void CreateDeviceAndSwapChain();
     void CreateLightsBuffer();
 

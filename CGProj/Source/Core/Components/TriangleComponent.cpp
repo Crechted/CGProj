@@ -45,7 +45,7 @@ void TriangleComponent::Draw()
 {
     if (!engInst) return;
     if (engInst->GetRenderState() == RenderState::DrawDebug || engInst->GetRenderState() == RenderState::Deferred_Lighting) return;
-    
+
     const uint32_t stride = sizeof(Vertex);
     const uint32_t offset = 0;
 
@@ -198,11 +198,6 @@ void TriangleComponent::OnChangeRenderState(RenderState state)
 {
     switch (state)
     {
-        case RenderState::Forward_Normal:
-        {
-            SetDefaultShader();
-            break;
-        }
         case RenderState::ShadowMap:
         {
             if (!shadowMappingShader) CreateShadowMappingShader();
@@ -221,7 +216,11 @@ void TriangleComponent::OnChangeRenderState(RenderState state)
             SetShader(deferredGeometryPassShader);
             break;
         }
-        default: break;
+        default:
+        {
+            SetDefaultShader();
+            break;
+        }
     }
 }
 

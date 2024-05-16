@@ -139,3 +139,23 @@ bool Mesh::CollisionEnabled() const
     if (collisionComp) return collisionComp->CollisionEnabled();
     return false;
 }
+
+void Mesh::SetOpacity(float opacity)
+{
+    textureComp->SetOpacity(opacity);
+}
+
+float Mesh::GetOpacity() const
+{
+    return textureComp->GetOpacity();
+}
+
+void Mesh::SetMaterial(const Material& mat)
+{
+    textureComp->SetMaterial(mat);
+}
+
+Material Mesh::GetMaterial() const
+{
+    return textureComp->GetMaterial();
+}

@@ -61,6 +61,7 @@ float4 PS(PS_IN input) : SV_Target
     float4 diffVal = DiffuseTex.Sample(DiffSamp, input.texCoord);
     clip(diffVal.a - 0.01f);
 
+    float opacity = material.opacity;
     float4 emissive = material.emissiveColor;
     float4 ambient = material.ambientColor * material.globalAmbient;
     float4 diffuse = diffVal;
@@ -113,7 +114,7 @@ float4 PS(PS_IN input) : SV_Target
     specular = lit.specular * material.specularScale;
 #endif
 
-    float4 col = float4((ambient + emissive + diffuse + specular).rgb, 1.0f);
+    float4 col = float4((ambient + emissive + diffuse + specular).rgb, opacity);
     col.rgb = pow(col.rgb, 1.0f / 2.2f);
 
     return col;
