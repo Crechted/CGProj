@@ -57,6 +57,7 @@ void DrawComponent::Draw()
     engInst->GetContext()->IASetVertexBuffers(0, 1, &vertexBuffer, &strides, &offsets);
     curShader->Draw();
     engInst->GetContext()->DrawIndexed(indexes.size(), 0, 0);
+    engInst->GetContext()->RSSetState(nullptr);
 }
 
 void DrawComponent::Reload()

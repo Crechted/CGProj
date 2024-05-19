@@ -1,6 +1,6 @@
 #include "DrawBoxComponent.h"
 
-#include "Game/Objects/DrawBox.h"
+#include "Game/Objects/Drawable/DrawBox.h"
 
 DrawBoxComponent::DrawBoxComponent(Vector3 position, Vector3 size, Vector4 color, D3D_PRIMITIVE_TOPOLOGY topology)
 {

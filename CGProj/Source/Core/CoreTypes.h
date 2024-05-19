@@ -1,7 +1,4 @@
 #pragma once
-#include <string>
-#include <strstream>
-
 #include "SimpleMath.h"
 
 using namespace DirectX::SimpleMath;
@@ -12,7 +9,7 @@ struct Vertex
     Vector3 tangent = Vector3::Zero;
     Vector3 binormal = Vector3::Zero;
     Vector3 normal = Vector3::Zero;
-    alignas(16) Vector2 texture = Vector2::Zero;
+    alignas(16) Vector2 texCoord = Vector2::Zero;
 };
 
 struct VertexNoTex

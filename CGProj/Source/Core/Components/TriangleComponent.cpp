@@ -4,6 +4,7 @@
 #include <d3d.h>
 #include <d3dcompiler.h>
 #include <string>
+#include <strstream>
 
 #include "Core/CoreTypes.h"
 #include "Core/Engine.h"
@@ -51,12 +52,12 @@ void TriangleComponent::Draw()
 
     UpdateData();
     engInst->GetContext()->RSSetState(engInst->GetCurEyeData().isCam ? rastState : rastStateShadow);
-    //engInst->GetContext()->RSSetState(rastState);
     engInst->GetContext()->IASetPrimitiveTopology(topology);
     engInst->GetContext()->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
     engInst->GetContext()->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
     curShader->Draw();
     engInst->GetContext()->DrawIndexed(indexes.size(), 0, 0);
+    engInst->GetContext()->RSSetState(nullptr);
 }
 
 void TriangleComponent::Reload()

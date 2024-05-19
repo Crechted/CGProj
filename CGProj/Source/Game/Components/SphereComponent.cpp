@@ -2,7 +2,7 @@
 
 #include "Core/Components/CollisionComponent.h"
 #include "Core/Components/Collisions/SphereCollision.h"
-#include "Game/Objects/Sphere.h"
+#include "Game/Objects/Drawable/Sphere.h"
 
 SphereComponent::SphereComponent(const wchar_t* pathTex, Vector3 position, float radius, int32_t sliceCount, int32_t stackCount,
     bool drawFirstHalf, bool drawSecondHalf, bool drawUp, bool drawDown)

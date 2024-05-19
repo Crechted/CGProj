@@ -4,14 +4,13 @@
 #include "Core/Objects/Object.h"
 #include "Game/Camera.h"
 #include "Game/Components/LightComponents/LightComponent.h"
+#include "Objects/PostRenderObject.h"
 #include "Render/PostProcess.h"
 
 class Mesh;
 class MeshComponent;
 class DeferredLightTechnique;
-class PostProcess;
 class LightComponent;
-enum class ViewType : uint8_t;
 class Camera;
 class Object;
 class InputDevice;
@@ -19,10 +18,10 @@ class WinDisplay;
 
 struct PipelineData
 {
-    WinDisplay* display;
-    ID3D11Device* device;
-    ID3D11DeviceContext* context;
-    IDXGISwapChain* swapChain;
+    WinDisplay* display = nullptr;
+    ID3D11Device* device = nullptr;
+    ID3D11DeviceContext* context = nullptr;
+    IDXGISwapChain* swapChain = nullptr;
 
     PostProcess* lastPostProc = nullptr;
 };
@@ -106,13 +105,13 @@ public:
         {
             if (const auto nCam = dynamic_cast<Camera*>(newObj)) cameras.insert(nCam);
             else if (const auto nPostProc = dynamic_cast<PostProcess*>(newObj)) postProcesses.insert(nPostProc);
+            else if (const auto nPostRender = dynamic_cast<PostRenderObject*>(newObj)) postRenderObjects.insert(nPostRender);
             else gameObjects.insert(nGObj);
 
             return newObj;
         }
         delete newObj;
         return nullptr;
-
     }
 
     template <typename T, typename... Args>
@@ -146,17 +145,14 @@ protected:
 
     ID3D11Buffer* lightsBuffer;
     ID3D11ShaderResourceView* lightsSRV;
-    
+
     ID3D11BlendState* blendState = nullptr;
 
     explicit Engine();
 
     Array<Object*> gameObjects;
-    Array<Object*> opaqueObjects;
-    Array<Mesh*> transparentObjects;
     Array<GameComponent*> gameComponents;
-    Array<GameComponent*> opaqueComponents;
-    Array<MeshComponent*> transparentComponents;
+    Array<PostRenderObject*> postRenderObjects;
     Array<Camera*> cameras;
     Array<PostProcess*> postProcesses;
     Array<LightComponent*> lightComponents;
@@ -172,15 +168,21 @@ protected:
     MSG msg;
 
     void SortMeshesByTransparency();
+
 private:
     EyeViewData curEyeData;
+
+    Array<Object*> opaqueObjects;
+    Array<Mesh*> transparentObjects;
+    Array<GameComponent*> opaqueComponents;
+    Array<MeshComponent*> transparentComponents;
 
     void InsertNewTransparentMesh(Mesh* mesh);
     void InsertNewTransparentMeshComponent(MeshComponent* mesh);
     virtual void ForwardRender();
     virtual void DeferredRender();
 
-    
+
     void CreateBlendState();
     void CreateDeviceAndSwapChain();
     void CreateLightsBuffer();

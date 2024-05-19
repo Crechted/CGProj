@@ -1,6 +1,6 @@
 #pragma once
 #include "Core/Components/CollisionComponent.h"
-#include "Game/Objects/DrawSphere.h"
+#include "Game/Objects/Drawable/DrawSphere.h"
 
 class SphereCollision : public CollisionComponent
 {

@@ -1,6 +1,6 @@
 #pragma once
 #include "Core/Components/CollisionComponent.h"
-#include "Game/Objects/Box.h"
+#include "Game/Objects/Drawable/Box.h"
 
 class BoxCollision : public CollisionComponent
 {

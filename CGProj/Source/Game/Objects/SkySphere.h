@@ -1,5 +1,5 @@
 #pragma once
-#include "Sphere.h"
+#include "Game/Objects/Drawable/Sphere.h"
 
 class SkySphere : public Sphere
 {

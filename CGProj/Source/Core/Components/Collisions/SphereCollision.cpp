@@ -3,7 +3,7 @@
 #include "BoxCollision.h"
 #include "Core/CoreTypes.h"
 #include "Core/Components/DrawComponent.h"
-#include "Game/Objects/Sphere.h"
+#include "Game/Objects/Drawable/Sphere.h"
 
 SphereCollision::SphereCollision(float radius) : radius(radius)
 {

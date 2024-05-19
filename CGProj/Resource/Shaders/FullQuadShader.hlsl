@@ -1,5 +1,5 @@
-#ifndef POST_PROCESS_SHADER
-#define POST_PROCESS_SHADER
+#ifndef FULL_QUAD_SHADER
+#define FULL_QUAD_SHADER
 
 #include "Structures.hlsl"
 

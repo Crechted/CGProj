@@ -6,7 +6,7 @@
 #include "Core/Components/DrawComponent.h"
 #include "Core/Input/InputDevice.h"
 #include "Core/Objects/Mesh.h"
-#include "Game/Objects/DrawBox.h"
+#include "Game/Objects/Drawable/DrawBox.h"
 
 
 DirectionalLightComponent::DirectionalLightComponent()

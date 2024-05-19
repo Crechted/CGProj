@@ -13,7 +13,7 @@
 #include "Game/Components/SphereComponent.h"
 #include "Game/Components/LightComponents/PointLightComponent.h"
 #include "Game/Components/LightComponents/SpotLightComponent.h"
-#include "Game/Objects/Box.h"
+#include "Game/Objects/Drawable/Box.h"
 #include "Game/Objects/SkySphere.h"
 #include "Game/Objects/Spectator.h"
 

@@ -77,3 +77,47 @@ void DebugDrawing::GetIndexesCone(int32_t density, int32_t numVert, Array<int32_
         }
     }
 }
+
+void DebugDrawing::CreateFullQuad(Vector2 dimension, Array<Vertex>& vertices, Array<int32_t>& indexes)
+{
+    const float centreW = dimension.x / 2 * -1;
+    const float centreH = dimension.y / 2;
+    const float left = centreW;
+    const float right = left + dimension.x;
+    const float top = centreH;
+    const float bottom = top - dimension.y;
+
+    vertices.insert({Vector3(left, top, 0.0f), Vector3::Zero, Vector3::Zero, Vector3::Zero, Vector2(0.0f, 0.0f)});
+    vertices.insert({Vector3(right, top, 0.0f), Vector3::Zero, Vector3::Zero, Vector3::Zero, Vector2(1.0f, 1.0f)});
+    vertices.insert({Vector3(left, bottom, 0.0f), Vector3::Zero, Vector3::Zero, Vector3::Zero, Vector2(0.0f, 1.0f)});
+    vertices.insert({Vector3(right, bottom, 0.0f), Vector3::Zero, Vector3::Zero, Vector3::Zero, Vector2(1.0f, 0.0f)});
+
+    CreateIndexesFullQuad(indexes);
+}
+
+void DebugDrawing::CreateFullQuad(Vector2 dimension, Array<VertexNoTex>& vertices, Array<int32_t>& indexes)
+{
+    const float centreW = dimension.x / 2 * -1;
+    const float centreH = dimension.y / 2;
+    const float left = centreW;
+    const float right = left + dimension.x;
+    const float top = centreH;
+    const float bottom = top - dimension.y;
+
+    vertices.insert({Vector4(left, top, 0.0f, 1.0f), Vector4::One});
+    vertices.insert({Vector4(right, top, 0.0f, 1.0f), Vector4::One});
+    vertices.insert({Vector4(left, bottom, 0.0f, 1.0f), Vector4::One});
+    vertices.insert({Vector4(right, bottom, 0.0f, 1.0f), Vector4::One});
+
+    CreateIndexesFullQuad(indexes);
+}
+
+void DebugDrawing::CreateIndexesFullQuad(Array<int32_t>& indexes)
+{
+    indexes.insert(0);
+    indexes.insert(1);
+    indexes.insert(3);
+    indexes.insert(0);
+    indexes.insert(3);
+    indexes.insert(2);
+}

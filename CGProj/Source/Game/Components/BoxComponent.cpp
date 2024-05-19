@@ -2,7 +2,7 @@
 
 #include "Core/Engine.h"
 #include "Core/Components/Collisions/BoxCollision.h"
-#include "Game/Objects/Box.h"
+#include "Game/Objects/Drawable/Box.h"
 
 BoxComponent::BoxComponent(const wchar_t* pathTex, Vector3 position, Vector3 size, Vector4 color, D3D_PRIMITIVE_TOPOLOGY topology)
 {

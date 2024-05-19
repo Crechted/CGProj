@@ -1,4 +1,4 @@
-#include "Engine.h"
+#include "Core/Engine.h"
 #include "Windisplay.h"
 
 #include <windows.h>
@@ -66,6 +66,10 @@ void Engine::Destroy()
     for (const auto postProc : postProcesses)
     {
         delete postProc;
+    }
+    for (const auto postRend : postRenderObjects)
+    {
+        delete postRend;
     }
     delete texRenderTarget;
     if (lightsBuffer) lightsBuffer->Release();
@@ -203,6 +207,10 @@ void Engine::Initialize()
         {
             postProc->Initialize();
         }
+        for (const auto postRend : postRenderObjects)
+        {
+            postRend->Initialize();
+        }
     }
 }
 
@@ -265,6 +273,10 @@ void Engine::Update()
     for (const auto postProc : postProcesses)
     {
         postProc->Update(deltaTime);
+    }
+    for (const auto postRend : postRenderObjects)
+    {
+        postRend->Update(deltaTime);
     }
 
     DetectOverlapped();
@@ -413,6 +425,11 @@ void Engine::Render()
 
     curPlData->lastPostProc->SetSRV(prevResourceView);
     curPlData->lastPostProc->Draw();
+
+    for(const auto postRend : postRenderObjects)
+    {
+        postRend->Draw();
+    }    
 
     curPlData->swapChain->Present(1, /*DXGI_PRESENT_DO_NOT_WAIT*/ 0);
 }

@@ -1,6 +1,6 @@
 #include "DrawSphereComponent.h"
 #include "Core/Engine.h"
-#include "Game/Objects/DrawSphere.h"
+#include "Game/Objects/Drawable/DrawSphere.h"
 
 DrawSphereComponent::DrawSphereComponent()
 {

@@ -6,6 +6,7 @@
 #include "Core/Engine.h"
 #include "Core/Windisplay.h"
 #include "Core/Components/SceneComponent.h"
+#include "Utils/DebugDrawing.h"
 
 DeferredLightTechnique::DeferredLightTechnique()
 {
@@ -165,7 +166,7 @@ void DeferredLightTechnique::DrawLightVolume(LightComponent* light, Shader* curS
 
 void DeferredLightTechnique::DrawDirectionalLightVolume(Shader* curShader)
 {
-    const uint32_t stride = sizeof(PostProcessVertex);
+    const uint32_t stride = sizeof(VertexNoTex);
     const uint32_t offset = 0;
     engInst->GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     engInst->GetContext()->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
@@ -179,7 +180,7 @@ void DeferredLightTechnique::PreRenderLightPassByLightID(int32_t lightId)
     engInst->GetContext()->PSSetShaderResources(0, 5, &GBufferSRV[0]);
     const LightIndexBuffer id{lightId};
     lightIndexBuf->UpdateData(id);
-    lightIndexBuf->SetBuffer(4, SPixel);
+    lightIndexBuf->BindBuffer(4, SPixel);
 
     const auto cam = engInst->GetCurCamera();
     const auto invertProjView = cam->GetEyeData().GetViewProj().Invert();
@@ -189,7 +190,7 @@ void DeferredLightTechnique::PreRenderLightPassByLightID(int32_t lightId)
                                             Vector2(static_cast<float>(engInst->GetDisplay()->screenWidth),
                                                 static_cast<float>(engInst->GetDisplay()->screenHeight))};
     screenToWorldBuf->UpdateData(ScreenToWorld);
-    screenToWorldBuf->SetBuffer(2, SPixel);
+    screenToWorldBuf->BindBuffer(2, SPixel);
 
     engInst->BindLightsBuffer();
 }
@@ -210,8 +211,8 @@ void DeferredLightTechnique::CreateShaders()
 
     quadShader = new Shader();
     quadShader->AddInputElementDesc("POSITION");
-    quadShader->AddInputElementDesc("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT);
-    quadShader->CreateShader(L"./Resource/Shaders/PostProcessShader.hlsl", SVertex, macro, (LPSTR)"VS");
+    quadShader->AddInputElementDesc("COLOR");
+    quadShader->CreateShader(L"./Resource/Shaders/FullQuadShader.hlsl", SVertex, macro, (LPSTR)"VS");
 
     volumeShader = new Shader();
     volumeShader->AddInputElementDesc("POSITION");
@@ -227,30 +228,13 @@ void DeferredLightTechnique::CreateShaders()
     allQuadShader = new Shader();
     allQuadShader->AddInputElementDesc("POSITION");
     allQuadShader->AddInputElementDesc("COLOR");
-    allQuadShader->CreateShader(L"./Resource/Shaders/PostProcessShader.hlsl", SVertex, macro);
+    allQuadShader->CreateShader(L"./Resource/Shaders/FullQuadShader.hlsl", SVertex, macro);
     allQuadShader->CreateShader(L"./Resource/Shaders/DeferredLightShader.hlsl", SPixel, macro);
 }
 
 void DeferredLightTechnique::CreateVertices()
 {
-    signed int centreW = engInst->GetDisplay()->screenWidth / 2 * -1;
-    signed int centreH = engInst->GetDisplay()->screenHeight / 2;
-    float left = (float)centreW;
-    float right = left + static_cast<float>(engInst->GetDisplay()->screenWidth);
-    float top = (float)centreH;
-    float bottom = top - static_cast<float>(engInst->GetDisplay()->screenHeight);
-
-    vertices.insert({Vector4(left, top, 0.0f, 1.0f), Vector4::Zero, Vector2(0.0f, 0.0f)});
-    vertices.insert({Vector4(right, top, 0.0f, 1.0f), Vector4::Zero, Vector2(1.0f, 1.0f)});
-    vertices.insert({Vector4(left, bottom, 0.0f, 1.0f), Vector4::Zero, Vector2(0.0f, 1.0f)});
-    vertices.insert({Vector4(right, bottom, 0.0f, 1.0f), Vector4::Zero, Vector2(1.0f, 0.0f)});
-
-    indexes.insert(0);
-    indexes.insert(1);
-    indexes.insert(3);
-    indexes.insert(0);
-    indexes.insert(3);
-    indexes.insert(2);
+    DebugDrawing::CreateFullQuad(Vector2((float)engInst->GetDisplay()->screenWidth, (float)engInst->GetDisplay()->screenHeight), vertices, indexes);
     CreateVertexBuffer();
     CreateIndexBuffer();
 }
@@ -263,7 +247,7 @@ void DeferredLightTechnique::CreateVertexBuffer()
     vertexBufDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
     vertexBufDesc.MiscFlags = 0; // 0
     vertexBufDesc.StructureByteStride = 0;
-    vertexBufDesc.ByteWidth = sizeof(PostProcessVertex) * vertices.size();
+    vertexBufDesc.ByteWidth = sizeof(VertexNoTex) * vertices.size();
 
     D3D11_SUBRESOURCE_DATA vertexData;
     vertexData.pSysMem = &vertices[0];

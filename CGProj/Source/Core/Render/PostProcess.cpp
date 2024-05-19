@@ -3,28 +3,12 @@
 #include "RenderTarget.h"
 #include "Core/Engine.h"
 #include "Core/Render/Shader.h"
+#include "Utils/DebugDrawing.h"
 
 PostProcess::PostProcess(int32_t screenW, int32_t screenH, LPCWSTR shaderPath)
     : screenWidth(screenW), screenHeight(screenH), shaderPath(shaderPath)
 {
-    signed int centreW = screenWidth / 2 * -1;
-    signed int centreH = screenHeight / 2;
-    float left = (float)centreW;
-    float right = left + screenWidth;
-    float top = (float)centreH;
-    float bottom = top - screenHeight;
-
-    vertices.insert({Vector4(left, top, 0.0f, 1.0f), Vector4::Zero, Vector2(0.0f, 0.0f)});
-    vertices.insert({Vector4(right, top, 0.0f, 1.0f), Vector4::Zero, Vector2(1.0f, 1.0f)});
-    vertices.insert({Vector4(left, bottom, 0.0f, 1.0f), Vector4::Zero, Vector2(0.0f, 1.0f)});
-    vertices.insert({Vector4(right, bottom, 0.0f, 1.0f), Vector4::Zero, Vector2(1.0f, 0.0f)});
-
-    indexes.insert(0);
-    indexes.insert(1);
-    indexes.insert(3);
-    indexes.insert(0);
-    indexes.insert(3);
-    indexes.insert(2);
+    DebugDrawing::CreateFullQuad(Vector2((float)screenWidth, (float)screenHeight), vertices, indexes);
 
     renderTarget = new RenderTarget(TargetViewType::Texture, screenWidth, screenHeight);    
 }
@@ -32,17 +16,14 @@ PostProcess::PostProcess(int32_t screenW, int32_t screenH, LPCWSTR shaderPath)
 void PostProcess::Update(float timeTick)
 {
     Object::Update(timeTick);
-    /*for (int32_t i = 0; i < vertices.size(); i++)
-    {
-        vertices[i].WorldPos.w = engInst->GetTotalTime();
-    }*/
     ConstBufferData data{Vector2(engInst->GetTotalTime()) };
     engInst->GetContext()->UpdateSubresource(constBuffer, 0, nullptr, &data, 0, 0);
+    //constBuffer->UpdateData(data);
 }
 
 void PostProcess::Draw()
 {
-    const uint32_t stride = sizeof(PostProcessVertex);
+    const uint32_t stride = sizeof(VertexNoTex);
     const uint32_t offset = 0;
 
     D3D11_MAPPED_SUBRESOURCE res = {};
@@ -59,6 +40,7 @@ void PostProcess::Draw()
     renderTarget->BindTarget();
     renderTarget->ClearTarget();
     engInst->GetContext()->PSSetConstantBuffers(0, 1, &constBuffer);
+    //constBuffer->BindBuffer(0, SPixel);
     engInst->GetContext()->RSSetState(nullptr);
     engInst->GetContext()->PSSetShaderResources(0, 1, &texSRV);
     engInst->GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -87,6 +69,7 @@ void PostProcess::Initialize()
     constBufDesc.StructureByteStride = 0;
     constBufDesc.ByteWidth = sizeof(ConstBufferData);
     const auto hr = engInst->GetDevice()->CreateBuffer(&constBufDesc, nullptr, &constBuffer);
+    //constBuffer = (new Buffer<ConstBufferData>())->CreateBuffer();
     
     CreateShader();
     CreateVertexBuffer();
@@ -119,7 +102,7 @@ void PostProcess::CreateVertexBuffer()
     vertexBufDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
     vertexBufDesc.MiscFlags = 0; // 0
     vertexBufDesc.StructureByteStride = 0;
-    vertexBufDesc.ByteWidth = sizeof(PostProcessVertex) * vertices.size();
+    vertexBufDesc.ByteWidth = sizeof(VertexNoTex) * vertices.size();
 
     D3D11_SUBRESOURCE_DATA vertexData;
     vertexData.pSysMem = &vertices[0];

@@ -50,7 +50,7 @@ protected:
     ID3D11RasterizerState* rastStateCullFront;
     ID3D11RasterizerState* rastStateCullBack;
     
-    Array<PostProcessVertex> vertices;
+    Array<VertexNoTex> vertices;
     Array<int32_t> indexes;
     
     Shader* quadShader = nullptr;
