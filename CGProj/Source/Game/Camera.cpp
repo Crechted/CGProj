@@ -5,6 +5,7 @@
 #include "Core/Input/InputDevice.h"
 #include "Core/CoreTypes.h"
 
+
 Camera::Camera(Vector3 initPosition, Vector3 initRotation)
     : initPosition(initPosition), initRotation(initRotation)
 {

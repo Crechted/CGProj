@@ -7,6 +7,7 @@
 #include "Core/Windisplay.h"
 #include "Core/Components/SceneComponent.h"
 #include "Utils/DebugDrawing.h"
+#include "Core/Render/Buffer.h"
 
 DeferredLightTechnique::DeferredLightTechnique()
 {
@@ -132,16 +133,16 @@ void DeferredLightTechnique::LightingPass()
         if (lights[i]->GetLightData().type == DIRECTIONAL_LIGHT) DrawDirectionalLightVolume(quadShader);
         else DrawLightVolume(lights[i], volumeShader);
 
-        PreRenderLightPassByLightID(i);
         engInst->GetContext()->RSSetState(rastStateCullBack);
         engInst->GetTexRenderTarget()->SetDepthStencilState(DSSLess);
-        engInst->GetTexRenderTarget()->BindTarget();        
+        engInst->GetTexRenderTarget()->BindTarget();
         engInst->GetContext()->OMSetBlendState(blendState, blendFactor, sampleMask);
         lights[i]->Render();
+        PreRenderLightPassByLightID(i);
         if (lights[i]->GetLightData().type == DIRECTIONAL_LIGHT) DrawDirectionalLightVolume(allQuadShader);
         else DrawLightVolume(lights[i], allVolumeShader);
     }
-    
+
     engInst->GetContext()->OMSetBlendState(nullptr, blendFactor, sampleMask);
 }
 
@@ -180,25 +181,26 @@ void DeferredLightTechnique::PreRenderLightPassByLightID(int32_t lightId)
     engInst->GetContext()->PSSetShaderResources(0, 5, &GBufferSRV[0]);
     const LightIndexBuffer id{lightId};
     lightIndexBuf->UpdateData(id);
-    lightIndexBuf->BindBuffer(4, SPixel);
+    lightIndexBuf->BindBuffers(4, SPixel);
 
     const auto cam = engInst->GetCurCamera();
     const auto invertProjView = cam->GetEyeData().GetViewProj().Invert();
     const auto camPos = cam->GetSceneComponent()->GetWorldLocation();
     const ScreenToWorldParams ScreenToWorld{invertProjView.Transpose(),
+                                            cam->GetEyeData().GetViewProj().Transpose(),
                                             camPos,
                                             Vector2(static_cast<float>(engInst->GetDisplay()->screenWidth),
                                                 static_cast<float>(engInst->GetDisplay()->screenHeight))};
     screenToWorldBuf->UpdateData(ScreenToWorld);
-    screenToWorldBuf->BindBuffer(2, SPixel);
+    screenToWorldBuf->BindBuffers(2, SPixel);
 
     engInst->BindLightsBuffer();
 }
 
 void DeferredLightTechnique::CreateConstantBuffers()
 {
-    lightIndexBuf = (new Buffer<LightIndexBuffer>())->CreateBuffer();
-    screenToWorldBuf = (new Buffer<ScreenToWorldParams>())->CreateBuffer();
+    lightIndexBuf = (new Buffer())->CreateBuffer<LightIndexBuffer>();
+    screenToWorldBuf = (new Buffer())->CreateBuffer<ScreenToWorldParams>();
 }
 
 void DeferredLightTechnique::CreateShaders()
@@ -234,7 +236,8 @@ void DeferredLightTechnique::CreateShaders()
 
 void DeferredLightTechnique::CreateVertices()
 {
-    DebugDrawing::CreateFullQuad(Vector2((float)engInst->GetDisplay()->screenWidth, (float)engInst->GetDisplay()->screenHeight), vertices, indexes);
+    DebugDrawing::CreateFullQuad(Vector2((float)engInst->GetDisplay()->screenWidth, (float)engInst->GetDisplay()->screenHeight), vertices,
+        indexes);
     CreateVertexBuffer();
     CreateIndexBuffer();
 }

@@ -17,8 +17,8 @@ void PostProcess::Update(float timeTick)
 {
     Object::Update(timeTick);
     ConstBufferData data{Vector2(engInst->GetTotalTime()) };
-    engInst->GetContext()->UpdateSubresource(constBuffer, 0, nullptr, &data, 0, 0);
-    //constBuffer->UpdateData(data);
+    //engInst->GetContext()->UpdateSubresource(constBuffer, 0, nullptr, &data, 0, 0);
+    constBuf->UpdateData(data);
 }
 
 void PostProcess::Draw()
@@ -39,8 +39,8 @@ void PostProcess::Draw()
     
     renderTarget->BindTarget();
     renderTarget->ClearTarget();
-    engInst->GetContext()->PSSetConstantBuffers(0, 1, &constBuffer);
-    //constBuffer->BindBuffer(0, SPixel);
+    //engInst->GetContext()->PSSetConstantBuffers(0, 1, &constBuffer);
+    constBuf->BindBuffers(0, SPixel);
     engInst->GetContext()->RSSetState(nullptr);
     engInst->GetContext()->PSSetShaderResources(0, 1, &texSRV);
     engInst->GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -61,15 +61,8 @@ void PostProcess::CreateShader()
 
 void PostProcess::Initialize()
 {
-    D3D11_BUFFER_DESC constBufDesc{};
-    constBufDesc.Usage = D3D11_USAGE_DEFAULT;
-    constBufDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    constBufDesc.CPUAccessFlags = 0;
-    constBufDesc.MiscFlags = 0;
-    constBufDesc.StructureByteStride = 0;
-    constBufDesc.ByteWidth = sizeof(ConstBufferData);
-    const auto hr = engInst->GetDevice()->CreateBuffer(&constBufDesc, nullptr, &constBuffer);
-    //constBuffer = (new Buffer<ConstBufferData>())->CreateBuffer();
+    //const auto hr = engInst->GetDevice()->CreateBuffer(&constBufDesc, nullptr, &constBuffer);
+    constBuf = (new Buffer())->CreateBuffer<ConstBufferData>();
     
     CreateShader();
     CreateVertexBuffer();
@@ -84,7 +77,7 @@ void PostProcess::Destroy()
     Object::Destroy();
     if (vertexBuffer) vertexBuffer->Release();
     if (indexBuffer) indexBuffer->Release();
-    if (constBuffer) constBuffer->Release();
+    if (constBuf) constBuf->Destroy();
     delete renderTarget;
 }
 

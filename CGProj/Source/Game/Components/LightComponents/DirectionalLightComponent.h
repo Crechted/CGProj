@@ -5,6 +5,7 @@
 #include "SimpleMath.h"
 #include "Core/Engine.h"
 
+class PostRenderImage;
 class DrawBoxComponent;
 
 using namespace DirectX::SimpleMath;
@@ -23,6 +24,11 @@ struct CascadeData
     float Distances[CASCADE_COUNT];
 };
 
+struct CascadeIndex
+{
+    alignas(16) uint32_t idx;
+};
+
 class DirectionalLightComponent : public LightComponent
 {
 public:
@@ -35,13 +41,18 @@ public:
     void Update(float timeTick) override;
     void Draw() override;
     void SetCurrentCascadeData(uint32_t idx) override;
-    
+
 protected:
-    ID3D11Buffer* cascadeBuffer = nullptr;
+    Buffer* cascadeBuffer = nullptr;
     CascadeData cascData;
     Array<EyeViewData> eyesData;
+
+    Array<PostRenderImage*> cascadeImgs;
+    Array<Buffer*> addBufIndexes;
 
     Array<Array<Vector4>> frustums;
     DrawBoxComponent* drawFrustum;
     DrawBoxComponent* drawCascadeBox;
+
+    void CreateCascadeImage();
 };

@@ -151,7 +151,7 @@ void Engine::BindLightsBuffer()
     for (const auto light : lightComponents)
     {
         light->UpdateSubresource();
-        if (GetRenderState() == RenderState::Forward_Normal) light->UpdateShaderResources();
+        if (GetRenderState() == RenderState::Forward_Normal || GetRenderState() == RenderState::Deferred_Lighting) light->UpdateShaderResources();
     }
 }
 

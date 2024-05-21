@@ -41,7 +41,7 @@ float CalcCascadeShadowFactor(SamplerComparisonState samShadow, Texture2DArray s
     for (int i = 0; i < 9; ++i)
     {
         percentLit += shadowMap.SampleCmpLevelZero(samShadow,
-            float3(shadowPosH.x, shadowPosH.y, idx), depth, int2(i % 3 - 1, i / 3 - 1)).r;
+            float3(shadowPosH.xy, idx), depth, int2(i % 3 - 1, i / 3 - 1)).r;
     }
 
     return percentLit /= 9.0f;

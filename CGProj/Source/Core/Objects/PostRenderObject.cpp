@@ -13,9 +13,19 @@ PostRenderObject::PostRenderObject(const D3D11_VIEWPORT& viewport)
     SetViewport(viewport);
 }
 
+void PostRenderObject::SetAdditionalBuffers(Buffer* buffer, uint32_t slot, ShaderType types)
+{
+    additionalBuffers = buffer;
+    bindSlot = slot;
+    bindTypes = types;
+}
+
+
 void PostRenderObject::Draw()
 {
-    if(!IsVisible()) return;
+    if (!IsVisible()) return;
+    BindViewport();
+    if (GetUsageAdditionalBuffers() && additionalBuffers) additionalBuffers->BindBuffers(bindSlot, bindTypes);
     Object::Draw();
 }
 

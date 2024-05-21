@@ -64,12 +64,7 @@ void RenderTarget::CreateRenderTarget(DXGI_FORMAT texFormat, DXGI_FORMAT rtvForm
         engInst->GetSwapChain()->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backTex); // __uuidof(ID3D11Texture2D)
         engInst->GetDevice()->CreateRenderTargetView(backTex, nullptr, &renderTargetView);
     }
-    outputViewPort.TopLeftX = 0.0f;
-    outputViewPort.TopLeftY = 0.0f;
-    outputViewPort.Width = static_cast<float>(width);
-    outputViewPort.Height = static_cast<float>(height);
-    outputViewPort.MinDepth = 0.0f;
-    outputViewPort.MaxDepth = 1.0f;
+    CreateViewport(Vector2(static_cast<float>(width), static_cast<float>(height)));
 }
 
 void RenderTarget::CreateDepthStencilView(DXGI_FORMAT texFormat, DXGI_FORMAT dsvFormat, DXGI_FORMAT depthSRVFormat)
@@ -109,7 +104,8 @@ void RenderTarget::CreateDepthStencilView(DXGI_FORMAT texFormat, DXGI_FORMAT dsv
     shaderResourceViewDesc.Texture2D.MipLevels = 1;
     res = engInst->GetDevice()->CreateShaderResourceView(depthStencilTex, &shaderResourceViewDesc, &depthStencilSRV);
     if (FAILED(res)) return;
-
+    
+    CreateViewport(Vector2(static_cast<float>(width), static_cast<float>(height)));
 }
 
 void RenderTarget::CreateDepthStencilState(BOOL depthEnable,
@@ -141,6 +137,17 @@ void RenderTarget::CreateDepthStencilState(BOOL depthEnable,
     descDS.FrontFace = defaultStencilOp;
     descDS.BackFace = defaultStencilOp;
     engInst->GetDevice()->CreateDepthStencilState(&descDS, &depthStencilState);
+}
+
+void RenderTarget::CreateViewport(Vector2 viewportDim, Vector2 viewportPos, Vector2 viewportDepth)
+{
+    outputViewPort = {};
+    outputViewPort.TopLeftX = viewportPos.x;
+    outputViewPort.TopLeftY = viewportPos.y;
+    outputViewPort.Width = viewportDim.x;
+    outputViewPort.Height = viewportDim.y;
+    outputViewPort.MinDepth = viewportDepth.x;
+    outputViewPort.MaxDepth = viewportDepth.y;
 }
 
 void RenderTarget::Destroy()

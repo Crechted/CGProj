@@ -148,6 +148,7 @@
     <ClInclude Include="Source\Core\Objects\Mesh.h" />
     <ClInclude Include="Source\Core\Objects\Object.h" />
     <ClInclude Include="Source\Core\Objects\PostRenderObject.h" />
+    <ClInclude Include="Source\Core\Particles\ParticleSystem.h" />
     <ClInclude Include="Source\Core\Render\Buffer.h" />
     <ClInclude Include="Source\Core\Render\DeferredLightTechnique.h" />
     <ClInclude Include="Source\Core\Render\PostProcess.h" />
@@ -174,6 +175,7 @@
     <ClInclude Include="Source\Game\Objects\Drawable\DrawSphere.h" />
     <ClInclude Include="Source\Game\Objects\Drawable\Grids.h" />
     <ClInclude Include="Source\Game\Objects\Drawable\Sphere.h" />
+    <ClInclude Include="Source\Game\Objects\PostRenderImage.h" />
     <ClInclude Include="Source\Game\Objects\SkySphere.h" />
     <ClInclude Include="Source\Game\Objects\Spectator.h" />
     <ClInclude Include="Source\Game\Planets\Components\PlanetMoveComponent.h" />
@@ -195,6 +197,7 @@
     <ClInclude Include="Source\Utils\MeshImporter.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resource\Shaders\CascadeImgShader.hlsl" />
     <None Include="Resource\Shaders\CascadeShadowShader.hlsl" />
     <None Include="Resource\Shaders\LightingFunctions.hlsl" />
     <None Include="Resource\Shaders\ShadowMappingShader.hlsl" />
@@ -202,6 +205,7 @@
     <None Include="Resource\Shaders\FullQuadShader.hlsl" />
     <None Include="Resource\Shaders\DeferredLightShader.hlsl" />
     <None Include="Resource\Shaders\GBufferShader.hlsl" />
+    <ClCompile Include="Resource\Shaders\ParticleShader.hlsl" />
     <ClCompile Include="Source\CGProj.cpp" />
     <ClCompile Include="Source\Core\Components\CollisionComponent.cpp" />
     <ClCompile Include="Source\Core\Components\Collisions\BoxCollision.cpp" />
@@ -288,7 +292,8 @@
       <AdditionalIncludeDirectories>Z:\Univer\maga\2sem\CG\CGProj\CGProj/Source/;Z:\Univer\maga\2sem\CG\CGProj\CGProj\Libs\Inc\;Z:\Univer\maga\2sem\CG\CGProj\CGProj\Libs\Assimp\include\;Z:\Univer\maga\2sem\CG\vcpkg\installed\x64-windows\include</AdditionalIncludeDirectories>
       <LinkCompiled>true</LinkCompiled>
     </ClCompile>
-    <ClInclude Include="Source\Core\Render\Buffer.hpp" />
+    <ClCompile Include="Source\Core\Particles\ParticleSystem.cpp" />
+    <ClCompile Include="Source\Core\Render\Buffer.cpp" />
     <ClCompile Include="Source\Core\Objects\PostRenderObject.cpp" />
     <ClCompile Include="Source\Core\Render\DeferredLightTechnique.cpp" />
     <ClCompile Include="Source\Core\Render\PostProcess.cpp" />
@@ -963,6 +968,7 @@
       <AdditionalIncludeDirectories>;Z:\Univer\maga\2sem\CG\vcpkg\installed\x64-windows\include</AdditionalIncludeDirectories>
       <LinkCompiled>true</LinkCompiled>
     </ClCompile>
+    <ClCompile Include="Source\Game\Objects\PostRenderImage.cpp" />
     <ClCompile Include="Source\Game\Objects\SkySphere.cpp" />
     <ClCompile Include="Source\Game\Objects\Spectator.cpp" />
     <ClCompile Include="Source\Game\Planets\Components\PlanetMoveComponent.cpp" />
@@ -1372,9 +1378,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(SolutionDir)CGProj/Source/;$(SolutionDir)CGProj\Libs\Inc\;$(SolutionDir)CGProj\Libs\Assimp\include\$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>$(SolutionDir)\CGProj\Libs;$(SolutionDir)\CGProj\Libs\Assimp;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(SolutionDir)CGProj/Source/;$(SolutionDir)CGProj\Libs\Inc\;$(SolutionDir)CGProj\Libs\Assimp\include\$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>$(SolutionDir)\CGProj\Libs;$(SolutionDir)\CGProj\Libs\Assimp;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

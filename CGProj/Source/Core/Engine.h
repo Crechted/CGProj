@@ -4,9 +4,10 @@
 #include "Core/Objects/Object.h"
 #include "Game/Camera.h"
 #include "Game/Components/LightComponents/LightComponent.h"
-#include "Objects/PostRenderObject.h"
-#include "Render/PostProcess.h"
 
+class PostRenderObject;
+class PostProcess;
+class RenderTarget;
 class Mesh;
 class MeshComponent;
 class DeferredLightTechnique;
@@ -98,36 +99,10 @@ public:
     void AddWindow(int32_t scrWidth = -1, int32_t scrHeight = -1, int32_t posX = -1, int32_t posY = -1, ViewType = ViewType::General);
 
     template <typename T, typename... Args>
-    T* CreateObject(const Args&... args)
-    {
-        T* newObj = new T(args...);
-        if (const auto nGObj = dynamic_cast<Object*>(newObj))
-        {
-            if (const auto nCam = dynamic_cast<Camera*>(newObj)) cameras.insert(nCam);
-            else if (const auto nPostProc = dynamic_cast<PostProcess*>(newObj)) postProcesses.insert(nPostProc);
-            else if (const auto nPostRender = dynamic_cast<PostRenderObject*>(newObj)) postRenderObjects.insert(nPostRender);
-            else gameObjects.insert(nGObj);
-
-            return newObj;
-        }
-        delete newObj;
-        return nullptr;
-    }
+    T* CreateObject(const Args&... args);
 
     template <typename T, typename... Args>
-    T* CreateComponent(const Args&... args)
-    {
-        T* newComp = new T(args...);
-        if (const auto nComp = dynamic_cast<GameComponent*>(newComp))
-        {
-            if (const auto nLight = dynamic_cast<LightComponent*>(nComp)) lightComponents.insert(nLight);
-            else gameComponents.insert(nComp);
-
-            nComp->Owner = nullptr;
-            return newComp;
-        }
-        return nullptr;
-    }
+    T* CreateComponent(const Args&... args);
 
     void UpdateLightsData();
     void BindLightsBuffer();
@@ -189,3 +164,39 @@ private:
 
     RenderTarget* texRenderTarget;
 };
+
+
+#include "Render/PostProcess.h"
+#include "Objects/PostRenderObject.h"
+
+template <typename T, typename... Args>
+    T* Engine::CreateObject(const Args&... args)
+{
+    T* newObj = new T(args...);
+    if (const auto nGObj = dynamic_cast<Object*>(newObj))
+    {
+        if (const auto nCam = dynamic_cast<Camera*>(newObj)) cameras.insert(nCam);
+        else if (const auto nPostProc = dynamic_cast<PostProcess*>(newObj)) postProcesses.insert(nPostProc);
+        else if (const auto nPostRender = dynamic_cast<PostRenderObject*>(newObj)) postRenderObjects.insert(nPostRender);
+        else gameObjects.insert(nGObj);
+
+        return newObj;
+    }
+    delete newObj;
+    return nullptr;
+}
+
+template <typename T, typename... Args>
+T* Engine::CreateComponent(const Args&... args)
+{
+    T* newComp = new T(args...);
+    if (const auto nComp = dynamic_cast<GameComponent*>(newComp))
+    {
+        if (const auto nLight = dynamic_cast<LightComponent*>(nComp)) lightComponents.insert(nLight);
+        else gameComponents.insert(nComp);
+
+        nComp->Owner = nullptr;
+        return newComp;
+    }
+    return nullptr;
+}

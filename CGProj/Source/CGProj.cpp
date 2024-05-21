@@ -17,6 +17,7 @@
 #include "Game/Objects/SkySphere.h"
 #include "Game/Objects/Spectator.h"
 
+
 int main()
 {
     Engine* engine = &Engine::GetInstance();

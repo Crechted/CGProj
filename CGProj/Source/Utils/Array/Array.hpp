@@ -112,7 +112,7 @@ void Array<T>::remove(const T& element)
             removeAt(i);
             return;
         }
-    }    
+    }
 }
 
 template <typename T>
@@ -127,7 +127,7 @@ void Array<T>::clear()
 template <typename T>
 bool Array<T>::contains(const T& element) const
 {
-    for ( int32_t i = 0; i < lenght_; i++)
+    for (int32_t i = 0; i < lenght_; i++)
     {
         if (array_[i] == element) return true;
     }
@@ -173,7 +173,7 @@ void Array<T>::toValidNull()
 template <typename T>
 void Array<T>::expand()
 {
-    size_ = static_cast<int32_t>(size_*kExpandCoef);
+    size_ = static_cast<int32_t>(size_ * kExpandCoef);
     T* new_array = static_cast<T*>(malloc(sizeof(T) * size_));
     copyFromTo(array_, new_array);
     free(array_);

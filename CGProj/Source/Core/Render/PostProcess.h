@@ -1,10 +1,11 @@
 ﻿#pragma once
+
 #include <d3d11.h>
 
 #include "Core/CoreTypes.h"
 #include "Core/Objects/Object.h"
-//#include "Buffer.h"
 #include "SimpleMath.h"
+#include "Core/Render/Buffer.h"
 
 class RenderTarget;
 class Shader;
@@ -35,8 +36,8 @@ protected:
     
     ID3D11Buffer* vertexBuffer = nullptr;
     ID3D11Buffer* indexBuffer = nullptr;
-    ID3D11Buffer* constBuffer = nullptr;
-    //Buffer<ConstBufferData>* constBuf = nullptr;
+    //ID3D11Buffer* constBuffer = nullptr;
+    Buffer* constBuf = nullptr;
     
     Array<VertexNoTex> vertices;
     Array<int32_t> indexes;
@@ -46,3 +47,4 @@ protected:
     int32_t screenHeight;
     LPCWSTR shaderPath = L"./Resource/Shaders/PostProcessShader.hlsl";
 };
+

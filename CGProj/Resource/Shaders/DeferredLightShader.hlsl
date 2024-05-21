@@ -4,6 +4,8 @@
 #include "Structures.hlsl"
 #include "LightingFunctions.hlsl"
 
+#define CASCADE_COUNT 8
+
 cbuffer ViewBuf : register(b0)
 {
 ViewData viewData;
@@ -12,8 +14,20 @@ ViewData viewData;
 cbuffer ScreenToWorldParams : register( b2 )
 {
 matrix InverseProjView;
+matrix ViewProj;
 float3 CamPos;
 float2 ScreenDimensions;
+}
+
+struct CascadeData
+{
+    matrix ViewProj[CASCADE_COUNT];
+    float4 Distances[CASCADE_COUNT / 4];
+};
+
+cbuffer CascadeBuf : register(b3)
+{
+CascadeData CascData;
 }
 
 cbuffer LightIndexBuffer : register( b4 )
@@ -28,6 +42,9 @@ Texture2D NormalTextureVS : register( t3 );
 Texture2D DepthTextureVS : register( t4 );
 
 StructuredBuffer<LightData> Lights : register( t8 );
+Texture2DArray CascadeShadowMaps : register(t10);
+
+SamplerComparisonState ShadCompSamp : register(s1);
 
 float4 ClipToWorld(float4 clip)
 {
@@ -96,12 +113,31 @@ float4 PS(PS_IN input) : SV_Target
     mat.specularPower = specularPower;
 
     LightingResult lit = (LightingResult)0;
+    uint layer = 0;
+    //const float distance = abs(length(eyePos - P));
+
+    float4 Pvp = mul(P, ViewProj);
+    //const float distance = abs(1.0f-depth);
+    const float distance = abs(Pvp.w);
+    for (int i = 0; i < CASCADE_COUNT; ++i)
+    {
+        if (distance < ((float[4])(CascData.Distances[i / 4]))[i % 4])
+        //if (dephtVal < ((float[4])CascData.Distances[i/4])[i%4])
+        {
+            layer = i;
+            break;
+        }
+    }
+    float4 shadowPosH = mul(P, mul(CascData.ViewProj[layer], mT));
+    float shadow = CalcCascadeShadowFactor(ShadCompSamp, CascadeShadowMaps, shadowPosH, layer);
 
     switch (light.type)
     {
         case DIRECTIONAL_LIGHT:
         {
             lit = DoDirectionalLight(light, mat, V, N);
+            lit.diffuse *= shadow;
+            lit.specular *= shadow;
             break;
         }
         case POINT_LIGHT:

@@ -37,7 +37,7 @@ void Sphere::InitSphere()
     SetIndices(indexes);
 }
 
-void Sphere::CreateSphere(Vector3 initPos, float radius, int32_t stackCount, int32_t sliceCount, Array<Vertex>& vertices,
+void Sphere::CreateSphere(Vector3 initPos, float radius, uint32_t stackCount, uint32_t sliceCount, Array<Vertex>& vertices,
     Array<int32_t>& indexes)
 {
     auto phiStep = Pi / stackCount;
@@ -49,10 +49,10 @@ void Sphere::CreateSphere(Vector3 initPos, float radius, int32_t stackCount, int
                            Vector3(0.0f, 1.0f, 0.0f),
                            Vector2(0.5f, 0.0f)});
 
-    for (int i = 1; i <= stackCount - 1; i++)
+    for (uint32_t i = 1; i <= stackCount - 1; i++)
     {
         auto phi = i * phiStep;
-        for (int j = 0; j <= sliceCount; j++)
+        for (uint32_t j = 0; j <= sliceCount; j++)
         {
             const auto theta = j * thetaStep;
             const auto pos = Vector3(
@@ -60,7 +60,7 @@ void Sphere::CreateSphere(Vector3 initPos, float radius, int32_t stackCount, int
                 static_cast<float>(initPos.y + radius * cos(phi)),
                 static_cast<float>(initPos.z + radius * sin(phi) * sin(theta))
                 );
-            auto tang = Vector3(-radius * sin(phi) * sin(theta), 0, radius * sin(phi) * cos(theta));
+            auto tang = Vector3(static_cast<float>(-radius * sin(phi) * sin(theta)), 0, static_cast<float>(radius * sin(phi) * cos(theta)));
             auto norm = pos;
             norm.Normalize();
             const auto tex = Vector2(theta / (Pi * 2), phi / Pi);
@@ -73,7 +73,7 @@ void Sphere::CreateSphere(Vector3 initPos, float radius, int32_t stackCount, int
                            Vector3(0.0f, -1.0f, 0.0f),
                            Vector2(0.5f, 1.0f)});
 
-    for (int i = 1; i <= sliceCount; i++)
+    for (uint32_t i = 1; i <= sliceCount; i++)
     {
         indexes.insert(0);
         indexes.insert(i + 1);
@@ -82,9 +82,9 @@ void Sphere::CreateSphere(Vector3 initPos, float radius, int32_t stackCount, int
 
     auto baseIndex = 1;
     const auto ringVertexCount = sliceCount + 1;
-    for (int i = 0; i < stackCount - 2; i++)
+    for (uint32_t i = 0; i < stackCount - 2; i++)
     {
-        for (int j = 0; j < sliceCount; j++)
+        for (uint32_t j = 0; j < sliceCount; j++)
         {
             indexes.insert(baseIndex + (i + 1) * ringVertexCount + j);
             indexes.insert(baseIndex + i * ringVertexCount + j);
@@ -99,7 +99,7 @@ void Sphere::CreateSphere(Vector3 initPos, float radius, int32_t stackCount, int
 
     const auto southPoleIndex = vertices.size() - 1;
     baseIndex = southPoleIndex - ringVertexCount;
-    for (int i = 0; i < sliceCount; i++)
+    for (uint32_t i = 0; i < sliceCount; i++)
     {
         indexes.insert(southPoleIndex);
         indexes.insert(baseIndex + i);
@@ -108,7 +108,7 @@ void Sphere::CreateSphere(Vector3 initPos, float radius, int32_t stackCount, int
 
 }
 
-void Sphere::CreateDrawSphere(Vector3 initPos, float radius, int32_t stackCount, int32_t sliceCount, Vector4 color,
+void Sphere::CreateDrawSphere(Vector3 initPos, float radius, uint32_t stackCount, uint32_t sliceCount, Vector4 color,
     Array<VertexNoTex>& vertices,
     Array<int32_t>& indexes)
 {
@@ -118,10 +118,10 @@ void Sphere::CreateDrawSphere(Vector3 initPos, float radius, int32_t stackCount,
 
     vertices.insert(VertexNoTex{Vector4(initPos.x, initPos.y + radius, initPos.z, 1.0f), color});
 
-    for (int i = 1; i <= stackCount - 1; i++)
+    for (uint32_t i = 1; i <= stackCount - 1; i++)
     {
         auto phi = i * phiStep;
-        for (int j = 0; j <= sliceCount; j++)
+        for (uint32_t j = 0; j <= sliceCount; j++)
         {
             auto theta = j * thetaStep;
             auto pos = Vector4(
@@ -139,7 +139,7 @@ void Sphere::CreateDrawSphere(Vector3 initPos, float radius, int32_t stackCount,
 
     vertices.insert(VertexNoTex{Vector4(initPos.x, initPos.y - radius, initPos.z, 1.0f), color});
 
-    for (int i = 1; i <= sliceCount; i++)
+    for (uint32_t i = 1; i <= sliceCount; i++)
     {
         indexes.insert(0);
         indexes.insert(i);
@@ -148,9 +148,9 @@ void Sphere::CreateDrawSphere(Vector3 initPos, float radius, int32_t stackCount,
 
     auto baseIndex = 1;
     auto ringVertexCount = sliceCount + 1;
-    for (int i = 0; i < stackCount - 2; i++)
+    for (uint32_t i = 0; i < stackCount - 2; i++)
     {
-        for (int j = 0; j < sliceCount; j++)
+        for (uint32_t j = 0; j < sliceCount; j++)
         {
             indexes.insert(baseIndex + (i + 1) * ringVertexCount + j);
             indexes.insert(baseIndex + i * ringVertexCount + j);
@@ -164,7 +164,7 @@ void Sphere::CreateDrawSphere(Vector3 initPos, float radius, int32_t stackCount,
 
     auto southPoleIndex = vertices.size() - 1;
     baseIndex = southPoleIndex - ringVertexCount;
-    for (int i = 0; i < sliceCount; i++)
+    for (uint32_t i = 0; i < sliceCount; i++)
     {
         indexes.insert(southPoleIndex);
         indexes.insert(baseIndex + i);

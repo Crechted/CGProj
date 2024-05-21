@@ -3,9 +3,11 @@
 #include "Game/Components/DrawBoxComponent.h"
 #include "Core/CoreTypes.h"
 #include "Core/Engine.h"
+#include "Core/Windisplay.h"
 #include "Core/Components/DrawComponent.h"
 #include "Core/Input/InputDevice.h"
 #include "Core/Objects/Mesh.h"
+#include "Game/Objects/PostRenderImage.h"
 #include "Game/Objects/Drawable/DrawBox.h"
 
 
@@ -14,21 +16,17 @@ DirectionalLightComponent::DirectionalLightComponent()
     drawFrustum = CreateComponent<DrawBoxComponent>(Vector3::Zero, Vector3::Zero, Vector4::One, D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
     drawCascadeBox = CreateComponent<DrawBoxComponent>(Vector3::Zero, Vector3::Zero, Vector4(1.0f, 0.0f, 0.0f, 1.0f),
         D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+    for (int32_t i = 0; i < CASCADE_COUNT; i++)
+    {
+        const auto size = 800.0f/CASCADE_COUNT;
+        cascadeImgs.insert(engInst->CreateObject<PostRenderImage>(nullptr, Vector2(size, size), Vector2(size * i, 0.0f)));
+    }
 }
 
 void DirectionalLightComponent::Initialize()
 {
     if (engInst->useCascadeShadow)
-    {
-        D3D11_BUFFER_DESC constBufDesc;
-        constBufDesc.Usage = D3D11_USAGE_DEFAULT;
-        constBufDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-        constBufDesc.CPUAccessFlags = 0;
-        constBufDesc.MiscFlags = 0;
-        constBufDesc.StructureByteStride = 0;
-        constBufDesc.ByteWidth = sizeof(CascadeData);
-        engInst->GetDevice()->CreateBuffer(&constBufDesc, nullptr, &cascadeBuffer);
-    }
+        cascadeBuffer = (new Buffer())->CreateBuffer<CascadeData>();
 
     sceneComponent->initRotation = Vector3(-45.0f, 45.0f, 0.0f);
 
@@ -44,12 +42,34 @@ void DirectionalLightComponent::Initialize()
     lightData.type = 2;
     lightData.enabled = true;
     LightComponent::Initialize();
+    CreateCascadeImage();
+}
+
+void DirectionalLightComponent::CreateCascadeImage()
+{
+    for (int32_t i = 0; i < cascadeImgs.size(); ++i)
+    {
+        Buffer* addBufIndex = (new Buffer())->CreateBuffer<CascadeIndex>();
+        addBufIndex->UpdateData(CascadeIndex{static_cast<uint32_t>(i)}, 0);
+        cascadeImgs[i]->SetSRV(outputTextureSRV);
+        cascadeImgs[i]->SetUsageAdditionalBuffers(true);
+        cascadeImgs[i]->SetShaderPath(L"./Resource/Shaders/CascadeImgShader.hlsl");
+        cascadeImgs[i]->SetAdditionalBuffers(addBufIndex, 0, SPixel);
+        addBufIndexes.insert(addBufIndex);
+    }
 }
 
 void DirectionalLightComponent::DestroyResource()
 {
     LightComponent::DestroyResource();
-    if (cascadeBuffer) cascadeBuffer->Release();
+    for (const auto cascadeImg : cascadeImgs)
+    {
+        if (cascadeImg) cascadeImg->Destroy();
+    }
+    for (const auto addBufInd : addBufIndexes)
+    {
+        if (addBufInd) addBufInd->Destroy();
+    }
 }
 
 void DirectionalLightComponent::UpdateSubresource()
@@ -58,9 +78,8 @@ void DirectionalLightComponent::UpdateSubresource()
 
     if (engInst->useCascadeShadow)
     {
-        engInst->GetContext()->UpdateSubresource(cascadeBuffer, 0, nullptr, &cascData, 0, 0);
-        engInst->GetContext()->GSSetConstantBuffers(3, 1, &cascadeBuffer);
-        engInst->GetContext()->PSSetConstantBuffers(3, 1, &cascadeBuffer);
+        cascadeBuffer->UpdateData(cascData);
+        cascadeBuffer->BindBuffers(3, SGeometry | SPixel);
     }
 }
 
@@ -73,7 +92,7 @@ void DirectionalLightComponent::UpdateShaderResources()
 void DirectionalLightComponent::Update(float timeTick)
 {
     LightComponent::Update(timeTick);
-
+    
     const auto forward = sceneComponent->GetWorldTransform().GetForward();
 
     if (engInst->useCascadeShadow)
@@ -85,6 +104,7 @@ void DirectionalLightComponent::Update(float timeTick)
             Matrix subProj;
             engInst->GetCurCamera()->GetProjAndDistanceBySection(percentDist * i, percentDist * static_cast<float>(i + 1), subProj,
                 cascData.Distances[i]);
+            //cascData.Distances[i] /= 50.0f;
             const auto corners = CascadeShaderManager::GetFrustumCorners(camData.mView, subProj);
             const auto center = CascadeShaderManager::GetFrustumCenter(corners);
             const auto tar = center + forward;

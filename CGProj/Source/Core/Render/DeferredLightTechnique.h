@@ -1,10 +1,11 @@
 #pragma once
 #include "Utils/Array/Array.h"
 #include <d3d11.h>
-
-#include "Buffer.h"
 #include "SimpleMath.h"
+#include "Core/CoreTypes.h"
 
+class Shader;
+class Buffer;
 using namespace DirectX::SimpleMath;
 class LightComponent;
 class RenderTarget;
@@ -18,6 +19,7 @@ struct LightIndexBuffer
 struct ScreenToWorldParams
 {
     Matrix InverseProjView;
+    Matrix ViewProj;
     alignas(16) Vector3 CamPos;
     alignas(16) Vector2 ScreenDimensions;
 };
@@ -39,8 +41,8 @@ protected:
     RenderTarget* tarSpecular = nullptr;
     RenderTarget* tarNormal = nullptr;
 
-    Buffer<LightIndexBuffer>* lightIndexBuf = nullptr;
-    Buffer<ScreenToWorldParams>* screenToWorldBuf = nullptr;
+    Buffer* lightIndexBuf = nullptr;
+    Buffer* screenToWorldBuf = nullptr;
     
     ID3D11Buffer* vertexBuffer = nullptr;
     ID3D11Buffer* indexBuffer = nullptr;
