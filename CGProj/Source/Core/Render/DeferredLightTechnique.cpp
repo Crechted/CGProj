@@ -18,8 +18,7 @@ void DeferredLightTechnique::Render()
 {
     GBufferPass();
     LightingPass();
-    engInst->GetTexRenderTarget()->CopyDepthStencilView(tarDepthStencil->GetDepthStencilView(), tarDepthStencil->GetDepthStencilSRV(),
-        tarDepthStencil->GetDepthStencilTexture());
+    engInst->GetTexRenderTarget()->CopyDepthStencilViewTex(tarDepthStencil->GetDepthStencilTexture());
 }
 
 void DeferredLightTechnique::Initialize()
@@ -85,6 +84,7 @@ void DeferredLightTechnique::Destroy()
     if (rastStateCullBack) rastStateCullBack->Release();
 
     if (quadShader) quadShader->Destroy();
+    if (fullQuadShader) fullQuadShader->Destroy();
     if (volumeShader) volumeShader->Destroy();
     if (allQuadShader) allQuadShader->Destroy();
     if (allVolumeShader) allVolumeShader->Destroy();
@@ -113,21 +113,29 @@ void DeferredLightTechnique::LightingPass()
     float blendFactor[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     UINT sampleMask = 0xffffffff;
 
+    //engInst->GetContext()->RSSetState(rastStateCullBack);
+    engInst->GetTexRenderTarget()->SetDepthStencilState(DSSLess);
+    engInst->GetContext()->OMSetBlendState(blendState, blendFactor, sampleMask);
+    engInst->GetTexRenderTarget()->BindTarget();
+    const auto SRV = tarLightAccumulation->GetRenderTargetSRV();
+    engInst->GetContext()->PSSetShaderResources(0, 1, &SRV);
+    DrawDirectionalLightVolume(fullQuadShader);
+
     auto lights = engInst->GetLightComponents();
     for (int32_t i = 0; i < lights.size(); ++i)
     {
         if (!lights[i]->GetLightData().enabled) continue;
         engInst->GetContext()->OMSetBlendState(nullptr, blendFactor, sampleMask);
 
-        engInst->GetContext()->RSSetState(rastStateCullFront);
-        engInst->GetTexRenderTarget()->SetDepthStencilState(DSSGreater);
+        engInst->GetContext()->RSSetState(rastStateCullBack);
+        engInst->GetTexRenderTarget()->SetDepthStencilState(DSSLess);
         engInst->GetTexRenderTarget()->BindDepthStencil();
         lights[i]->Render();
         if (lights[i]->GetLightData().type == DIRECTIONAL_LIGHT) DrawDirectionalLightVolume(quadShader);
         else DrawLightVolume(lights[i], volumeShader);
 
-        engInst->GetContext()->RSSetState(rastStateCullBack);
-        engInst->GetTexRenderTarget()->SetDepthStencilState(DSSLess);
+        engInst->GetContext()->RSSetState(rastStateCullFront);
+        engInst->GetTexRenderTarget()->SetDepthStencilState(DSSGreater);
         engInst->GetTexRenderTarget()->BindDepthStencil();
         lights[i]->Render();
         if (lights[i]->GetLightData().type == DIRECTIONAL_LIGHT) DrawDirectionalLightVolume(quadShader);
@@ -142,7 +150,7 @@ void DeferredLightTechnique::LightingPass()
         if (lights[i]->GetLightData().type == DIRECTIONAL_LIGHT) DrawDirectionalLightVolume(allQuadShader);
         else DrawLightVolume(lights[i], allVolumeShader);
     }
-
+    engInst->GetContext()->RSSetState(nullptr);
     engInst->GetContext()->OMSetBlendState(nullptr, blendFactor, sampleMask);
 }
 
@@ -214,7 +222,13 @@ void DeferredLightTechnique::CreateShaders()
     quadShader = new Shader();
     quadShader->AddInputElementDesc("POSITION");
     quadShader->AddInputElementDesc("COLOR");
-    quadShader->CreateShader(L"./Resource/Shaders/FullQuadShader.hlsl", SVertex, macro, (LPSTR)"VS");
+    quadShader->CreateShader(L"./Resource/Shaders/FullQuadShader.hlsl", SVertex, macro);
+
+    fullQuadShader = new Shader();
+    fullQuadShader->AddInputElementDesc("POSITION");
+    fullQuadShader->AddInputElementDesc("COLOR");
+    fullQuadShader->CreateShader(L"./Resource/Shaders/FullQuadShader.hlsl", SVertex, macro);
+    fullQuadShader->CreateShader(L"./Resource/Shaders/FullQuadShader.hlsl", SPixel, macro);
 
     volumeShader = new Shader();
     volumeShader->AddInputElementDesc("POSITION");
@@ -301,6 +315,7 @@ void DeferredLightTechnique::CreateDepthStencilStates()
     descDSS.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
     descDSS.DepthFunc = D3D11_COMPARISON_GREATER_EQUAL;
     descDSS.StencilEnable = true;
+    descDSS.StencilReadMask = 1;
     descDSS.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
     descDSS.BackFace.StencilPassOp = D3D11_STENCIL_OP_REPLACE;
     descDSS.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;

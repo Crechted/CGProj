@@ -66,7 +66,9 @@ int main()
     sky->SetCollisionEnabled(false);*/
     Transform trans{Vector3::One};
     engine->CreateComponent<PointLightComponent>(trans, 4.0f, Vector4(1.0f, 0.0f, 0.0f, 0.0f) * 10.0f, true);
+    
     engine->CreateComponent<DirectionalLightComponent>();
+
     Transform trans1{Vector3(0.0f, 1.0f, 2.0f)};
     engine->CreateComponent<PointLightComponent>(trans1, 6.0f, Vector4(0.0f, 0.0f, 1.0f, 0.0f) * 10.0f, true);
 

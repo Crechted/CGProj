@@ -101,7 +101,6 @@ float4 PS(PS_IN input) : SV_Target
     float4 specular = SpecularTextureVS.Load(int3(texCoord, 0));
     float4 N = NormalTextureVS.Load(int3(texCoord, 0));
 
-    ambient *= diffuse;
     // Unpack the specular power from the alpha component of the specular color.
     float specularPower = exp2(specular.a * 10.5f);
 
@@ -151,8 +150,7 @@ float4 PS(PS_IN input) : SV_Target
             break;
         }
     }
-
-    return ambient + (diffuse * lit.diffuse) + (specular * lit.specular);
+    return (diffuse * lit.diffuse) + (specular * lit.specular);
 }
 
 #endif

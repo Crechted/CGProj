@@ -205,7 +205,7 @@
     <None Include="Resource\Shaders\FullQuadShader.hlsl" />
     <None Include="Resource\Shaders\DeferredLightShader.hlsl" />
     <None Include="Resource\Shaders\GBufferShader.hlsl" />
-    <ClCompile Include="Resource\Shaders\ParticleShader.hlsl" />
+    <None Include="Resource\Shaders\ParticleShader.hlsl" />
     <ClCompile Include="Source\CGProj.cpp" />
     <ClCompile Include="Source\Core\Components\CollisionComponent.cpp" />
     <ClCompile Include="Source\Core\Components\Collisions\BoxCollision.cpp" />

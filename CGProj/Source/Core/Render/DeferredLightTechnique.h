@@ -56,6 +56,7 @@ protected:
     Array<int32_t> indexes;
     
     Shader* quadShader = nullptr;
+    Shader* fullQuadShader = nullptr;
     Shader* volumeShader = nullptr;
     Shader* allQuadShader = nullptr;
     Shader* allVolumeShader = nullptr;

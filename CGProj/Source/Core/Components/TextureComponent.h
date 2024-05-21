@@ -20,7 +20,7 @@ struct LoadedTex
 struct Material
 {
     Vector4 globalAmbient = Vector4::One;
-    Vector4 ambientColor = Vector4(0.01f);
+    Vector4 ambientColor = Vector4(0.2f);
     Vector4 emissiveColor;
     Vector4 diffuseColor;
     Vector4 specularColor;

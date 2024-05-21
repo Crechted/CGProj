@@ -4,7 +4,7 @@
 #include "Structures.hlsl"
 cbuffer ViewBuf : register(b0)
 {
-    ViewData viewData;
+ViewData viewData;
 }
 
 cbuffer MaterialBuf : register(b2)
@@ -31,40 +31,40 @@ struct GBuffer
     float4 NormalVS : SV_Target3;          // View space normal (R32G32B32_FLOAT) Unused (A32_FLOAT)
 };
 
-float3 ExpandNormal( float3 n )
+float3 ExpandNormal(float3 n)
 {
     return n * 2.0f - 1.0f;
 }
 
-float4 DoNormalMapping( float3x3 TBN, Texture2D tex, sampler s, float2 uv )
+float4 DoNormalMapping(float3x3 TBN, Texture2D tex, sampler s, float2 uv)
 {
-    float3 normal = tex.Sample( s, uv ).xyz;
-    normal = ExpandNormal( normal );
+    float3 normal = tex.Sample(s, uv).xyz;
+    normal = ExpandNormal(normal);
 
-    normal = mul( normal, TBN );
-    return normalize( float4( normal, 0 ) );
+    normal = mul(normal, TBN);
+    return normalize(float4(normal, 0));
 }
 
-float4 DoBumpMapping( float3x3 TBN, Texture2D tex, sampler s, float2 uv, float bumpScale )
+float4 DoBumpMapping(float3x3 TBN, Texture2D tex, sampler s, float2 uv, float bumpScale)
 {
     // Sample the heightmap at the current texture coordinate.
-    float height_00 = tex.Sample( s, uv ).r * bumpScale;
+    float height_00 = tex.Sample(s, uv).r * bumpScale;
     // Sample the heightmap in the U texture coordinate direction.
-    float height_10 = tex.Sample( s, uv, int2( 1, 0 ) ).r * bumpScale;
+    float height_10 = tex.Sample(s, uv, int2(1, 0)).r * bumpScale;
     // Sample the heightmap in the V texture coordinate direction.
-    float height_01 = tex.Sample( s, uv, int2( 0, 1 ) ).r * bumpScale;
+    float height_01 = tex.Sample(s, uv, int2(0, 1)).r * bumpScale;
 
-    float3 p_00 = { 0, 0, height_00 };
-    float3 p_10 = { 1, 0, height_10 };
-    float3 p_01 = { 0, 1, height_01 };
+    float3 p_00 = {0, 0, height_00};
+    float3 p_10 = {1, 0, height_10};
+    float3 p_01 = {0, 1, height_01};
 
     // normal = tangent x bitangent
-    float3 normal = cross( normalize(p_10 - p_00), normalize(p_01 - p_00) );
+    float3 normal = cross(normalize(p_10 - p_00), normalize(p_01 - p_00));
 
     // Transform normal from tangent space to view space.
-    normal = mul( normal, TBN );
+    normal = mul(normal, TBN);
 
-    return float4( normal, 0 );
+    return float4(normal, 0);
 }
 
 PS_IN VS(VS_IN input)
@@ -75,7 +75,7 @@ PS_IN VS(VS_IN input)
     output.binormWS = mul(float4(input.binorm.xyz, 0.0f), viewData.mWorld).xyz;
     output.normWS = mul(float4(input.norm.xyz, 0.0f), viewData.mWorld).xyz;
     output.texCoord = float2(input.texCoord.x, 1.0f - input.texCoord.y);
-    
+
     output.posWS = mul(float4(input.pos.xyz, 1.0f), viewData.mWorld);
     output.pos = mul(output.posWS, viewData.mViewProj);
     return output;
@@ -128,7 +128,7 @@ GBuffer PS(PS_IN input)
     }
 
     ambient *= material.globalAmbient;
-
+    
     float4 emissive = material.emissiveColor;
     if (material.hasEmissiveTex == 1)
     {
@@ -144,7 +144,7 @@ GBuffer PS(PS_IN input)
     }
 
     // TODO: Also compute directional lighting in the LightAccumulation buffer.
-    OUT.LightAccumulation = (ambient + emissive);
+    OUT.LightAccumulation = (ambient * diffuse + emissive);
 
     float4 N;
 
@@ -157,7 +157,7 @@ GBuffer PS(PS_IN input)
 
         N = DoNormalMapping(TBN, NormalTex, LinearRepeatSampler, input.texCoord);
     }
-    
+
     else if (material.hasBumpTex == 1)
     {
         // For most scenes using bump mapping, I have to invert the binormal.

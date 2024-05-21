@@ -30,8 +30,9 @@ public:
     ID3D11Texture2D* GetRenderTargetTexture() const;
     ID3D11Texture2D* GetDepthStencilTexture() const;
 
-    void CopyDepthStencilView(ID3D11DepthStencilView* DSV, ID3D11ShaderResourceView* depthSRV, ID3D11Texture2D* depthTex );
-    
+    void CopyDepthStencilViewTex(ID3D11Texture2D* depthTex);
+    void CopyRenderTargetTex(ID3D11Texture2D* targetTex);
+
     void CreateAll();
 
     void CreateRenderTarget(DXGI_FORMAT texFormat = DXGI_FORMAT_R32G32B32A32_FLOAT,
@@ -56,10 +57,10 @@ public:
         D3D11_STENCIL_OP backStencilDepthFailOp = D3D11_STENCIL_OP_KEEP,
         D3D11_STENCIL_OP backStencilPassOp = D3D11_STENCIL_OP_KEEP,
         D3D11_COMPARISON_FUNC backStencilFunc = D3D11_COMPARISON_ALWAYS);
-    
+
     void CreateViewport(Vector2 viewportDim = Vector2(800, 800), Vector2 viewportPos = Vector2::Zero,
         Vector2 viewportDepth = Vector2(0.0f, 1.0f));
-    
+
     void BindTarget(bool bindStencilView = true);
     void BindDepthStencil();
     void SetDepthStencilState(ID3D11DepthStencilState* state = nullptr, uint32_t stencilRef = 0);

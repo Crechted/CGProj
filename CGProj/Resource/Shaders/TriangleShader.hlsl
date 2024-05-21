@@ -98,7 +98,7 @@ float4 PS(PS_IN input) : SV_Target
     lit = DoLighting(Lights, material, viewData.camPos, input.posWS, N, shadow);
     
     diffuse *= lit.diffuse;
-    specular = lit.specular*material.specularScale;
+    specular = lit.specular;
     diffuse *= debugColorCoef;
     specular *= debugColorCoef;
 #endif
@@ -111,7 +111,7 @@ float4 PS(PS_IN input) : SV_Target
     }
     lit = DoLighting(Lights, material, viewData.camPos, input.posWS, N, shadow);
     diffuse *= lit.diffuse;
-    specular = lit.specular * material.specularScale;
+    specular = lit.specular ;
 #endif
 
     float4 col = float4((ambient + emissive + diffuse + specular).rgb, opacity);

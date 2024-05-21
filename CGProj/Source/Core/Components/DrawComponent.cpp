@@ -24,7 +24,7 @@ void DrawComponent::Initialize()
     curDrawData->rastState = rastState;
     curDrawData->vertexBuffer = vertexBuffer;
     curDrawData->indexBuffer = indexBuffer;
-    
+
     engInst->OnChangeRenderStateDelegate.AddRaw(this, &DrawComponent::OnChangeRenderState);
 }
 
@@ -36,7 +36,7 @@ void DrawComponent::DestroyResource()
         if (curDrawData->layout) curDrawData->layout->Release();
         if (curDrawData->vertexBuffer) curDrawData->vertexBuffer->Release();
         if (curDrawData->indexBuffer) curDrawData->indexBuffer->Release();
-        
+
         if (defShader) defShader->Destroy();
         if (cascadeShader) cascadeShader->Destroy();
         if (shadowMappingShader) shadowMappingShader->Destroy();
@@ -47,7 +47,7 @@ void DrawComponent::Draw()
 {
     if (!engInst) return;
     if (engInst->GetRenderState() != RenderState::DrawDebug) return;
-    
+
     const uint32_t strides = sizeof(VertexNoTex);
     const uint32_t offsets = 0;
     UpdateData();
@@ -71,12 +71,12 @@ void DrawComponent::UpdateData()
     vertexBuffer = curDrawData->vertexBuffer;
     indexBuffer = curDrawData->indexBuffer;
 
-    D3D11_MAPPED_SUBRESOURCE res = {};    
+    D3D11_MAPPED_SUBRESOURCE res = {};
     engInst->GetContext()->Map(vertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
     auto dataPtr = reinterpret_cast<VertexNoTex*>(res.pData);
     for (int32_t i = 0; i < vertices.size(); i++)
     {
-        dataPtr[i].position = vertices[i].position;        
+        dataPtr[i].position = vertices[i].position;
         dataPtr[i].color = vertices[i].color;
     }
     engInst->GetContext()->Unmap(vertexBuffer, 0);
@@ -85,7 +85,7 @@ void DrawComponent::UpdateData()
 void DrawComponent::Update(float timeTick)
 {
     UpdateData();
-    totalTime = engInst->GetTotalTime(); 
+    totalTime = engInst->GetTotalTime();
 }
 
 void DrawComponent::AddVertex(const VertexNoTex& vertex)
@@ -114,7 +114,7 @@ void DrawComponent::SetVertices(const Array<DirectX::XMFLOAT4>& pts)
     for (int32_t i = 0; i < pts.size() - 1; i += 2)
     {
         const VertexNoTex tempVert{Vector4(pts[i].x, pts[i].y, pts[i].z, pts[i].w),
-                                    Vector4(pts[i + 1].x, pts[i + 1].y, pts[i + 1].z, pts[i + 1].w)};
+                                   Vector4(pts[i + 1].x, pts[i + 1].y, pts[i + 1].z, pts[i + 1].w)};
         vertices.insert(tempVert);
     }
 }
@@ -130,7 +130,7 @@ void DrawComponent::SetVertices(DirectX::XMFLOAT4* pts, int32_t count)
     for (int32_t i = 0; i < count - 1; i += 2)
     {
         const VertexNoTex tempVert{Vector4(pts[i].x, pts[i].y, pts[i].z, pts[i].w),
-                                    Vector4(pts[i + 1].x, pts[i + 1].y, pts[i + 1].z, pts[i + 1].w)};
+                                   Vector4(pts[i + 1].x, pts[i + 1].y, pts[i + 1].z, pts[i + 1].w)};
         vertices.insert(tempVert);
     }
 }
@@ -145,6 +145,30 @@ void DrawComponent::SetDefaultShader()
     curShader = defShader;
 }
 
+void DrawComponent::OnChangeRenderState(RenderState state)
+{
+    switch (state)
+    {
+        case RenderState::ShadowMap:
+        {
+            /*if (!shadowMappingShader) CreateShadowMappingShader();
+            SetShader(shadowMappingShader);*/
+            break;
+        }
+        case RenderState::CascadeShadow:
+        {
+            /*if (!cascadeShader) CreateCascadeShader();
+            SetShader(cascadeShader);*/
+            break;
+        }
+        default:
+        {
+            SetDefaultShader();
+            break;
+        }
+    }
+}
+
 void DrawComponent::CreateDefaultShader()
 {
     if (defShader) return;
@@ -155,56 +179,11 @@ void DrawComponent::CreateDefaultShader()
     std::string res;
     s << CASCADE_COUNT << "\x00";
     s >> res;
-    D3D_SHADER_MACRO* macro = engInst->useCascadeShadow ? new D3D_SHADER_MACRO[3]{"DO_CASCADE_SHADOW", "1", "CASCADE_COUNT", res.c_str(), nullptr, nullptr} : nullptr;
+    D3D_SHADER_MACRO* macro = engInst->useCascadeShadow
+                                  ? new D3D_SHADER_MACRO[3]{"DO_CASCADE_SHADOW", "1", "CASCADE_COUNT", res.c_str(), nullptr, nullptr}
+                                  : nullptr;
     defShader->CreateShader(pFileName, SVertex, macro);
     defShader->CreateShader(pFileName, SPixel, macro);
-}
-
-void DrawComponent::OnChangeRenderState(RenderState state)
-{
-    switch (state)
-    {
-        case RenderState::Forward_Normal:
-        {
-            SetDefaultShader();
-            break;
-        }
-        case RenderState::ShadowMap:
-        {
-            if (!shadowMappingShader) CreateShadowMappingShader();
-            SetShader(shadowMappingShader);
-            break;
-        }
-        case RenderState::CascadeShadow:
-        {
-            /*if (!cascadeShader) CreateCascadeShader();
-            SetShader(cascadeShader);*/
-            break;
-        }
-        default: break;
-    }
-}
-
-void DrawComponent::CreateCascadeShader()
-{
-    cascadeShader = new Shader();
-    cascadeShader->AddInputElementDesc("POSITION");
-    cascadeShader->AddInputElementDesc("COLOR");
-    std::strstream s;
-    std::string res;
-    s << CASCADE_COUNT << "\x00";
-    s >> res;
-    D3D_SHADER_MACRO macro[] = {"DO_CASCADE_SHADOW", "1", "CASCADE_COUNT", res.c_str(), nullptr, nullptr};
-    cascadeShader->CreateShader(L"./Resource/Shaders/CascadeShadowShader.hlsl", SVertex, macro);
-    //cascadeShader->CreateShader(L"./Resource/Shaders/CascadeShadowShader.hlsl", ShaderType::Geometry, macro);
-}
-
-void DrawComponent::CreateShadowMappingShader()
-{
-    shadowMappingShader = new Shader();
-    shadowMappingShader->AddInputElementDesc("POSITION");
-    shadowMappingShader->AddInputElementDesc("COLOR");
-    shadowMappingShader->CreateShader(L"./Resource/Shaders/ShadowMappingShader.hlsl", SVertex);
 }
 
 void DrawComponent::SetIndexes(int32_t* idxs, int32_t count)

@@ -142,8 +142,8 @@ void Sphere::CreateDrawSphere(Vector3 initPos, float radius, uint32_t stackCount
     for (uint32_t i = 1; i <= sliceCount; i++)
     {
         indexes.insert(0);
-        indexes.insert(i);
         indexes.insert(i + 1);
+        indexes.insert(i);
     }
 
     auto baseIndex = 1;

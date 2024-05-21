@@ -76,7 +76,5 @@ private:
     Shader* shadowMappingShader = nullptr;
     
     void OnChangeRenderState(RenderState state);
-    void CreateCascadeShader();
-    void CreateShadowMappingShader();
 };
 

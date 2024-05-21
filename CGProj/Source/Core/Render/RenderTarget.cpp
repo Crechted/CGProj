@@ -34,16 +34,14 @@ ID3D11Texture2D* RenderTarget::GetDepthStencilTexture() const
     return depthStencilTex;
 }
 
-void RenderTarget::CopyDepthStencilView(ID3D11DepthStencilView* DSV, ID3D11ShaderResourceView* depthSRV, ID3D11Texture2D* depthTex)
+void RenderTarget::CopyDepthStencilViewTex(ID3D11Texture2D* depthTex)
 {
-    /*if (!DSV || !depthSRV || !depthTex) return;
-    if (depthStencilView) depthStencilView->Release();
-    if (depthStencilSRV) depthStencilSRV->Release();
-    if (depthStencilTex) depthStencilTex->Release();
-    depthStencilView = DSV;
-    depthStencilSRV = depthSRV;
-    depthStencilTex = depthTex;*/
     engInst->GetContext()->CopyResource(depthStencilTex, depthTex);
+}
+
+void RenderTarget::CopyRenderTargetTex(ID3D11Texture2D* targetTex)
+{
+    engInst->GetContext()->CopyResource(renderTargetTexture, targetTex);
 }
 
 void RenderTarget::CreateAll()
