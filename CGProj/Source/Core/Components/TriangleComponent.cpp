@@ -20,42 +20,34 @@ void TriangleComponent::Initialize()
     CreateIndexBuffer();
     CreateAndSetRasterizerState();
 
-    curDrawData = new TriangleDrawData();
-    curDrawData->rastState = rastState;
-    curDrawData->vertexBuffer = vertexBuffer;
-    curDrawData->indexBuffer = indexBuffer;
-    //drawsData.insert(engInst->GetIdxCurrentPipeline(), curDrawData);
     engInst->OnChangeRenderStateDelegate.AddRaw(this, &TriangleComponent::OnChangeRenderState);
 }
 
 void TriangleComponent::DestroyResource()
 {
-    if (curDrawData)
-    {
-        if (curDrawData->rastState) curDrawData->rastState->Release();
-        //if (curDrawData->layout) curDrawData->layout->Release();
-        if (curDrawData->vertexBuffer) curDrawData->vertexBuffer->Release();
-        if (curDrawData->indexBuffer) curDrawData->indexBuffer->Release();
-        if (defShader) defShader->Destroy();
-        if (cascadeShader) cascadeShader->Destroy();
-        if (shadowMappingShader) shadowMappingShader->Destroy();
-    }
+    if (rastState) rastState->Release();
+    if (vertexBuffer) vertexBuffer->Release();
+    if (indexBuffer) indexBuffer->Release();
+    if (defShader) defShader->Destroy();
+    if (cascadeShader) cascadeShader->Destroy();
+    if (shadowMappingShader) shadowMappingShader->Destroy();
+    if (deferredLightPassShader) deferredLightPassShader->Destroy();
+
 }
 
 void TriangleComponent::Draw()
 {
     if (!engInst) return;
-    if (engInst->GetRenderState() == RenderState::DrawDebug || engInst->GetRenderState() == RenderState::Deferred_Lighting) return;
+    if (engInst->GetRenderState() == RenderState::DrawDebug) return;
 
     const uint32_t stride = sizeof(Vertex);
     const uint32_t offset = 0;
 
-    UpdateData();
     engInst->GetContext()->RSSetState(engInst->GetCurEyeData().isCam ? rastState : rastStateShadow);
     engInst->GetContext()->IASetPrimitiveTopology(topology);
     engInst->GetContext()->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
     engInst->GetContext()->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-    curShader->Draw();
+    curShader->BindShaders();
     engInst->GetContext()->DrawIndexed(indexes.size(), 0, 0);
     engInst->GetContext()->RSSetState(nullptr);
 }
@@ -66,11 +58,6 @@ void TriangleComponent::Reload()
 
 void TriangleComponent::UpdateData()
 {
-    //curDrawData = drawsData[engInst->GetIdxCurrentPipeline()];
-    rastState = curDrawData->rastState;
-    vertexBuffer = curDrawData->vertexBuffer;
-    indexBuffer = curDrawData->indexBuffer;
-
     /*D3D11_MAPPED_SUBRESOURCE res = {};
     engInst->GetContext()->Map(vertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
     auto dataPtr = reinterpret_cast<Vertex*>(res.pData);
@@ -211,10 +198,23 @@ void TriangleComponent::OnChangeRenderState(RenderState state)
             SetShader(cascadeShader);
             break;
         }
+        case RenderState::Forward_Normal:
+        case RenderState::Forward_Transparent:
+        {
+            if (!forwardRenderShader) CreateForwardShader();
+            SetShader(forwardRenderShader);
+            break;
+        }
         case RenderState::Deferred_GBuffer:
         {
             if (!deferredGeometryPassShader) CreateDeferredGeometryShader();
             SetShader(deferredGeometryPassShader);
+            break;
+        }
+        case RenderState::Deferred_Lighting:
+        {
+            if (!deferredLightPassShader) CreateDeferredLightShader();
+            SetShader(deferredLightPassShader);
             break;
         }
         default:
@@ -234,19 +234,8 @@ void TriangleComponent::CreateDefaultShader()
     defShader->AddInputElementDesc("BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT);
     defShader->AddInputElementDesc("NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT);
     defShader->AddInputElementDesc("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT);
-    std::strstream s;
-    std::string cascade, numLights;
-    s << CASCADE_COUNT << "\x00";
-    s >> cascade;
-    s.clear();
-    s << engInst->GetLightComponents().size() << "\x00";
-    s >> numLights;
-    D3D_SHADER_MACRO* macro = engInst->useCascadeShadow
-                                  ? new D3D_SHADER_MACRO[]{"DO_CASCADE_SHADOW", "1", "CASCADE_COUNT", cascade.c_str(), "NUM_LIGHTS",
-                                                           numLights.c_str(), nullptr, nullptr}
-                                  : new D3D_SHADER_MACRO[]{"NUM_LIGHTS", numLights.c_str(), nullptr, nullptr};
-    defShader->CreateShader(pFileName, SVertex, macro);
-    defShader->CreateShader(pFileName, SPixel, macro);
+    defShader->CreateShader(pFileName, SVertex);
+    defShader->CreateShader(pFileName, SPixel);
 }
 
 void TriangleComponent::CreateCascadeShader()
@@ -282,6 +271,30 @@ void TriangleComponent::CreateShadowMappingShader()
     shadowMappingShader->CreateShader(L"./Resource/Shaders/ShadowMappingShader.hlsl", SVertex);
 }
 
+void TriangleComponent::CreateForwardShader()
+{
+    if (forwardRenderShader) return;
+    forwardRenderShader = new Shader();
+    forwardRenderShader->AddInputElementDesc("POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT);
+    forwardRenderShader->AddInputElementDesc("TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT);
+    forwardRenderShader->AddInputElementDesc("BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT);
+    forwardRenderShader->AddInputElementDesc("NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT);
+    forwardRenderShader->AddInputElementDesc("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT);
+    std::strstream s;
+    std::string cascade, numLights;
+    s << CASCADE_COUNT << "\x00";
+    s >> cascade;
+    s.clear();
+    s << engInst->GetLightComponents().size() << "\x00";
+    s >> numLights;
+    D3D_SHADER_MACRO* macro = engInst->useCascadeShadow
+                                  ? new D3D_SHADER_MACRO[]{"DO_CASCADE_SHADOW", "1", "CASCADE_COUNT", cascade.c_str(), "NUM_LIGHTS",
+                                                           numLights.c_str(), nullptr, nullptr}
+                                  : new D3D_SHADER_MACRO[]{"NUM_LIGHTS", numLights.c_str(), nullptr, nullptr};
+    forwardRenderShader->CreateShader(L"./Resource/Shaders/ForwardRenderShader.hlsl", SVertex, macro);
+    forwardRenderShader->CreateShader(L"./Resource/Shaders/ForwardRenderShader.hlsl", SPixel, macro);
+}
+
 
 void TriangleComponent::CreateDeferredGeometryShader()
 {
@@ -293,4 +306,20 @@ void TriangleComponent::CreateDeferredGeometryShader()
     deferredGeometryPassShader->AddInputElementDesc("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT);
     deferredGeometryPassShader->CreateShader(L"./Resource/Shaders/GBufferShader.hlsl", SVertex);
     deferredGeometryPassShader->CreateShader(L"./Resource/Shaders/GBufferShader.hlsl", SPixel);
+}
+
+void TriangleComponent::CreateDeferredLightShader()
+{
+    deferredLightPassShader = new Shader();
+    std::strstream s;
+    std::string cascade, numLights;
+    s << CASCADE_COUNT << "\x00";
+    s >> cascade;
+    s.clear();
+    s << engInst->GetLightComponents().size() << "\x00";
+    s >> numLights;
+    D3D_SHADER_MACRO macro[] = {"DO_CASCADE_SHADOW", "1", "CASCADE_COUNT", cascade.c_str(), "NUM_LIGHTS", numLights.c_str(), nullptr,
+                                nullptr};
+    deferredLightPassShader->CreateShader(L"./Resource/Shaders/DeferredAllLightsShader.hlsl", SVertex, macro);
+    deferredLightPassShader->CreateShader(L"./Resource/Shaders/DeferredAllLightsShader.hlsl", SPixel, macro);
 }

@@ -2,7 +2,9 @@
 #include "Core/Engine.h"
 #include "Core/WinDisplay.h"
 #include "Core/Components/CollisionComponent.h"
+#include "Core/Components/TextureComponent.h"
 #include "Core/Objects/Mesh.h"
+#include "Core/Render/RenderTarget.h"
 #include "Game/Camera.h"
 #include "Game/Catomary/Components/PlayerMoveComponent.h"
 #include "Game/Catomary/Objects/CatamaryObjects.h"
@@ -13,6 +15,8 @@
 #include "Game/Components/SphereComponent.h"
 #include "Game/Components/LightComponents/PointLightComponent.h"
 #include "Game/Components/LightComponents/SpotLightComponent.h"
+#include "Game/Objects/PostRenderGameMap.h"
+#include "Game/Objects/PostRenderImage.h"
 #include "Game/Objects/Drawable/Box.h"
 #include "Game/Objects/SkySphere.h"
 #include "Game/Objects/Spectator.h"
@@ -80,9 +84,17 @@ int main()
     auto transper2 = engine->CreateObject<Box>(nullptr, Vector3(-2.0f, 1.0f, -4.0f), Vector3(0.7f));
     transper2->SetOpacity(0.7f);
 
+    auto particleSys = engine->CreateObject<ParticleSystem>(100000, Transform({-5.0f, 2.0f, 0.0f}));
+    particleSys->GetTextureComponent()->SetTexture(L"Resource/Textures/snowflake.png");
+
+    auto Border = engine->CreateObject<PostRenderGameMap>(L"./Resource/Shaders/CascadeImgShader.hlsl", nullptr, Vector2(220, 220), Vector2(10.0, 10.0f));
+    auto img = engine->CreateObject<PostRenderGameMap>( L"./Resource/Shaders/ImgShader.hlsl", nullptr, Vector2(200, 200), Vector2(20.0, 20.0f));
+    
+    
     engine->useCascadeShadow = true;
     engine->SetRenderType(RenderType::Deferred);
     engine->Initialize();
+    
     engine->Run();
     return 0;
 }

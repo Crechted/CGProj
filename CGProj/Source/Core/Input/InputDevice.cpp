@@ -45,7 +45,7 @@ LONG_PTR CALLBACK InputDevice::HandleInput(HWND handlerWindow, uint32_t message,
     auto* pRawInput = ReadRawInput(&size, intParam);
     if (size == 0) return DefWindowProc(handlerWindow, message, uintParam, intParam);
 
-    if (pRawInput->header.dwType == RIM_TYPEKEYBOARD) HanleKey(pRawInput);
+    if (pRawInput->header.dwType == RIM_TYPEKEYBOARD) HandleKey(pRawInput);
     else if (pRawInput->header.dwType == RIM_TYPEMOUSE) HandleMouse(pRawInput);
 
     return DefWindowProc(handlerWindow, message, uintParam, intParam);
@@ -56,7 +56,7 @@ InputDevice::~InputDevice()
     delete keys;
 }
 
-void InputDevice::HanleKey(RAWINPUT* rawInput)
+void InputDevice::HandleKey(RAWINPUT* rawInput)
 {
     //bool Break = rawInput.Flags & 0x01;
 

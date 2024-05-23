@@ -5,6 +5,7 @@
 #include "Game/Camera.h"
 #include "Game/Components/LightComponents/LightComponent.h"
 
+class BlendState;
 class PostRenderObject;
 class PostProcess;
 class RenderTarget;
@@ -36,6 +37,7 @@ enum class RenderState
     Deferred_GBuffer,
     Deferred_Lighting,
     DrawDebug,
+    PostRender,
     PostProcess
 };
 
@@ -85,7 +87,10 @@ public:
     RenderType GetRenderType() const { return renderType; }
 
     EyeViewData GetCurEyeData() const { return curEyeData; }
+    void SetCurEyeData(const EyeViewData& eye) { curEyeData = eye; }
 
+    RenderTarget* GetBackBufferRTV() const;
+    
     Array<Camera*> GetCamerasOnViewport() const { return cameras; }
     Array<Object*> GetGameObjects() const { return gameObjects; }
     Array<GameComponent*> GetGameComponents() const { return gameComponents; }
@@ -121,13 +126,14 @@ protected:
     ID3D11Buffer* lightsBuffer;
     ID3D11ShaderResourceView* lightsSRV;
 
-    ID3D11BlendState* blendState = nullptr;
+    BlendState* alphaBlendState = nullptr;
 
     explicit Engine();
 
     Array<Object*> gameObjects;
     Array<GameComponent*> gameComponents;
     Array<PostRenderObject*> postRenderObjects;
+    Array<class ParticleSystem*> particleSystems;
     Array<Camera*> cameras;
     Array<PostProcess*> postProcesses;
     Array<LightComponent*> lightComponents;
@@ -168,6 +174,7 @@ private:
 
 #include "Render/PostProcess.h"
 #include "Objects/PostRenderObject.h"
+#include "Particles/ParticleSystem.h"
 
 template <typename T, typename... Args>
     T* Engine::CreateObject(const Args&... args)
@@ -178,6 +185,7 @@ template <typename T, typename... Args>
         if (const auto nCam = dynamic_cast<Camera*>(newObj)) cameras.insert(nCam);
         else if (const auto nPostProc = dynamic_cast<PostProcess*>(newObj)) postProcesses.insert(nPostProc);
         else if (const auto nPostRender = dynamic_cast<PostRenderObject*>(newObj)) postRenderObjects.insert(nPostRender);
+        else if (const auto nPartSys = dynamic_cast<ParticleSystem*>(newObj)) particleSystems.insert(nPartSys);
         else gameObjects.insert(nGObj);
 
         return newObj;

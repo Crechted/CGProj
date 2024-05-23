@@ -1,6 +1,6 @@
 #include "SpotLightComponent.h"
 
-#include "Core/CoreTypes.h"
+#include "Utils/HelperFunctions.h"
 #include "Core/Components/DrawComponent.h"
 #include "Utils/DebugDrawing.h"
 

@@ -35,8 +35,8 @@ public:
     DirectionalLightComponent();
     void Initialize() override;
     void DestroyResource() override;
-    void UpdateSubresource() override;
-    void UpdateShaderResources() override;
+    void UpdateLightData() override;
+    void BindShadowMapSRV() override;
     void DrawDebugBoxes(Array<Vector4> corners);
     void Update(float timeTick) override;
     void Draw() override;
@@ -55,4 +55,5 @@ protected:
     DrawBoxComponent* drawCascadeBox;
 
     void CreateCascadeImage();
+    void OnKeyDown(Keys key);
 };

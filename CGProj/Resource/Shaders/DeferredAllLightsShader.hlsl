@@ -1,5 +1,5 @@
-#ifndef DEFERRED_LIGHT
-#define DEFERRED_LIGHT
+#ifndef DEFERRED_ALL_LIGHT
+#define DEFERRED_ALL_LIGHT
 
 #include "Structures.hlsl"
 #include "LightingFunctions.hlsl"
@@ -18,6 +18,13 @@ matrix ViewProj;
 float3 CamPos;
 float2 ScreenDimensions;
 }
+
+
+/*struct CascadeData
+{
+    matrix ViewProj[CASCADE_COUNT];
+    float4 Distances[CASCADE_COUNT / 4];
+};*/
 
 #ifdef DO_CASCADE_SHADOW
 cbuffer CascadeBuf : register(b3)
@@ -69,13 +76,12 @@ PS_IN VS(uint id: SV_VertexID)
     return output;
 }
 */
-PS_IN VS(float4 pos : POSITION,
-    float4 col : COLOR)
+PS_IN VS(uint id: SV_VertexID)
 {
     PS_IN output = (PS_IN)0;
 
-    output.pos = mul(pos, viewData.mWorld);
-    output.pos = mul(output.pos, viewData.mViewProj);
+    output.texCoord = float2(id & 1, (id & 2) >> 1);
+    output.pos = float4(output.texCoord * float2(2, -2) + float2(-1, 1), 0, 1);
     return output;
 }
 
@@ -107,45 +113,26 @@ float4 PS(PS_IN input) : SV_Target
     mat.specularColor = specular;
     mat.specularPower = specularPower;
 
-    LightingResult lit = (LightingResult)0;
+    float shadow = 1.0f;
+#ifdef DO_CASCADE_SHADOW
     uint layer = 0;
-    //const float distance = abs(length(eyePos - P));
-
     float4 Pvp = mul(P, ViewProj);
-    //const float distance = abs(1.0f-depth);
     const float distance = abs(Pvp.w);
     for (int i = 0; i < CASCADE_COUNT; ++i)
     {
         if (distance < ((float[4])(CascData.Distances[i / 4]))[i % 4])
-        //if (dephtVal < ((float[4])CascData.Distances[i/4])[i%4])
         {
             layer = i;
             break;
         }
     }
     float4 shadowPosH = mul(P, mul(CascData.ViewProj[layer], mT));
-    float shadow = CalcCascadeShadowFactor(ShadCompSamp, CascadeShadowMaps, shadowPosH, layer);
-
-    switch (light.type)
-    {
-        case DIRECTIONAL_LIGHT:
-        {
-            lit = DoDirectionalLight(light, mat, V, N);
-            lit.diffuse *= shadow;
-            lit.specular *= shadow;
-            break;
-        }
-        case POINT_LIGHT:
-        {
-            lit = DoPointLight(light, mat, V, P, N);
-            break;
-        }
-        case SPOT_LIGHT:
-        {
-            lit = DoSpotLight(light, mat, V, P, N);
-            break;
-        }
-    }
+    shadow = CalcCascadeShadowFactor(ShadCompSamp, CascadeShadowMaps, shadowPosH, layer);
+#endif
+    
+    
+    LightingResult lit = DoLighting(Lights, mat, eyePos, P, N, shadow);
+    
     return (diffuse * lit.diffuse) + (specular * lit.specular);
 }
 

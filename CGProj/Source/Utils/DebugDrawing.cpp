@@ -1,6 +1,6 @@
 #include "DebugDrawing.h"
 
-#include "Core/CoreTypes.h"
+#include "Utils/HelperFunctions.h"
 
 void DebugDrawing::CreateDrawCone(Vector3 pos, float angle, float lenght, int32_t density, Vector4 color, Matrix transform,
     Array<VertexNoTex>& vertices, Array<int32_t>& indexes,

@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <d3d11.h>
+#include <forward_list>
 
 #include "GameComponent.h"
 #include "SimpleMath.h"
@@ -12,19 +13,62 @@ struct ViewData
 {
     Matrix mWorld;
     Matrix mViewProj;
+    Matrix mView;
+    Matrix mProj;
     Vector4 objPos;
     Vector4 camPos;
 };
 
 struct Transform
 {
+    Transform(Vector3 loc = Vector3::Zero, Vector3 rot = Vector3::Zero, Vector3 scale = Vector3::One)
+        : location(loc), rotate(rot), scale(scale)
+    {
+    }
+
+    Transform(const Transform& transform) = default;
+
+    Transform(Transform&& transform)
+        : location(transform.location), rotate(transform.rotate), scale(transform.scale)
+    {
+        transform = Identity;
+    }
+
+    bool operator==(const Transform& rhs) const
+    {
+        return location == rhs.location && rotate == rhs.rotate && scale == rhs.scale;
+    }
+
+    Transform& operator=(const Transform& other)
+    {
+        if (*this == other) return *this;
+        Transform temp(other);
+        std::swap(this->location, temp.location);
+        std::swap(this->rotate, temp.rotate);
+        std::swap(this->scale, temp.scale);
+        return *this;
+    }
+
+    Transform& operator=(Transform&& other)
+    {
+        if (*this == other) return *this;
+
+        std::swap(this->location, other.location);
+        std::swap(this->rotate, other.rotate);
+        std::swap(this->scale, other.scale);
+        other = Identity;;
+        return *this;
+    }
+
     Vector3 GetUp() const;
     Vector3 GetForward() const;
     Vector3 GetRight() const;
     Matrix GetMatrix() const;
-    Vector3 location;
-    Vector3 rotate;
+    Vector3 location = Vector3::Zero;
+    Vector3 rotate = Vector3::Zero;
     Vector3 scale = Vector3::One;
+
+    static const Transform Identity;
 };
 
 struct BufStruct
@@ -90,7 +134,7 @@ public:
     bool attachTranslation = true;
     bool attachRotate = true;
     bool attachScale = true;
-    
+
     SceneComponent* GetParentComponent() const { return parentComponent; }
 
     static Transform TransformFromMatrix(Matrix& mTrans);

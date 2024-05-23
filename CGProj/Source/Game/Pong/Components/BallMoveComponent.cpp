@@ -1,14 +1,11 @@
 #include "BallMoveComponent.h"
+#include "Utils/HelperFunctions.h"
 
-#include <random>
 using namespace DirectX::SimpleMath;
 
 float BallMoveComponent::GetRand() const
 {
-    std::random_device rd;
-    std::default_random_engine gen(rd());
-    std::uniform_real_distribution<float> dist(-speed, speed);
-    return dist(gen);
+    return Rand(-speed, speed);
 }
 
 void BallMoveComponent::Initialize()

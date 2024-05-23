@@ -3,7 +3,7 @@
 #include "Game/Camera.h"
 #include "Core/Engine.h"
 #include "Core/Input/InputDevice.h"
-#include "Core/CoreTypes.h"
+#include "Utils/HelperFunctions.h"
 
 SpringArmComponent::SpringArmComponent(Camera* cam)
 {

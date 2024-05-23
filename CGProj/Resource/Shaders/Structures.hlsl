@@ -11,6 +11,8 @@ struct ViewData
 {
     matrix mWorld;
     matrix mViewProj;
+    matrix mView;
+    matrix mProj;
     float4 objectPos;
     float4 camPos;
 };

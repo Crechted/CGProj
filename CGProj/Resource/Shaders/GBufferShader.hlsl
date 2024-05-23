@@ -81,7 +81,7 @@ PS_IN VS(VS_IN input)
     return output;
 }
 
-//[earlydepthstencil]
+[earlydepthstencil]
 GBuffer PS(PS_IN input)
 {
     GBuffer OUT;

@@ -38,7 +38,7 @@ public:
     Shader();
     virtual ~Shader();
     void Destroy();
-    void Draw();
+    void BindShaders();
 
     static bool FindShader(LPCWSTR pFileName, ShaderType type, ShaderData& retShaderData);
     static bool ContainsShader(LPCWSTR pFileName, ShaderType type);
@@ -46,6 +46,7 @@ public:
     static void RemoveShader(const ShaderData& data);
     static void AddShader(const ShaderData& data);
     static void Clear();
+    static void UnbindShaders();
     bool CreateShader(LPCWSTR shaderPath, ShaderType type, const D3D_SHADER_MACRO* shaderMacros = nullptr, LPSTR entry = nullptr);
     void AddInputElementDesc(LPCSTR SemanticName, UINT SemanticIndex = 0, DXGI_FORMAT Format = DXGI_FORMAT_R32G32B32A32_FLOAT,
         D3D11_INPUT_CLASSIFICATION InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA);
@@ -72,10 +73,16 @@ protected:
     LPSTR defVSEntry = (LPSTR)"VS";
     LPSTR defPSEntry = (LPSTR)"PS";
     LPSTR defGSEntry = (LPSTR)"GS";
+    LPSTR defCSEntry = (LPSTR)"CS";
+    LPSTR defHSEntry = (LPSTR)"HS";
+    LPSTR defDSEntry = (LPSTR)"DS";
 
     LPSTR defVSTarget = (LPSTR)"vs_5_0";
     LPSTR defPSTarget = (LPSTR)"ps_5_0";
     LPSTR defGSTarget = (LPSTR)"gs_5_0";
+    LPSTR defCSTarget = (LPSTR)"cs_5_0";
+    LPSTR defHSTarget = (LPSTR)"hs_5_0";
+    LPSTR defDSTarget = (LPSTR)"ds_5_0";
 
 private:
     ID3D11InputLayout* curLayout = nullptr;

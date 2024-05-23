@@ -6,7 +6,6 @@
 
 enum class RenderState;
 class Shader;
-struct TriangleDrawData;
 
 class DrawComponent : public GameComponent
 {
@@ -54,11 +53,9 @@ protected:
     D3D11_SUBRESOURCE_DATA vertexData;
     D3D11_SUBRESOURCE_DATA indexData;*/
 
-    TriangleDrawData* curDrawData;
     Array<VertexNoTex> vertices;
 
     Array<int32_t> indexes;    
-    Array<TriangleDrawData*> drawsData;
 
     float totalTime = 0;
     
@@ -75,6 +72,5 @@ private:
     Shader* cascadeShader = nullptr;
     Shader* shadowMappingShader = nullptr;
     
-    void OnChangeRenderState(RenderState state);
 };
 

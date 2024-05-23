@@ -11,16 +11,6 @@ enum class RenderState;
 class Shader;
 class Movement2DComponent;
 
-struct TriangleDrawData
-{
-    ID3D11RasterizerState* rastState;
-    ID3D11InputLayout* layout;
-    ID3D11VertexShader* vertexShader;
-    ID3D11PixelShader* pixelShader;
-    ID3D11Buffer* vertexBuffer;
-    ID3D11Buffer* indexBuffer;
-};
-
 class TriangleComponent : public GameComponent
 {
 public:
@@ -57,11 +47,9 @@ protected:
     void CreateIndexBuffer();
     void CreateAndSetRasterizerState();
 
-    TriangleDrawData* curDrawData = nullptr;
     Array<Vertex> vertices;
 
     Array<int32_t> indexes;
-    Array<TriangleDrawData*> drawsData;
 
     float totalTime = 0;
 
@@ -77,10 +65,15 @@ private:
 
     Shader* cascadeShader = nullptr;
     Shader* shadowMappingShader = nullptr;
+    Shader* forwardRenderShader = nullptr;
     Shader* deferredGeometryPassShader = nullptr;
+    Shader* deferredLightPassShader = nullptr;
+    
     
     void OnChangeRenderState(RenderState state);
     void CreateCascadeShader();
     void CreateShadowMappingShader();
+    void CreateForwardShader();
     void CreateDeferredGeometryShader();
+    void CreateDeferredLightShader();
 };

@@ -18,7 +18,7 @@ DirectionalLightComponent::DirectionalLightComponent()
         D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
     for (int32_t i = 0; i < CASCADE_COUNT; i++)
     {
-        const auto size = 800.0f/CASCADE_COUNT;
+        const auto size = 800.0f / CASCADE_COUNT;
         cascadeImgs.insert(engInst->CreateObject<PostRenderImage>(nullptr, Vector2(size, size), Vector2(size * i, 0.0f)));
     }
 }
@@ -43,6 +43,7 @@ void DirectionalLightComponent::Initialize()
     lightData.enabled = true;
     LightComponent::Initialize();
     CreateCascadeImage();
+    engInst->GetInputDevice()->KeyDownDelegate.AddRaw(this, &DirectionalLightComponent::OnKeyDown);
 }
 
 void DirectionalLightComponent::CreateCascadeImage()
@@ -50,12 +51,24 @@ void DirectionalLightComponent::CreateCascadeImage()
     for (int32_t i = 0; i < cascadeImgs.size(); ++i)
     {
         Buffer* addBufIndex = (new Buffer())->CreateBuffer<CascadeIndex>();
-        addBufIndex->UpdateData(CascadeIndex{static_cast<uint32_t>(i)}, 0);
+        const auto index = CascadeIndex{static_cast<uint32_t>(i)};
+        addBufIndex->UpdateData(&index, 0);
         cascadeImgs[i]->SetSRV(outputTextureSRV);
         cascadeImgs[i]->SetUsageAdditionalBuffers(true);
+        cascadeImgs[i]->SetVisibility(false);
         cascadeImgs[i]->SetShaderPath(L"./Resource/Shaders/CascadeImgShader.hlsl");
         cascadeImgs[i]->SetAdditionalBuffers(addBufIndex, 0, SPixel);
         addBufIndexes.insert(addBufIndex);
+    }
+}
+
+void DirectionalLightComponent::OnKeyDown(Keys key)
+{
+    if ((engInst->GetInputDevice()->IsKeyDown(Keys::LeftShift) ||
+         engInst->GetInputDevice()->IsKeyDown(Keys::RightShift)) && key == Keys::M)
+    {
+        for (const auto cascadeImg : cascadeImgs)
+            cascadeImg->SetVisibility(!cascadeImg->IsVisible());
     }
 }
 
@@ -72,18 +85,18 @@ void DirectionalLightComponent::DestroyResource()
     }
 }
 
-void DirectionalLightComponent::UpdateSubresource()
+void DirectionalLightComponent::UpdateLightData()
 {
-    LightComponent::UpdateSubresource();
+    LightComponent::UpdateLightData();
 
     if (engInst->useCascadeShadow)
     {
-        cascadeBuffer->UpdateData(cascData);
+        cascadeBuffer->UpdateData(&cascData);
         cascadeBuffer->BindBuffers(3, SGeometry | SPixel);
     }
 }
 
-void DirectionalLightComponent::UpdateShaderResources()
+void DirectionalLightComponent::BindShadowMapSRV()
 {
     engInst->GetContext()->PSSetShaderResources(engInst->useCascadeShadow ? 10 : 9, 1, &outputTextureSRV);
     engInst->GetContext()->PSSetSamplers(1, 1, &sampShadow);
@@ -92,7 +105,7 @@ void DirectionalLightComponent::UpdateShaderResources()
 void DirectionalLightComponent::Update(float timeTick)
 {
     LightComponent::Update(timeTick);
-    
+
     const auto forward = sceneComponent->GetWorldTransform().GetForward();
 
     if (engInst->useCascadeShadow)
@@ -133,7 +146,13 @@ void DirectionalLightComponent::Update(float timeTick)
 
 void DirectionalLightComponent::Draw()
 {
-    if (drawFrustum && drawCascadeBox && engInst->GetInputDevice()->IsKeyDown(Keys::M)) frustums.clear();
+    const bool clear = drawFrustum && drawCascadeBox && engInst->GetInputDevice()->IsKeyDown(Keys::N);
+
+    const bool doDrawDebug = drawFrustum && drawCascadeBox
+                             && (!(engInst->GetInputDevice()->IsKeyDown(Keys::LeftShift)
+                                   || engInst->GetInputDevice()->IsKeyDown(Keys::RightShift))
+                                 && engInst->GetInputDevice()->IsKeyDown(Keys::M));
+    if (doDrawDebug || clear) frustums.clear();
 
     const auto camData = engInst->GetCurCamera()->GetEyeData();
     if (engInst->useCascadeShadow)
@@ -146,9 +165,12 @@ void DirectionalLightComponent::Draw()
             engInst->GetCurCamera()->GetProjAndDistanceBySection(percentDist * i, percentDist * static_cast<float>(i + 1), subProj,
                 dist);
             auto corners = CascadeShaderManager::GetFrustumCorners(camData.mView, subProj);
-            if (drawFrustum && drawCascadeBox && engInst->GetInputDevice()->IsKeyDown(Keys::M)) frustums.insert(corners);
+            if (doDrawDebug && !clear)
+                frustums.insert(corners);
+
         }
     }
+
     else
     {
         Matrix subProj;
@@ -159,9 +181,10 @@ void DirectionalLightComponent::Draw()
 
         engInst->GetCurCamera()->GetProjAndDistanceBySection(0.2f, 0.4f, subProj, dist);
         corners = CascadeShaderManager::GetFrustumCorners(camData.mView, subProj);
-        if (drawFrustum && drawCascadeBox && engInst->GetInputDevice()->IsKeyDown(Keys::M)) frustums.insert(corners);
-
+        if (doDrawDebug && !clear)
+            frustums.insert(corners);
     }
+
     for (auto& corners : frustums)
     {
         DrawDebugBoxes(corners);

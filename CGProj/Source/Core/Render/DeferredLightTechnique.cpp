@@ -2,6 +2,7 @@
 
 #include <strstream>
 
+#include "BlendState.h"
 #include "RenderTarget.h"
 #include "Core/Engine.h"
 #include "Core/Windisplay.h"
@@ -78,7 +79,7 @@ void DeferredLightTechnique::Destroy()
 
     if (vertexBuffer) vertexBuffer->Release();
     if (indexBuffer) indexBuffer->Release();
-    if (blendState) blendState->Release();
+    if (blendState) blendState->Destroy();
 
     if (rastStateCullFront) rastStateCullFront->Release();
     if (rastStateCullBack) rastStateCullBack->Release();
@@ -95,6 +96,7 @@ void DeferredLightTechnique::Destroy()
 
 void DeferredLightTechnique::GBufferPass()
 {
+    engInst->SetRenderState(RenderState::Deferred_GBuffer);
     tarDepthStencil->ClearDepthStencil();
     tarLightAccumulation->ClearTarget();
     tarDiffuse->ClearTarget();
@@ -102,7 +104,6 @@ void DeferredLightTechnique::GBufferPass()
     tarNormal->ClearTarget();
     engInst->GetContext()->OMSetRenderTargets(4, &GBuffer[0], tarDepthStencil->GetDepthStencilView());
     engInst->GetContext()->RSSetViewports(GBufferViewports.size(), &GBufferViewports[0]);
-    engInst->SetRenderState(RenderState::Deferred_GBuffer);
     engInst->RenderScene();
 }
 
@@ -110,22 +111,29 @@ void DeferredLightTechnique::LightingPass()
 {
     engInst->SetRenderState(RenderState::Deferred_Lighting);
     engInst->GetTexRenderTarget()->Clear();
-    float blendFactor[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    UINT sampleMask = 0xffffffff;
 
     //engInst->GetContext()->RSSetState(rastStateCullBack);
     engInst->GetTexRenderTarget()->SetDepthStencilState(DSSLess);
-    engInst->GetContext()->OMSetBlendState(blendState, blendFactor, sampleMask);
+    blendState->Bind();
     engInst->GetTexRenderTarget()->BindTarget();
     const auto SRV = tarLightAccumulation->GetRenderTargetSRV();
     engInst->GetContext()->PSSetShaderResources(0, 1, &SRV);
     DrawDirectionalLightVolume(fullQuadShader);
-
+    
     auto lights = engInst->GetLightComponents();
-    for (int32_t i = 0; i < lights.size(); ++i)
+    engInst->GetTexRenderTarget()->BindTarget();
+
+    /*auto camData =    engInst->GetCurEyeData();;
+    camData.isCam = true;
+    engInst->SetCurEyeData(camData);*/
+    blendState->Bind();
+    PreRenderLightPassByLightID(0);
+    DrawDirectionalLightVolume(allVolumeShader);
+    
+    /*for (int32_t i = 0; i < lights.size(); ++i)
     {
         if (!lights[i]->GetLightData().enabled) continue;
-        engInst->GetContext()->OMSetBlendState(nullptr, blendFactor, sampleMask);
+        blendState->UnBind();
 
         engInst->GetContext()->RSSetState(rastStateCullBack);
         engInst->GetTexRenderTarget()->SetDepthStencilState(DSSLess);
@@ -144,14 +152,15 @@ void DeferredLightTechnique::LightingPass()
         engInst->GetContext()->RSSetState(rastStateCullBack);
         engInst->GetTexRenderTarget()->SetDepthStencilState(DSSLess);
         engInst->GetTexRenderTarget()->BindTarget();
-        engInst->GetContext()->OMSetBlendState(blendState, blendFactor, sampleMask);
+        blendState->Bind();
         lights[i]->Render();
         PreRenderLightPassByLightID(i);
         if (lights[i]->GetLightData().type == DIRECTIONAL_LIGHT) DrawDirectionalLightVolume(allQuadShader);
         else DrawLightVolume(lights[i], allVolumeShader);
-    }
+        
+    }*/
     engInst->GetContext()->RSSetState(nullptr);
-    engInst->GetContext()->OMSetBlendState(nullptr, blendFactor, sampleMask);
+    blendState->UnBind();
 }
 
 void DeferredLightTechnique::DrawLightVolume(LightComponent* light, Shader* curShader)
@@ -168,7 +177,7 @@ void DeferredLightTechnique::DrawLightVolume(LightComponent* light, Shader* curS
     engInst->GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     engInst->GetContext()->IASetVertexBuffers(0, 1, &vertBuf, &stride, &offset);
     engInst->GetContext()->IASetIndexBuffer(indBuf, DXGI_FORMAT_R32_UINT, 0);
-    curShader->Draw();
+    curShader->BindShaders();
     engInst->GetContext()->DrawIndexed(idxs.size(), 0, 0);
 
 }
@@ -180,7 +189,7 @@ void DeferredLightTechnique::DrawDirectionalLightVolume(Shader* curShader)
     engInst->GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     engInst->GetContext()->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
     engInst->GetContext()->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-    curShader->Draw();
+    curShader->BindShaders();
     engInst->GetContext()->DrawIndexed(indexes.size(), 0, 0);
 }
 
@@ -188,7 +197,7 @@ void DeferredLightTechnique::PreRenderLightPassByLightID(int32_t lightId)
 {
     engInst->GetContext()->PSSetShaderResources(0, 5, &GBufferSRV[0]);
     const LightIndexBuffer id{lightId};
-    lightIndexBuf->UpdateData(id);
+    lightIndexBuf->UpdateData(&id);
     lightIndexBuf->BindBuffers(4, SPixel);
 
     const auto cam = engInst->GetCurCamera();
@@ -199,7 +208,7 @@ void DeferredLightTechnique::PreRenderLightPassByLightID(int32_t lightId)
                                             camPos,
                                             Vector2(static_cast<float>(engInst->GetDisplay()->screenWidth),
                                                 static_cast<float>(engInst->GetDisplay()->screenHeight))};
-    screenToWorldBuf->UpdateData(ScreenToWorld);
+    screenToWorldBuf->UpdateData(&ScreenToWorld);
     screenToWorldBuf->BindBuffers(2, SPixel);
 
     engInst->BindLightsBuffer();
@@ -214,10 +223,14 @@ void DeferredLightTechnique::CreateConstantBuffers()
 void DeferredLightTechnique::CreateShaders()
 {
     std::strstream s;
-    std::string numLights;
+    std::string cascade, numLights;
     s << engInst->GetLightComponents().size() << "\x00";
     s >> numLights;
-    D3D_SHADER_MACRO macro[] = {"NUM_LIGHTS", numLights.c_str(), nullptr, nullptr};
+    s.clear();
+    s << CASCADE_COUNT << "\x00";
+    s >> cascade;
+    D3D_SHADER_MACRO macro[] = {"DO_CASCADE_SHADOW", "1", "CASCADE_COUNT", cascade.c_str(), "NUM_LIGHTS", numLights.c_str(), nullptr,
+                                nullptr};
 
     quadShader = new Shader();
     quadShader->AddInputElementDesc("POSITION");
@@ -236,10 +249,11 @@ void DeferredLightTechnique::CreateShaders()
     volumeShader->CreateShader(L"./Resource/Shaders/DeferredLightShader.hlsl", SVertex, macro);
 
     allVolumeShader = new Shader();
-    allVolumeShader->AddInputElementDesc("POSITION");
-    allVolumeShader->AddInputElementDesc("COLOR");
-    allVolumeShader->CreateShader(L"./Resource/Shaders/DeferredLightShader.hlsl", SVertex, macro);
-    allVolumeShader->CreateShader(L"./Resource/Shaders/DeferredLightShader.hlsl", SPixel, macro);
+    //allVolumeShader->AddInputElementDesc("POSITION");
+    //allVolumeShader->AddInputElementDesc("COLOR");
+    
+    allVolumeShader->CreateShader(L"./Resource/Shaders/FullQuadShader.hlsl", SVertex, macro);
+    allVolumeShader->CreateShader(L"./Resource/Shaders/DeferredAllLightsShader.hlsl", SPixel, macro);
 
     allQuadShader = new Shader();
     allQuadShader->AddInputElementDesc("POSITION");
@@ -294,18 +308,7 @@ void DeferredLightTechnique::CreateIndexBuffer()
 
 void DeferredLightTechnique::CreateBlendState()
 {
-    D3D11_BLEND_DESC blendStateDesc = {};
-    ZeroMemory(&blendStateDesc, sizeof(D3D11_BLEND_DESC));
-
-    blendStateDesc.RenderTarget[0].BlendEnable = true;
-    blendStateDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
-    blendStateDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
-    blendStateDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-    blendStateDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-    blendStateDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
-    blendStateDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-    blendStateDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-    engInst->GetDevice()->CreateBlendState(&blendStateDesc, &blendState);
+    blendState = (new BlendState())->CreateAdditive();
 }
 
 void DeferredLightTechnique::CreateDepthStencilStates()

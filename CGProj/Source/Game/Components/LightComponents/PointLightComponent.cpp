@@ -2,6 +2,7 @@
 
 #include "Core/Components/DrawComponent.h"
 #include "Game/Objects/Drawable/Sphere.h"
+#include "Utils/HelperFunctions.h"
 
 PointLightComponent::PointLightComponent(const Transform& transform, float range, Vector4 color, bool drawDebug)
     : range(range), color(color), drawDebug(drawDebug)

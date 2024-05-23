@@ -90,12 +90,26 @@ void Shader::Destroy()
     shadersData.clear();
 }
 
-void Shader::Draw()
+void Shader::UnbindShaders()
+{
+    const auto eng = &Engine::GetInstance();
+    eng->GetContext()->VSSetShader(nullptr, nullptr, 0);
+    eng->GetContext()->PSSetShader(nullptr, nullptr, 0);
+    eng->GetContext()->GSSetShader(nullptr, nullptr, 0);
+    eng->GetContext()->CSSetShader(nullptr, nullptr, 0);
+    eng->GetContext()->HSSetShader(nullptr, nullptr, 0);
+    eng->GetContext()->DSSetShader(nullptr, nullptr, 0);
+}
+
+void Shader::BindShaders()
 {
     if (curLayout) engInst->GetContext()->IASetInputLayout(curLayout);
     engInst->GetContext()->VSSetShader(nullptr, nullptr, 0);
     engInst->GetContext()->PSSetShader(nullptr, nullptr, 0);
     engInst->GetContext()->GSSetShader(nullptr, nullptr, 0);
+    engInst->GetContext()->CSSetShader(nullptr, nullptr, 0);
+    engInst->GetContext()->HSSetShader(nullptr, nullptr, 0);
+    engInst->GetContext()->DSSetShader(nullptr, nullptr, 0);
     for (const auto& data : shadersData)
     {
         switch (data.type)
@@ -103,8 +117,7 @@ void Shader::Draw()
             case SVertex:
             {
                 ID3D11VertexShader* shader;
-                if (S_OK == data.shader->QueryInterface(IID_ID3D11VertexShader,
-                        reinterpret_cast<void**>(&shader)))
+                if (S_OK == data.shader->QueryInterface(IID_ID3D11VertexShader, reinterpret_cast<void**>(&shader)))
                 {
                     engInst->GetContext()->VSSetShader(shader, nullptr, 0);
                 }
@@ -113,8 +126,7 @@ void Shader::Draw()
             case SPixel:
             {
                 ID3D11PixelShader* shader;
-                if (S_OK == data.shader->QueryInterface(IID_ID3D11PixelShader,
-                        reinterpret_cast<void**>(&shader)))
+                if (S_OK == data.shader->QueryInterface(IID_ID3D11PixelShader, reinterpret_cast<void**>(&shader)))
                 {
                     engInst->GetContext()->PSSetShader(shader, nullptr, 0);
                 }
@@ -124,10 +136,39 @@ void Shader::Draw()
             case SGeometry:
             {
                 ID3D11GeometryShader* shader;
-                if (S_OK == data.shader->QueryInterface(IID_ID3D11GeometryShader,
-                        reinterpret_cast<void**>(&shader)))
+                if (S_OK == data.shader->QueryInterface(IID_ID3D11GeometryShader, reinterpret_cast<void**>(&shader)))
                 {
                     engInst->GetContext()->GSSetShader(shader, nullptr, 0);
+                }
+
+                break;
+            }
+            case SCompute:
+            {
+                ID3D11ComputeShader* shader;
+                if (S_OK == data.shader->QueryInterface(IID_ID3D11ComputeShader, reinterpret_cast<void**>(&shader)))
+                {
+                    engInst->GetContext()->CSSetShader(shader, nullptr, 0);
+                }
+
+                break;
+            }
+            case SHull:
+            {
+                ID3D11HullShader* shader;
+                if (S_OK == data.shader->QueryInterface(IID_ID3D11HullShader, reinterpret_cast<void**>(&shader)))
+                {
+                    engInst->GetContext()->HSSetShader(shader, nullptr, 0);
+                }
+
+                break;
+            }
+            case SDomain:
+            {
+                ID3D11DomainShader* shader;
+                if (S_OK == data.shader->QueryInterface(IID_ID3D11DomainShader, reinterpret_cast<void**>(&shader)))
+                {
+                    engInst->GetContext()->DSSetShader(shader, nullptr, 0);
                 }
 
                 break;
@@ -202,6 +243,26 @@ ID3D11DeviceChild* Shader::CreateShaderByType(ShaderType type, ID3DBlob* byteCod
             return shad;
         }
 
+        case SCompute:
+        {
+            ID3D11ComputeShader* shad;
+            if (FAILED(engInst->GetDevice()->CreateComputeShader(bp, bs, nullptr, &shad))) return nullptr;
+            return shad;
+        }
+
+        case SHull:
+        {
+            ID3D11HullShader* shad;
+            if (FAILED(engInst->GetDevice()->CreateHullShader(bp, bs, nullptr, &shad))) return nullptr;
+            return shad;
+        }
+
+        case SDomain:
+        {
+            ID3D11DomainShader* shad;
+            if (FAILED(engInst->GetDevice()->CreateDomainShader(bp, bs, nullptr, &shad))) return nullptr;
+            return shad;
+        }
         default: return nullptr;
     }
 }
@@ -248,6 +309,9 @@ Shader::DefData Shader::GetEntryPointAndTargetByType(ShaderType type) const
         case SVertex: return {defVSEntry, defVSTarget};
         case SPixel: return {defPSEntry, defPSTarget};
         case SGeometry: return {defGSEntry, defGSTarget};
+        case SCompute: return {defCSEntry, defCSTarget};
+        case SHull: return {defHSEntry, defHSTarget};
+        case SDomain: return {defDSEntry, defDSTarget};
         default: return {};
     }
 }

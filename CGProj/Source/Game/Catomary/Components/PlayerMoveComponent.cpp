@@ -46,15 +46,26 @@ void PlayerMoveComponent::CalcOffset(float timeTick)
     auto curScene = pawn->GetSphereComponent();
     auto curRotScene = pawn->GetSpringArmComponent();
 
-    if (curRotScene->GetRotation().x >= 89 && delRotation.x > 0 || curRotScene->GetRotation().x <= -89 && delRotation.x < 0)
+    auto curRot = curRotScene->GetRotation();
+    if (curRot.x >= 89 && delRotation.x > 0 || curRot.x <= -89 && delRotation.x < 0)
     {
         delRotation.x = 0;
+        curRot.x = curRot.x >= 89.0f ? 89.0f : -89.0f;
+        curRotScene->SetRotation(curRot);
     }
 
     const auto mat = curRotScene->GetWorldMatrix();
     curRotScene->AddRotation(delRotation * timeTick);
-    curScene->AddQuatRotation(Vector3(delLocation.z, 0.0f, -delLocation.x) * speed* rotSpeed * timeTick);
-    curScene->AddLocation(delLocation* speed* timeTick);
+    curRot = curRotScene->GetRotation();
+    curScene->AddQuatRotation(Vector3(delLocation.z, 0.0f, -delLocation.x) * speed * rotSpeed * timeTick);
+    curScene->AddLocation(delLocation * speed * timeTick);
+
+    if (curRot.x >= 89 && delRotation.x > 0 || curRot.x <= -89 && delRotation.x < 0)
+    {
+        delRotation.x = 0;
+        curRot.x = curRot.x >= 89.0f ? 89.0f : -89.0f;
+        curRotScene->SetRotation(curRot);
+    }
     delRotation = Vector3(0.0);
 
     /*printf(" Rotation: Pitch=%04.4f Yaw:%04.4f Roll:%04.4f\n",

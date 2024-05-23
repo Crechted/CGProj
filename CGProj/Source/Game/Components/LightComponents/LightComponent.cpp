@@ -21,6 +21,7 @@ void LightComponent::Initialize()
     const auto camData = engInst->GetCurCamera()->GetEyeData();
     const auto camViewProj = camData.GetViewProj();
 
+    eyeData.isCam = false;
     lightData.mViewProj = eyeData.GetViewProj();
     lightData.posWS = Vector4(location.x, location.y, location.z, 1.0f);
     lightData.posVS = Vector4::Transform(lightData.posWS, camViewProj);
@@ -171,11 +172,19 @@ void LightComponent::RemoveShadowMap()
     //TextureComponent::RemoveTexture(shadowMapName, GetOutputTexture());
 }
 
-void LightComponent::UpdateSubresource()
+void LightComponent::UpdateLightData()
 {
+    const auto location = sceneComponent->GetWorldLocation();
+    const auto forward = sceneComponent->GetWorldTransform().GetForward();
+    const auto camData = engInst->GetCurCamera()->GetEyeData();
+    const auto viewProj = camData.GetViewProj();
+    lightData.posWS = Vector4(location.x, location.y, location.z, 1.0f);
+    lightData.posVS = Vector4::Transform(lightData.posWS, viewProj);
+    lightData.directionWS = Vector4(forward.x, forward.y, forward.z, 0.0f);
+    lightData.directionVS = Vector4::Transform(lightData.directionWS, viewProj);
 }
 
-void LightComponent::UpdateShaderResources()
+void LightComponent::BindShadowMapSRV()
 {
     engInst->GetContext()->PSSetShaderResources(9, 1, &outputTextureSRV);
     engInst->GetContext()->PSSetSamplers(1, 1, &sampShadow);
@@ -195,14 +204,7 @@ void LightComponent::ClearDepthStencil()
 void LightComponent::Update(float timeTick)
 {
     GameComponent::Update(timeTick);
-    const auto location = sceneComponent->GetWorldLocation();
-    const auto forward = sceneComponent->GetWorldTransform().GetForward();
-    const auto camData = engInst->GetCurCamera()->GetEyeData();
-    const auto viewProj = camData.GetViewProj();
-    lightData.posWS = Vector4(location.x, location.y, location.z, 1.0f);
-    lightData.posVS = Vector4::Transform(lightData.posWS, viewProj);
-    lightData.directionWS = Vector4(forward.x, forward.y, forward.z, 0.0f);
-    lightData.directionVS = Vector4::Transform(lightData.directionWS, viewProj);
+    UpdateLightData();
 }
 
 void LightComponent::GetLightVolume(Array<VertexNoTex>& vertices, Array<int32_t>& indexes)

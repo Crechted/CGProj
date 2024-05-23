@@ -13,7 +13,7 @@ public:
         UINT StructureByteStride = 0);
 
     template <typename T_Data>
-    void UpdateData(const T_Data& data, int32_t idx = 0);
+    void UpdateData(const T_Data* data, int32_t idx = 0);
     void BindBuffers(uint32_t slot, uint32_t shaderTypes);
 
     ID3D11Buffer* GetBuffer(int32_t idx = 0);
@@ -46,8 +46,8 @@ Buffer* Buffer::CreateBuffer(D3D11_USAGE usage, UINT bindFlags, UINT CPUFlags, U
 }
 
 template <typename T_Data>
-void Buffer::UpdateData(const T_Data& data, int32_t idx)
+void Buffer::UpdateData(const T_Data* data, int32_t idx)
 {
     if (idx < buffers.size())
-        engInst->GetContext()->UpdateSubresource(buffers[idx], 0, nullptr, &data, 0, 0);
+        engInst->GetContext()->UpdateSubresource(buffers[idx], 0, nullptr, data, 0, 0);
 }

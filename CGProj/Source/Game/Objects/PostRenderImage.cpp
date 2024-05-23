@@ -43,7 +43,7 @@ void PostRenderImage::Draw()
     PostRenderObject::Draw();
     const uint32_t stride = sizeof(VertexNoTex);
     const uint32_t offset = 0;
-    imgShader->Draw();
+    imgShader->BindShaders();
     engInst->GetContext()->PSSetShaderResources(0, 1, &imageSRV);
     engInst->GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     engInst->GetContext()->IASetVertexBuffers(0, 1, vertBuf->GetBuffers(), &stride, &offset);

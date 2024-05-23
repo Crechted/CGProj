@@ -20,7 +20,7 @@ void Buffer::BindBuffers(uint32_t slot, uint32_t shaderTypes)
 {
     const uint32_t num = buffers.size();
     if (buffers.isEmpty()) return;
-    if (shaderTypes & SVertex) engInst->GetContext()->VSSetConstantBuffers(slot, num, &buffers[0]);
+    if (shaderTypes & SVertex)engInst->GetContext()->VSSetConstantBuffers(slot, num, &buffers[0]);
     if (shaderTypes & SPixel) engInst->GetContext()->PSSetConstantBuffers(slot, num, &buffers[0]);
     if (shaderTypes & SGeometry) engInst->GetContext()->GSSetConstantBuffers(slot, num, &buffers[0]);
     if (shaderTypes & SCompute) engInst->GetContext()->CSSetConstantBuffers(slot, num, &buffers[0]);

@@ -40,7 +40,7 @@ protected:
     std::unordered_set<Keys>* keys;
     uint32_t inputBuffer_[32]{};
 
-    void HanleKey(RAWINPUT* rawInput);
+    void HandleKey(RAWINPUT* rawInput);
     void HandleMouse(RAWINPUT* rawInput);
 };
 

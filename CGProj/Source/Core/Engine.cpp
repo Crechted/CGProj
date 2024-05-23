@@ -19,6 +19,7 @@
 #include "Game/Camera.h"
 #include "Game/Components/LightComponents/DirectionalLightComponent.h"
 #include "Objects/Mesh.h"
+#include "Render/BlendState.h"
 #include "Render/DeferredLightTechnique.h"
 #include "Render/PostProcess.h"
 #include "Render/RenderTarget.h"
@@ -71,11 +72,15 @@ void Engine::Destroy()
     {
         delete postRend;
     }
+    for (const auto partSys : particleSystems)
+    {
+        delete partSys;
+    }
     delete texRenderTarget;
     if (lightsBuffer) lightsBuffer->Release();
     if (lightsSRV) lightsSRV->Release();
 
-    if (blendState) blendState->Release();
+    if (alphaBlendState) alphaBlendState->Destroy();
     if (deferredLight) deferredLight->Destroy();
 
     TextureComponent::Clear();
@@ -106,6 +111,7 @@ Camera* Engine::CreateCamera(ViewType ViewType)
 
 void Engine::SetCurCamera(Camera* cam)
 {
+    if (cam)
     {
         curCam = cam;
     }
@@ -119,6 +125,11 @@ Camera* Engine::GetCurCamera() const
 void Engine::SetRenderType(RenderType type)
 {
     renderType = type;
+}
+
+RenderTarget* Engine::GetBackBufferRTV() const
+{
+    return curPlData->lastPostProc->GetRenderTarget();
 }
 
 void Engine::AddWindow(int32_t scrWidth, int32_t scrHeight, int32_t posX, int32_t posY, ViewType vType)
@@ -150,8 +161,9 @@ void Engine::BindLightsBuffer()
 
     for (const auto light : lightComponents)
     {
-        light->UpdateSubresource();
-        if (GetRenderState() == RenderState::Forward_Normal || GetRenderState() == RenderState::Deferred_Lighting) light->UpdateShaderResources();
+        light->UpdateLightData();
+        if (GetRenderState() == RenderState::Forward_Normal || GetRenderState() == RenderState::Deferred_Lighting)
+            light->BindShadowMapSRV();
     }
 }
 
@@ -210,6 +222,10 @@ void Engine::Initialize()
         for (const auto postRend : postRenderObjects)
         {
             postRend->Initialize();
+        }
+        for (const auto partSys : particleSystems)
+        {
+            partSys->Initialize();
         }
     }
 }
@@ -277,6 +293,10 @@ void Engine::Update()
     for (const auto postRend : postRenderObjects)
     {
         postRend->Update(deltaTime);
+    }
+    for (const auto partSys : particleSystems)
+    {
+        partSys->Update(deltaTime);
     }
 
     DetectOverlapped();
@@ -381,18 +401,18 @@ void Engine::Render()
     {
         if (light->GetLightData().type != 2) continue;
         SetRenderState(useCascadeShadow ? RenderState::CascadeShadow : RenderState::ShadowMap);
-        curEyeData = light->GetEyeData();
-        curEyeData.isCam = false;
+        SetCurEyeData(light->GetEyeData());
         light->SetDepthStencil();
         light->ClearDepthStencil();
 
-        for (uint32_t i = 0; i < (useCascadeShadow ? CASCADE_COUNT : 1); i++)
+        for (uint32_t i = 0; i < (/*useCascadeShadow ? CASCADE_COUNT :*/ 1); i++)
         {
             if (useCascadeShadow) light->SetCurrentCascadeData(i);
             RenderScene();
         }
     }
 
+    SetCurEyeData(GetCurCamera()->GetEyeData());
     switch (renderType)
     {
         case RenderType::Forward:
@@ -406,11 +426,10 @@ void Engine::Render()
             break;
         }
     }
-
     texRenderTarget->BindTarget();
     SetRenderState(RenderState::DrawDebug);
     RenderScene(true, false);
-    
+
     SetRenderState(RenderState::Forward_Transparent);
     RenderScene(false, true);
 
@@ -426,10 +445,11 @@ void Engine::Render()
     curPlData->lastPostProc->SetSRV(prevResourceView);
     curPlData->lastPostProc->Draw();
 
-    for(const auto postRend : postRenderObjects)
+    SetRenderState(RenderState::PostRender);
+    for (const auto postRend : postRenderObjects)
     {
         postRend->Draw();
-    }    
+    }
 
     curPlData->swapChain->Present(1, /*DXGI_PRESENT_DO_NOT_WAIT*/ 0);
 }
@@ -509,7 +529,6 @@ void Engine::ForwardRender()
     texRenderTarget->BindTarget();
     texRenderTarget->Clear();
     SetRenderState(RenderState::Forward_Normal);
-    curEyeData.isCam = true;
     RenderScene();
 }
 
@@ -520,22 +539,16 @@ void Engine::DeferredRender()
 
 void Engine::CreateBlendState()
 {
-    D3D11_BLEND_DESC blendStateDesc = {};
-    ZeroMemory(&blendStateDesc, sizeof(D3D11_BLEND_DESC));
-
-    blendStateDesc.RenderTarget[0].BlendEnable = true;
-    blendStateDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
-    blendStateDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
-    blendStateDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-    blendStateDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_INV_DEST_ALPHA;
-    blendStateDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
-    blendStateDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-    blendStateDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-    GetDevice()->CreateBlendState(&blendStateDesc, &blendState);
+    alphaBlendState = (new BlendState())->CreateAlphaBlend();
 }
 
 void Engine::RenderScene(bool renderOpaque, bool renderTransparent)
 {
+
+    for (const auto cam : GetCamerasOnViewport())
+    {
+        cam->Render();
+    }
 
     for (const auto light : lightComponents)
     {
@@ -558,9 +571,7 @@ void Engine::RenderScene(bool renderOpaque, bool renderTransparent)
 
     if (renderTransparent)
     {
-        float blendFactor[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-        UINT sampleMask = 0xffffffff;
-        GetContext()->OMSetBlendState(blendState, blendFactor, sampleMask);
+        alphaBlendState->Bind();
         for (const auto Comp : transparentComponents)
         {
             BindLightsBuffer();
@@ -571,14 +582,14 @@ void Engine::RenderScene(bool renderOpaque, bool renderTransparent)
             BindLightsBuffer();
             Obj->Render();
         }
-        GetContext()->OMSetBlendState(nullptr, blendFactor, sampleMask);
+        alphaBlendState->UnBind();
     }
 
-    for (const auto cam : GetCamerasOnViewport())
-    {
-        curEyeData = cam->GetEyeData();
-        cam->Render();
-    }
+    if (renderState == RenderState::Forward_Normal || renderState == RenderState::Deferred_GBuffer)
+        for (const auto partSys : particleSystems)
+        {
+            partSys->Render();
+        }
 }
 
 void Engine::CreateDeviceAndSwapChain()

@@ -149,6 +149,7 @@
     <ClInclude Include="Source\Core\Objects\Object.h" />
     <ClInclude Include="Source\Core\Objects\PostRenderObject.h" />
     <ClInclude Include="Source\Core\Particles\ParticleSystem.h" />
+    <ClInclude Include="Source\Core\Render\BlendState.h" />
     <ClInclude Include="Source\Core\Render\Buffer.h" />
     <ClInclude Include="Source\Core\Render\DeferredLightTechnique.h" />
     <ClInclude Include="Source\Core\Render\PostProcess.h" />
@@ -175,6 +176,7 @@
     <ClInclude Include="Source\Game\Objects\Drawable\DrawSphere.h" />
     <ClInclude Include="Source\Game\Objects\Drawable\Grids.h" />
     <ClInclude Include="Source\Game\Objects\Drawable\Sphere.h" />
+    <ClInclude Include="Source\Game\Objects\PostRenderGameMap.h" />
     <ClInclude Include="Source\Game\Objects\PostRenderImage.h" />
     <ClInclude Include="Source\Game\Objects\SkySphere.h" />
     <ClInclude Include="Source\Game\Objects\Spectator.h" />
@@ -194,12 +196,26 @@
     <ClInclude Include="Source\Utils\Array\Array.h" />
     <ClInclude Include="Source\Utils\Array\Array.hpp" />
     <ClInclude Include="Source\Utils\Functions.h" />
+    <ClInclude Include="Source\Utils\HelperFunctions.h" />
     <ClInclude Include="Source\Utils\MeshImporter.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resource\Shaders\CascadeImgShader.hlsl" />
     <None Include="Resource\Shaders\CascadeShadowShader.hlsl" />
+    <None Include="Resource\Shaders\DeferredAllLightsShader.hlsl" />
+    <None Include="Resource\Shaders\ForwardRenderShader.hlsl">
+      <ObjectFileOutput>Z:\Univer\maga\2sem\CG\CGProj\x64\Debug\MyVeryFirstShader.cso</ObjectFileOutput>
+      <TrackerLogDirectory>x64\Debug\CGProj.tlog\</TrackerLogDirectory>
+      <EntryPointName>main</EntryPointName>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <ShaderModel>4.0_level_9_3</ShaderModel>
+      <MinimalRebuildFromTracking>true</MinimalRebuildFromTracking>
+      <DisableOptimizations>true</DisableOptimizations>
+      <EnableDebuggingInformation>true</EnableDebuggingInformation>
+    </None>
+    <None Include="Resource\Shaders\ImgShader.hlsl" />
     <None Include="Resource\Shaders\LightingFunctions.hlsl" />
+    <None Include="Resource\Shaders\ParticleShaderCompute.hlsl" />
     <None Include="Resource\Shaders\ShadowMappingShader.hlsl" />
     <None Include="Resource\Shaders\Structures.hlsl" />
     <None Include="Resource\Shaders\FullQuadShader.hlsl" />
@@ -293,6 +309,7 @@
       <LinkCompiled>true</LinkCompiled>
     </ClCompile>
     <ClCompile Include="Source\Core\Particles\ParticleSystem.cpp" />
+    <ClCompile Include="Source\Core\Render\BlendState.cpp" />
     <ClCompile Include="Source\Core\Render\Buffer.cpp" />
     <ClCompile Include="Source\Core\Objects\PostRenderObject.cpp" />
     <ClCompile Include="Source\Core\Render\DeferredLightTechnique.cpp" />
@@ -968,6 +985,7 @@
       <AdditionalIncludeDirectories>;Z:\Univer\maga\2sem\CG\vcpkg\installed\x64-windows\include</AdditionalIncludeDirectories>
       <LinkCompiled>true</LinkCompiled>
     </ClCompile>
+    <ClCompile Include="Source\Game\Objects\PostRenderGameMap.cpp" />
     <ClCompile Include="Source\Game\Objects\PostRenderImage.cpp" />
     <ClCompile Include="Source\Game\Objects\SkySphere.cpp" />
     <ClCompile Include="Source\Game\Objects\Spectator.cpp" />
@@ -1316,6 +1334,7 @@
     <Content Include="Resource\Textures\Putin.dds" />
     <Content Include="Resource\Textures\Putin.jpg" />
     <Content Include="Resource\Textures\sky.jpeg" />
+    <Content Include="Resource\Textures\snowflake.png" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

@@ -19,28 +19,18 @@ void DrawComponent::Initialize()
     CreateVertexBuffer();
     CreateIndexBuffer();
     CreateAndSetRasterizerState();
-
-    curDrawData = new TriangleDrawData();
-    curDrawData->rastState = rastState;
-    curDrawData->vertexBuffer = vertexBuffer;
-    curDrawData->indexBuffer = indexBuffer;
-
-    engInst->OnChangeRenderStateDelegate.AddRaw(this, &DrawComponent::OnChangeRenderState);
 }
 
 void DrawComponent::DestroyResource()
 {
-    if (curDrawData)
-    {
-        if (curDrawData->rastState) curDrawData->rastState->Release();
-        if (curDrawData->layout) curDrawData->layout->Release();
-        if (curDrawData->vertexBuffer) curDrawData->vertexBuffer->Release();
-        if (curDrawData->indexBuffer) curDrawData->indexBuffer->Release();
+        if (rastState)rastState->Release();
+        if (vertexBuffer)vertexBuffer->Release();
+        if (indexBuffer)indexBuffer->Release();
 
         if (defShader) defShader->Destroy();
         if (cascadeShader) cascadeShader->Destroy();
         if (shadowMappingShader) shadowMappingShader->Destroy();
-    }
+    
 }
 
 void DrawComponent::Draw()
@@ -51,11 +41,11 @@ void DrawComponent::Draw()
     const uint32_t strides = sizeof(VertexNoTex);
     const uint32_t offsets = 0;
     UpdateData();
-    engInst->GetContext()->RSSetState(engInst->GetCurEyeData().isCam ? rastState : nullptr);
+    engInst->GetContext()->RSSetState(rastState);
     engInst->GetContext()->IASetPrimitiveTopology(topology);
     engInst->GetContext()->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
     engInst->GetContext()->IASetVertexBuffers(0, 1, &vertexBuffer, &strides, &offsets);
-    curShader->Draw();
+    curShader->BindShaders();
     engInst->GetContext()->DrawIndexed(indexes.size(), 0, 0);
     engInst->GetContext()->RSSetState(nullptr);
 }
@@ -66,10 +56,6 @@ void DrawComponent::Reload()
 
 void DrawComponent::UpdateData()
 {
-    //curDrawData = drawsData[engInst->GetIdxCurrentPipeline()];
-    rastState = curDrawData->rastState;
-    vertexBuffer = curDrawData->vertexBuffer;
-    indexBuffer = curDrawData->indexBuffer;
 
     D3D11_MAPPED_SUBRESOURCE res = {};
     engInst->GetContext()->Map(vertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &res);
@@ -145,30 +131,6 @@ void DrawComponent::SetDefaultShader()
     curShader = defShader;
 }
 
-void DrawComponent::OnChangeRenderState(RenderState state)
-{
-    switch (state)
-    {
-        case RenderState::ShadowMap:
-        {
-            /*if (!shadowMappingShader) CreateShadowMappingShader();
-            SetShader(shadowMappingShader);*/
-            break;
-        }
-        case RenderState::CascadeShadow:
-        {
-            /*if (!cascadeShader) CreateCascadeShader();
-            SetShader(cascadeShader);*/
-            break;
-        }
-        default:
-        {
-            SetDefaultShader();
-            break;
-        }
-    }
-}
-
 void DrawComponent::CreateDefaultShader()
 {
     if (defShader) return;
@@ -223,7 +185,7 @@ void DrawComponent::CreateIndexBuffer()
     indexBufDesc.StructureByteStride = 0;
     indexBufDesc.ByteWidth = sizeof(int32_t) * indexes.size();
 
-    D3D11_SUBRESOURCE_DATA indexData = {};
+    D3D11_SUBRESOURCE_DATA indexData;
     indexData.pSysMem = &indexes[0];
     indexData.SysMemPitch = 0;
     indexData.SysMemSlicePitch = 0;

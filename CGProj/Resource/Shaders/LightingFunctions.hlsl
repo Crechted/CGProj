@@ -158,9 +158,12 @@ LightingResult DoLighting(StructuredBuffer<LightData> lights, Material mat, floa
     float4 V = normalize(eyePos - P);
 
     LightingResult totalResult = (LightingResult)0;
-    
-    [unroll]
-    for (int i = 0; i < NUM_LIGHTS; ++i)
+
+    uint count;
+    uint stride;
+    lights.GetDimensions(count, stride);
+    //[unroll]
+    for (uint i = 0; i < count ; ++i)
     {
         LightingResult result = (LightingResult)0;
         

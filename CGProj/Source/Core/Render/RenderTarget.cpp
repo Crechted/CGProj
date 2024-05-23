@@ -102,7 +102,7 @@ void RenderTarget::CreateDepthStencilView(DXGI_FORMAT texFormat, DXGI_FORMAT dsv
     shaderResourceViewDesc.Texture2D.MipLevels = 1;
     res = engInst->GetDevice()->CreateShaderResourceView(depthStencilTex, &shaderResourceViewDesc, &depthStencilSRV);
     if (FAILED(res)) return;
-    
+
     CreateViewport(Vector2(static_cast<float>(width), static_cast<float>(height)));
 }
 
@@ -146,6 +146,13 @@ void RenderTarget::CreateViewport(Vector2 viewportDim, Vector2 viewportPos, Vect
     outputViewPort.Height = viewportDim.y;
     outputViewPort.MinDepth = viewportDepth.x;
     outputViewPort.MaxDepth = viewportDepth.y;
+}
+
+void RenderTarget::UnBindAll()
+{
+    const auto eng = &Engine::GetInstance();
+    eng->GetContext()->OMSetRenderTargets(0, nullptr, nullptr);
+    eng->GetContext()->RSSetViewports(0, nullptr);
 }
 
 void RenderTarget::Destroy()

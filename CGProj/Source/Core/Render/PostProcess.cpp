@@ -18,7 +18,7 @@ void PostProcess::Update(float timeTick)
     Object::Update(timeTick);
     ConstBufferData data{Vector2(engInst->GetTotalTime()) };
     //engInst->GetContext()->UpdateSubresource(constBuffer, 0, nullptr, &data, 0, 0);
-    constBuf->UpdateData(data);
+    constBuf->UpdateData(&data);
 }
 
 void PostProcess::Draw()
@@ -46,7 +46,7 @@ void PostProcess::Draw()
     engInst->GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     engInst->GetContext()->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
     engInst->GetContext()->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-    shader->Draw();
+    shader->BindShaders();
     engInst->GetContext()->DrawIndexed(indexes.size(), 0, 0);
 }
 

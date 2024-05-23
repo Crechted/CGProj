@@ -3,7 +3,7 @@
 #include "Core/Engine.h"
 #include "Game/Camera.h"
 #include "Game/Components/LightComponents/DirectionalLightComponent.h"
-#include "Core/CoreTypes.h"
+#include "Utils/HelperFunctions.h"
 
 Vector3 Transform::GetRight() const
 {
@@ -29,13 +29,15 @@ Vector3 Transform::GetForward() const
     return Matrix::CreateFromYawPitchRoll(rad).Forward();
 }
 
+const Transform Transform::Identity = Transform(Vector3::Zero, Vector3::Zero, Vector3::One);
+
 SceneComponent::SceneComponent(SceneComponent* parentComp, Vector3 position, Vector3 rotation, Vector3 scale)
     : parentComponent(parentComp), initPosition(position), initRotation(rotation), initScale(scale)
 {
 }
 
 SceneComponent::SceneComponent(Transform transf, SceneComponent* parentComp)
-    : parentComponent(parentComp), initPosition(transf.location), initRotation(transf.rotate), initScale(transf.rotate)
+    : parentComponent(parentComp), initPosition(transf.location), initRotation(transf.rotate), initScale(transf.scale)
 {
 }
 
@@ -57,16 +59,6 @@ void SceneComponent::Initialize()
     GameComponent::Initialize();
 }
 
-
-void SceneComponent::Draw()
-{
-    UpdateConstantBuffer();
-
-    engInst->GetContext()->VSSetConstantBuffers(0, 1, &viewBuffer);
-    engInst->GetContext()->PSSetConstantBuffers(0, 1, &viewBuffer);
-    GameComponent::Draw();
-}
-
 void SceneComponent::Reload()
 {
     GameComponent::Reload();
@@ -86,6 +78,16 @@ void SceneComponent::Update(float timeTick)
     UpdateTransformMatrix();
 }
 
+void SceneComponent::Draw()
+{
+    UpdateConstantBuffer();
+
+    engInst->GetContext()->VSSetConstantBuffers(0, 1, &viewBuffer);
+    engInst->GetContext()->GSSetConstantBuffers(0, 1, &viewBuffer);
+    engInst->GetContext()->PSSetConstantBuffers(0, 1, &viewBuffer);
+    GameComponent::Draw();
+}
+
 void SceneComponent::UpdateConstantBuffer()
 {
     const auto eyeData = engInst->GetCurEyeData();
@@ -96,6 +98,8 @@ void SceneComponent::UpdateConstantBuffer()
     ViewData viewData;
     viewData.mWorld = worldMat.Transpose();
     viewData.mViewProj = Matrix(eyeData.mView * eyeData.mProj).Transpose();
+    viewData.mView = eyeData.mView.Transpose();
+    viewData.mProj = eyeData.mProj.Transpose();
     viewData.objPos = Vector4(worldMat.Translation().x, worldMat.Translation().y, worldMat.Translation().z, 1.0f);
     viewData.camPos = Vector4(camLoc.x, camLoc.y, camLoc.z, 1.0f);
 

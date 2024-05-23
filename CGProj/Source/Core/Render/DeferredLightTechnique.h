@@ -4,6 +4,7 @@
 #include "SimpleMath.h"
 #include "Core/CoreTypes.h"
 
+class BlendState;
 class Shader;
 class Buffer;
 using namespace DirectX::SimpleMath;
@@ -47,7 +48,7 @@ protected:
     ID3D11Buffer* vertexBuffer = nullptr;
     ID3D11Buffer* indexBuffer = nullptr;
 
-    ID3D11BlendState* blendState = nullptr;
+    BlendState* blendState = nullptr;
 
     ID3D11RasterizerState* rastStateCullFront;
     ID3D11RasterizerState* rastStateCullBack;

@@ -3,14 +3,14 @@
 #include "Core/Components/SceneComponent.h"
 #include "Core/Engine.h"
 #include "Core/Input/InputDevice.h"
-#include "Core/CoreTypes.h"
+#include "Utils/HelperFunctions.h"
 
 
 Camera::Camera(Vector3 initPosition, Vector3 initRotation)
     : initPosition(initPosition), initRotation(initRotation)
 {
     sceneComp = CreateComponent<SceneComponent>();
-
+    eyeData.isCam = true;
     //sceneComp->initPosition = Vector3(0.0f, 0.0f, 0.0f);
     //sceneComp->initRotation = Vector3(0.0f);
 }
@@ -84,7 +84,7 @@ void Camera::UpdateViewMatrix()
         tar = loc + Vector3(0.0f, 0.0f, -1.0f);
         up = Vector3(0.0f, 1.0f, 0.0f);
     }
-
+    
     eyeData.mView = Matrix::CreateLookAt(loc, tar, up);
     /*auto Res = Matrix();
     Res = worldMat;
