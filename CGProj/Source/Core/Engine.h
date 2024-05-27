@@ -5,6 +5,7 @@
 #include "Game/Camera.h"
 #include "Game/Components/LightComponents/LightComponent.h"
 
+class Buffer;
 class BlendState;
 class PostRenderObject;
 class PostProcess;
@@ -109,6 +110,8 @@ public:
     template <typename T, typename... Args>
     T* CreateComponent(const Args&... args);
 
+    Buffer* GetLightsBuffer() const {return lightsBuffer;}
+    ID3D11ShaderResourceView* GetLightsStructuredSRV() const {return lightsSRV;}
     void UpdateLightsData();
     void BindLightsBuffer();
     RenderTarget* GetTexRenderTarget() const { return texRenderTarget; }
@@ -123,7 +126,8 @@ protected:
     PipelineData* curPlData;
     DeferredLightTechnique* deferredLight = nullptr;
 
-    ID3D11Buffer* lightsBuffer;
+    Buffer* lightsBuffer;
+    
     ID3D11ShaderResourceView* lightsSRV;
 
     BlendState* alphaBlendState = nullptr;

@@ -3,6 +3,7 @@
 #include <d3d11.h>
 #include "SimpleMath.h"
 #include "Core/CoreTypes.h"
+#include "Game/Components/LightComponents/LightComponent.h"
 
 class BlendState;
 class Shader;
@@ -61,6 +62,7 @@ protected:
     Shader* volumeShader = nullptr;
     Shader* allQuadShader = nullptr;
     Shader* allVolumeShader = nullptr;
+    Shader* renderOneLightTypeShader = nullptr;
 
     ID3D11DepthStencilState* DSSGreater = nullptr;
     ID3D11DepthStencilState* DSSLess = nullptr;
@@ -68,6 +70,12 @@ private:
     Array<ID3D11RenderTargetView*> GBuffer;
     Array<ID3D11ShaderResourceView*> GBufferSRV;
     Array<D3D11_VIEWPORT> GBufferViewports;
+
+    Array<LightComponent*> directionalLights;
+    Array<LightComponent*> spotLights;
+    Array<LightComponent*> pointLights;
+    Array<LightData> curLightsData;
+
     
     void CreateConstantBuffers();
     void CreateShaders();
@@ -80,6 +88,10 @@ private:
     void GBufferPass();
     void DrawLightVolume(LightComponent* light, Shader* curShader);
     void DrawDirectionalLightVolume(Shader* curShader);
+    void DrawLightsByType(LightType type);
+    void BindScreenToWorldData();
     void LightingPass();
+    void SortLights();
     void PreRenderLightPassByLightID(int32_t lightId);
+    void PreRenderLightPassByLights(const Array<LightComponent*>& lights);
 };

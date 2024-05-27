@@ -89,6 +89,7 @@ void DeferredLightTechnique::Destroy()
     if (volumeShader) volumeShader->Destroy();
     if (allQuadShader) allQuadShader->Destroy();
     if (allVolumeShader) allVolumeShader->Destroy();
+    if (renderOneLightTypeShader) renderOneLightTypeShader->Destroy();
 
     if (DSSGreater) DSSGreater->Release();
     if (DSSLess) DSSLess->Release();
@@ -119,17 +120,18 @@ void DeferredLightTechnique::LightingPass()
     const auto SRV = tarLightAccumulation->GetRenderTargetSRV();
     engInst->GetContext()->PSSetShaderResources(0, 1, &SRV);
     DrawDirectionalLightVolume(fullQuadShader);
-    
-    auto lights = engInst->GetLightComponents();
+
+    SortLights();
     engInst->GetTexRenderTarget()->BindTarget();
 
     /*auto camData =    engInst->GetCurEyeData();;
     camData.isCam = true;
     engInst->SetCurEyeData(camData);*/
     blendState->Bind();
-    PreRenderLightPassByLightID(0);
-    DrawDirectionalLightVolume(allVolumeShader);
-    
+    DrawLightsByType(LightType::DirectionalLight);
+    DrawLightsByType(LightType::PointLight);
+    DrawLightsByType(LightType::SpotLight);
+
     /*for (int32_t i = 0; i < lights.size(); ++i)
     {
         if (!lights[i]->GetLightData().enabled) continue;
@@ -193,6 +195,22 @@ void DeferredLightTechnique::DrawDirectionalLightVolume(Shader* curShader)
     engInst->GetContext()->DrawIndexed(indexes.size(), 0, 0);
 }
 
+void DeferredLightTechnique::DrawLightsByType(LightType type)
+{
+    Array<LightComponent*> lights;
+    if (type == LightType::PointLight) lights = pointLights;
+    if (type == LightType::SpotLight) lights = spotLights;
+    if (type == LightType::DirectionalLight) lights = directionalLights;
+    PreRenderLightPassByLights(lights);
+    const uint32_t stride[2]  = {sizeof(VertexNoTex), 0};
+    const uint32_t offset[2] = {0, 0};
+    engInst->GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    engInst->GetContext()->IASetVertexBuffers(0, 1, &vertexBuffer, stride, offset);
+    engInst->GetContext()->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+    renderOneLightTypeShader->BindShaders();
+    engInst->GetContext()->DrawIndexedInstanced(indexes.size(), lights.size(), 0, 0, 0);
+}
+
 void DeferredLightTechnique::PreRenderLightPassByLightID(int32_t lightId)
 {
     engInst->GetContext()->PSSetShaderResources(0, 5, &GBufferSRV[0]);
@@ -200,6 +218,58 @@ void DeferredLightTechnique::PreRenderLightPassByLightID(int32_t lightId)
     lightIndexBuf->UpdateData(&id);
     lightIndexBuf->BindBuffers(4, SPixel);
 
+    BindScreenToWorldData();
+
+    engInst->BindLightsBuffer();
+}
+
+void DeferredLightTechnique::PreRenderLightPassByLights(const Array<LightComponent*>& lights)
+{
+    engInst->GetContext()->PSSetShaderResources(0, 5, &GBufferSRV[0]);
+
+    BindScreenToWorldData();
+    
+    curLightsData.clear();
+    for (const auto lightComp : lights)
+    {
+        curLightsData.insert(lightComp->GetLightData());
+    }
+    
+    for (const auto light : lights)
+    {
+        light->UpdateLightData();
+        if (light->GetLightData().type == LightType::DirectionalLight)
+            light->BindShadowMapSRV();
+    }
+    
+    const auto lightsSRV = engInst->GetLightsStructuredSRV();
+    const auto lightsBuf = engInst->GetLightsBuffer();
+    
+    lightsBuf->UpdateData(&curLightsData[0]);
+    engInst->GetContext()->PSSetShaderResources(8, 1, &lightsSRV);
+}
+
+void DeferredLightTechnique::SortLights()
+{
+    auto lights = engInst->GetLightComponents();
+    pointLights.clear();
+    spotLights.clear();
+    directionalLights.clear();
+    for (const auto light : lights)
+    {
+        if (!light->GetLightData().enabled) continue;
+        if (light->GetLightData().type == LightType::PointLight)
+            pointLights.insert(light);
+        if (light->GetLightData().type == LightType::SpotLight)
+            spotLights.insert(light);
+        if (light->GetLightData().type == LightType::DirectionalLight)
+            directionalLights.insert(light);
+    }
+}
+
+
+void DeferredLightTechnique::BindScreenToWorldData()
+{
     const auto cam = engInst->GetCurCamera();
     const auto invertProjView = cam->GetEyeData().GetViewProj().Invert();
     const auto camPos = cam->GetSceneComponent()->GetWorldLocation();
@@ -210,8 +280,6 @@ void DeferredLightTechnique::PreRenderLightPassByLightID(int32_t lightId)
                                                 static_cast<float>(engInst->GetDisplay()->screenHeight))};
     screenToWorldBuf->UpdateData(&ScreenToWorld);
     screenToWorldBuf->BindBuffers(2, SPixel);
-
-    engInst->BindLightsBuffer();
 }
 
 void DeferredLightTechnique::CreateConstantBuffers()
@@ -243,23 +311,26 @@ void DeferredLightTechnique::CreateShaders()
     fullQuadShader->CreateShader(L"./Resource/Shaders/FullQuadShader.hlsl", SVertex, macro);
     fullQuadShader->CreateShader(L"./Resource/Shaders/FullQuadShader.hlsl", SPixel, macro);
 
+    allQuadShader = new Shader();
+    allQuadShader->AddInputElementDesc("POSITION");
+    allQuadShader->AddInputElementDesc("COLOR");
+    allQuadShader->CreateShader(L"./Resource/Shaders/FullQuadShader.hlsl", SVertex, macro);
+    allQuadShader->CreateShader(L"./Resource/Shaders/DeferredLightShader.hlsl", SPixel, macro);
+
     volumeShader = new Shader();
     volumeShader->AddInputElementDesc("POSITION");
     volumeShader->AddInputElementDesc("COLOR");
     volumeShader->CreateShader(L"./Resource/Shaders/DeferredLightShader.hlsl", SVertex, macro);
 
     allVolumeShader = new Shader();
-    //allVolumeShader->AddInputElementDesc("POSITION");
-    //allVolumeShader->AddInputElementDesc("COLOR");
-    
+    allVolumeShader->AddInputElementDesc("POSITION");
+    allVolumeShader->AddInputElementDesc("COLOR");
     allVolumeShader->CreateShader(L"./Resource/Shaders/FullQuadShader.hlsl", SVertex, macro);
-    allVolumeShader->CreateShader(L"./Resource/Shaders/DeferredAllLightsShader.hlsl", SPixel, macro);
+    allVolumeShader->CreateShader(L"./Resource/Shaders/DeferredLightShader.hlsl", SPixel, macro);
 
-    allQuadShader = new Shader();
-    allQuadShader->AddInputElementDesc("POSITION");
-    allQuadShader->AddInputElementDesc("COLOR");
-    allQuadShader->CreateShader(L"./Resource/Shaders/FullQuadShader.hlsl", SVertex, macro);
-    allQuadShader->CreateShader(L"./Resource/Shaders/DeferredLightShader.hlsl", SPixel, macro);
+    renderOneLightTypeShader = new Shader();
+    renderOneLightTypeShader->CreateShader(L"./Resource/Shaders/DeferredAllLightsShader.hlsl", SVertex, macro);
+    renderOneLightTypeShader->CreateShader(L"./Resource/Shaders/DeferredAllLightsShader.hlsl", SPixel, macro);
 }
 
 void DeferredLightTechnique::CreateVertices()

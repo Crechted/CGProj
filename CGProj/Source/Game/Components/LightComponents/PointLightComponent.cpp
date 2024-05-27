@@ -29,7 +29,7 @@ void PointLightComponent::Initialize()
     Vector3 tar = sceneComponent->GetWorldMatrix().Translation() + sceneComponent->GetForward();
     eyeData.mView = Matrix::CreateLookAt(sceneComponent->GetLocation(), tar, sceneComponent->GetUp());
     eyeData.mProj = Matrix::CreatePerspectiveFieldOfView(RadiansFromDegree(90.0f), 1.0f, 0.01f, range);
-    lightData.type = 0;
+    lightData.type = LightType::PointLight;
     lightData.enabled = true;
     lightData.mViewProj = eyeData.GetViewProj();
     lightData.range = range;

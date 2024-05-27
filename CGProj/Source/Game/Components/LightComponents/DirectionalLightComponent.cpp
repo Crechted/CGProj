@@ -39,7 +39,7 @@ void DirectionalLightComponent::Initialize()
     eyeData.mProj = Matrix::CreateOrthographic(50.0f, 50.0f, screenNear, screenDepth);
     eyesData[0].mView = eyeData.mView;
     eyesData[0].mProj = eyeData.mProj;
-    lightData.type = 2;
+    lightData.type = LightType::DirectionalLight;
     lightData.enabled = true;
     LightComponent::Initialize();
     CreateCascadeImage();

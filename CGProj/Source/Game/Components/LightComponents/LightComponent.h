@@ -9,6 +9,13 @@
 class TriangleComponent;
 class SceneComponent;
 
+enum class LightType: int32_t
+{
+    PointLight,
+    SpotLight,
+    DirectionalLight
+};
+
 struct LightData
 {
     Matrix mViewProj;
@@ -22,7 +29,7 @@ struct LightData
     float spotlightAngle = 0.0f;
     float range = 0.0f;
     alignas(4) bool enabled = true;
-    uint32_t type = 0;
+    LightType type = LightType::PointLight;
 };
 
 class LightComponent : public GameComponent

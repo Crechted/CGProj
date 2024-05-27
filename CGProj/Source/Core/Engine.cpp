@@ -77,7 +77,7 @@ void Engine::Destroy()
         delete partSys;
     }
     delete texRenderTarget;
-    if (lightsBuffer) lightsBuffer->Release();
+    if (lightsBuffer) lightsBuffer->Destroy();
     if (lightsSRV) lightsSRV->Release();
 
     if (alphaBlendState) alphaBlendState->Destroy();
@@ -156,7 +156,7 @@ void Engine::UpdateLightsData()
 
 void Engine::BindLightsBuffer()
 {
-    GetContext()->UpdateSubresource(lightsBuffer, 0, nullptr, &lightsData[0], 0, 0);
+    lightsBuffer->UpdateData(&lightsData[0]);
     GetContext()->PSSetShaderResources(8, 1, &lightsSRV);
 
     for (const auto light : lightComponents)
@@ -399,7 +399,7 @@ void Engine::Render()
 
     for (const auto light : lightComponents)
     {
-        if (light->GetLightData().type != 2) continue;
+        if (light->GetLightData().type != LightType::DirectionalLight) continue;
         SetRenderState(useCascadeShadow ? RenderState::CascadeShadow : RenderState::ShadowMap);
         SetCurEyeData(light->GetEyeData());
         light->SetDepthStencil();
@@ -629,21 +629,14 @@ void Engine::CreateDeviceAndSwapChain()
 void Engine::CreateLightsBuffer()
 {
     HRESULT hr;
-    D3D11_BUFFER_DESC constBufDesc;
-    constBufDesc.Usage = D3D11_USAGE_DEFAULT;
-    constBufDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-    constBufDesc.CPUAccessFlags = 0;
-    constBufDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-    constBufDesc.ByteWidth = sizeof(LightData) * lightComponents.size();
-    constBufDesc.StructureByteStride = sizeof(LightData);
-    hr = GetDevice()->CreateBuffer(&constBufDesc, nullptr, &lightsBuffer);
-    if (FAILED(hr)) return;
+    lightsBuffer = (new Buffer())->CreateBuffer<LightData>(D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0,
+        D3D11_RESOURCE_MISC_BUFFER_STRUCTURED, sizeof(LightData) * lightComponents.size(), nullptr, sizeof(LightData));
 
     D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
     srvDesc.Format = DXGI_FORMAT_UNKNOWN;
     srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
     srvDesc.Buffer.FirstElement = 0;
     srvDesc.Buffer.NumElements = lightComponents.size();
-    hr = GetDevice()->CreateShaderResourceView(lightsBuffer, &srvDesc, &lightsSRV);
+    hr = GetDevice()->CreateShaderResourceView(lightsBuffer->GetBuffer(), &srvDesc, &lightsSRV);
     if (FAILED(hr)) return;
 }

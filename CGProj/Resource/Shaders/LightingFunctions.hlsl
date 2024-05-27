@@ -163,10 +163,10 @@ LightingResult DoLighting(StructuredBuffer<LightData> lights, Material mat, floa
     uint stride;
     lights.GetDimensions(count, stride);
     //[unroll]
-    for (uint i = 0; i < count ; ++i)
+    for (uint i = 0; i < count; ++i)
     {
         LightingResult result = (LightingResult)0;
-        
+
         if (lights[i].enabled == 0)
             continue;
 
@@ -196,6 +196,41 @@ LightingResult DoLighting(StructuredBuffer<LightData> lights, Material mat, floa
         totalResult.diffuse += result.diffuse;
         totalResult.specular += result.specular;
     }
+    return totalResult;
+}
+
+LightingResult DoLighting(LightData light, Material mat, float4 eyePos, float4 P, float4 N, float shadowDir = 1.0f)
+{
+    float4 V = normalize(eyePos - P);
+
+    LightingResult totalResult = (LightingResult)0;
+
+    LightingResult result = (LightingResult)0;
+    switch (light.type)
+    {
+        case DIRECTIONAL_LIGHT:
+        {
+            result = DoDirectionalLight(light, mat, V, N);
+            result.diffuse *= shadowDir;
+            result.specular *= shadowDir;
+        }
+        break;
+        case POINT_LIGHT:
+        {
+            if (length(light.posWS - P) <= light.range)
+                result = DoPointLight(light, mat, V, P, N);
+        }
+        break;
+        case SPOT_LIGHT:
+        {
+            if (length(light.posWS - P) <= light.range)
+                result = DoSpotLight(light, mat, V, P, N);
+        }
+        break;
+    }
+
+    totalResult.diffuse += result.diffuse;
+    totalResult.specular += result.specular;
     return totalResult;
 }
 

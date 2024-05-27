@@ -113,4 +113,5 @@ void ParticleSystem::CreateBuffer()
     particlesBuf->UpdateData(initParticles);
 
     handlerBuf = (new Buffer())->CreateBuffer<HandlerData>();
+    delete [] initParticles;
 }

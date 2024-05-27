@@ -65,28 +65,24 @@ float4 ScreenToWorld(float4 screen)
     return ClipToWorld(clip);
 }
 
-/*
-PS_IN VS(uint id: SV_VertexID)
+struct PSInput
 {
-    PS_IN output = (PS_IN)0;
+    float4 pos : SV_POSITION;
+    uint instID : SV_InstanceID;
+};
 
-    output.texCoord = float2(id & 1, (id & 2) >> 1);
-    output.pos = float4(output.texCoord * float2(2, -2) + float2(-1, 1), 0, 1);
-    //output.pos = float4(output.tex, 0.0f, 1.0f);
-    return output;
-}
-*/
-PS_IN VS(uint id: SV_VertexID)
+PSInput VS(uint id: SV_VertexID, uint instID: SV_InstanceID)
 {
-    PS_IN output = (PS_IN)0;
+    PSInput output = (PSInput)0;
 
-    output.texCoord = float2(id & 1, (id & 2) >> 1);
-    output.pos = float4(output.texCoord * float2(2, -2) + float2(-1, 1), 0, 1);
+    const float2 texCoord = float2(id & 1, (id & 2) >> 1);
+    output.pos = float4(texCoord * float2(2, -2) + float2(-1, 1), 0, 1);
+    output.instID = instID;
     return output;
 }
 
 [earlydepthstencil]
-float4 PS(PS_IN input) : SV_Target
+float4 PS(PSInput input) : SV_Target
 {
     float4 eyePos = float4(CamPos, 1.0f);
 
@@ -129,9 +125,8 @@ float4 PS(PS_IN input) : SV_Target
     float4 shadowPosH = mul(P, mul(CascData.ViewProj[layer], mT));
     shadow = CalcCascadeShadowFactor(ShadCompSamp, CascadeShadowMaps, shadowPosH, layer);
 #endif
-    
-    
-    LightingResult lit = DoLighting(Lights, mat, eyePos, P, N, shadow);
+        
+    LightingResult lit = DoLighting(Lights[input.instID], mat, eyePos, P, N, shadow);
     
     return (diffuse * lit.diffuse) + (specular * lit.specular);
 }

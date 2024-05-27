@@ -30,7 +30,7 @@ void SpotLightComponent::Initialize()
     Vector3 tar = sceneComponent->GetWorldMatrix().Translation() + sceneComponent->GetForward();
     eyeData.mView = Matrix::CreateLookAt(sceneComponent->GetLocation(), tar, sceneComponent->GetUp());
     eyeData.mProj = Matrix::CreatePerspectiveFieldOfView(RadiansFromDegree(angle), 1.0f, 0.01f, range);
-    lightData.type = 1;
+    lightData.type = LightType::SpotLight;
     lightData.enabled = true;
     lightData.mViewProj = eyeData.GetViewProj();
     lightData.range = range;
