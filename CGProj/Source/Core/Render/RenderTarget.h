@@ -58,13 +58,15 @@ public:
         D3D11_STENCIL_OP backStencilPassOp = D3D11_STENCIL_OP_KEEP,
         D3D11_COMPARISON_FUNC backStencilFunc = D3D11_COMPARISON_ALWAYS);
 
+    void CreateDepthStencilState(const D3D11_DEPTH_STENCIL_DESC* desc);
+
     void CreateViewport(Vector2 viewportDim = Vector2(800, 800), Vector2 viewportPos = Vector2::Zero,
         Vector2 viewportDepth = Vector2(0.0f, 1.0f));
 
     static void UnBindAll();
     void BindTarget(bool bindStencilView = true);
     void BindDepthStencil();
-    void SetDepthStencilState(ID3D11DepthStencilState* state = nullptr, uint32_t stencilRef = 0);
+    void BindDepthStencilState(ID3D11DepthStencilState* state = nullptr, uint32_t stencilRef = 0);
     void Clear();
     void ClearTarget(Vector4 color = Vector4(0.0f, 0.0f, 0.0f, 1.0f));
     void ClearDepthStencil(UINT ClearFlags = D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL);

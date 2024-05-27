@@ -248,13 +248,10 @@ void TriangleComponent::CreateCascadeShader()
     cascadeShader->AddInputElementDesc("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT);
 
     std::strstream s;
-    std::string cascade, numLights;
+    std::string cascade;
     s << CASCADE_COUNT << "\x00";
     s >> cascade;
-    s.clear();
-    s << engInst->GetLightComponents().size() << "\x00";
-    s >> numLights;
-    D3D_SHADER_MACRO macro[] = {"DO_CASCADE_SHADOW", "1", "CASCADE_COUNT", cascade.c_str(), "NUM_LIGHTS", numLights.c_str(), nullptr,
+    D3D_SHADER_MACRO macro[] = {"DO_CASCADE_SHADOW", "1", "CASCADE_COUNT", cascade.c_str(), nullptr,
                                 nullptr};
     cascadeShader->CreateShader(L"./Resource/Shaders/CascadeShadowShader.hlsl", SVertex, macro);
     cascadeShader->CreateShader(L"./Resource/Shaders/CascadeShadowShader.hlsl", SGeometry, macro);
@@ -281,16 +278,12 @@ void TriangleComponent::CreateForwardShader()
     forwardRenderShader->AddInputElementDesc("NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT);
     forwardRenderShader->AddInputElementDesc("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT);
     std::strstream s;
-    std::string cascade, numLights;
+    std::string cascade;
     s << CASCADE_COUNT << "\x00";
     s >> cascade;
-    s.clear();
-    s << engInst->GetLightComponents().size() << "\x00";
-    s >> numLights;
     D3D_SHADER_MACRO* macro = engInst->useCascadeShadow
-                                  ? new D3D_SHADER_MACRO[]{"DO_CASCADE_SHADOW", "1", "CASCADE_COUNT", cascade.c_str(), "NUM_LIGHTS",
-                                                           numLights.c_str(), nullptr, nullptr}
-                                  : new D3D_SHADER_MACRO[]{"NUM_LIGHTS", numLights.c_str(), nullptr, nullptr};
+                                  ? new D3D_SHADER_MACRO[]{"DO_CASCADE_SHADOW", "1", "CASCADE_COUNT", cascade.c_str(), nullptr, nullptr}
+                                  : nullptr;
     forwardRenderShader->CreateShader(L"./Resource/Shaders/ForwardRenderShader.hlsl", SVertex, macro);
     forwardRenderShader->CreateShader(L"./Resource/Shaders/ForwardRenderShader.hlsl", SPixel, macro);
 }
@@ -312,13 +305,10 @@ void TriangleComponent::CreateDeferredLightShader()
 {
     deferredLightPassShader = new Shader();
     std::strstream s;
-    std::string cascade, numLights;
+    std::string cascade;
     s << CASCADE_COUNT << "\x00";
     s >> cascade;
-    s.clear();
-    s << engInst->GetLightComponents().size() << "\x00";
-    s >> numLights;
-    D3D_SHADER_MACRO macro[] = {"DO_CASCADE_SHADOW", "1", "CASCADE_COUNT", cascade.c_str(), "NUM_LIGHTS", numLights.c_str(), nullptr,
+    D3D_SHADER_MACRO macro[] = {"DO_CASCADE_SHADOW", "1", "CASCADE_COUNT", cascade.c_str(), nullptr,
                                 nullptr};
     deferredLightPassShader->CreateShader(L"./Resource/Shaders/DeferredAllLightsShader.hlsl", SVertex, macro);
     deferredLightPassShader->CreateShader(L"./Resource/Shaders/DeferredAllLightsShader.hlsl", SPixel, macro);

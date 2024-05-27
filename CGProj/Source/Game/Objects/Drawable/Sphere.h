@@ -16,13 +16,15 @@ public:
         bool drawUp = true,
         bool drawDown = true
         );
-    
+
     void Initialize() override;
     void InitSphere();
-    
-    static void CreateSphere(Vector3 initPos, float radius, uint32_t stackCount, uint32_t sliceCount, Array<Vertex>& vertices, Array<int32_t>& indexes);
-    
-    static void CreateDrawSphere(Vector3 initPos, float radius, uint32_t stackCount, uint32_t sliceCount, Vector4 color, Array<VertexNoTex>& vertices, Array<int32_t>& indexes);
+
+    static void CreateSphere(Vector3 initPos, float radius, uint32_t stackCount, uint32_t sliceCount, Array<Vertex>& vertices,
+        Array<int32_t>& indexes);
+
+    static void CreateDrawSphere(Vector3 initPos, float radius, uint32_t stackCount, uint32_t sliceCount, Vector4 color,
+        Array<VertexNoTex>& vertices, Array<int32_t>& indexes, bool fill = false);
 
 protected:
     Vector3 initPos = Vector3::Zero;

@@ -67,6 +67,7 @@ float4 PS(PS_IN input) : SV_Target
     float4 diffuse = diffVal;
     float4 specular;
     ambient *= diffVal;
+    ambient += emissive;
     float4 N = normalize(float4(input.normWS, 0.0f));
 
     LightingResult lit;
@@ -111,11 +112,11 @@ float4 PS(PS_IN input) : SV_Target
     }
     lit = DoLighting(Lights, material, viewData.camPos, input.posWS, N, shadow);
     diffuse *= lit.diffuse;
-    specular = lit.specular ;
+    specular = lit.specular;
 #endif
 
-    float4 col = float4((ambient + emissive + diffuse + specular).rgb, opacity);
-    col.rgb = pow(col.rgb, 1.0f / 2.2f);
+    float4 col = float4((ambient + diffuse + specular).rgb, opacity);
+    //col.rgb = pow(col.rgb, 1.0f / 2.2f);
 
     return col;
 }

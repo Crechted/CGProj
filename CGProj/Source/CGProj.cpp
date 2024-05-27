@@ -87,13 +87,16 @@ int main()
     auto particleSys = engine->CreateObject<ParticleSystem>(100000, Transform({-5.0f, 2.0f, 0.0f}));
     particleSys->GetTextureComponent()->SetTexture(L"Resource/Textures/snowflake.png");
 
-    auto Border = engine->CreateObject<PostRenderGameMap>(L"./Resource/Shaders/CascadeImgShader.hlsl", nullptr, Vector2(220, 220), Vector2(10.0, 10.0f));
+    auto Border = engine->CreateObject<PostRenderImage>(nullptr, Vector2(220, 220), Vector2(10.0, 10.0f));
+    Border->SetShaderPath(L"./Resource/Shaders/CascadeImgShader.hlsl");
     auto img = engine->CreateObject<PostRenderGameMap>( L"./Resource/Shaders/ImgShader.hlsl", nullptr, Vector2(200, 200), Vector2(20.0, 20.0f));
     
     
     engine->useCascadeShadow = true;
     engine->SetRenderType(RenderType::Deferred);
     engine->Initialize();
+
+    Border->SetSRV(img->GetMapSRV());
     
     engine->Run();
     return 0;

@@ -137,6 +137,11 @@ void RenderTarget::CreateDepthStencilState(BOOL depthEnable,
     engInst->GetDevice()->CreateDepthStencilState(&descDS, &depthStencilState);
 }
 
+void RenderTarget::CreateDepthStencilState(const D3D11_DEPTH_STENCIL_DESC* desc)
+{
+    engInst->GetDevice()->CreateDepthStencilState(desc, &depthStencilState);
+}
+
 void RenderTarget::CreateViewport(Vector2 viewportDim, Vector2 viewportPos, Vector2 viewportDepth)
 {
     outputViewPort = {};
@@ -177,7 +182,7 @@ void RenderTarget::BindDepthStencil()
     engInst->GetContext()->RSSetViewports(1, &outputViewPort);
 }
 
-void RenderTarget::SetDepthStencilState(ID3D11DepthStencilState* state, uint32_t stencilRef)
+void RenderTarget::BindDepthStencilState(ID3D11DepthStencilState* state, uint32_t stencilRef)
 {
     engInst->GetContext()->OMSetDepthStencilState(state ? state : depthStencilState, stencilRef);
 }

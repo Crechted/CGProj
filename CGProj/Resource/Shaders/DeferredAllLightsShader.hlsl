@@ -127,8 +127,7 @@ float4 PS(PSInput input) : SV_Target
 #endif
         
     LightingResult lit = DoLighting(Lights[input.instID], mat, eyePos, P, N, shadow);
-    
-    return (diffuse * lit.diffuse) + (specular * lit.specular);
+    return (diffuse * lit.diffuse) + (lit.specular);
 }
 
 #endif

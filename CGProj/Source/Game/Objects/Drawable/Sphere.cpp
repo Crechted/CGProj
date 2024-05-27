@@ -109,8 +109,7 @@ void Sphere::CreateSphere(Vector3 initPos, float radius, uint32_t stackCount, ui
 }
 
 void Sphere::CreateDrawSphere(Vector3 initPos, float radius, uint32_t stackCount, uint32_t sliceCount, Vector4 color,
-    Array<VertexNoTex>& vertices,
-    Array<int32_t>& indexes)
+    Array<VertexNoTex>& vertices, Array<int32_t>& indexes, bool fill)
 {
 
     auto phiStep = Pi / stackCount;
@@ -139,35 +138,74 @@ void Sphere::CreateDrawSphere(Vector3 initPos, float radius, uint32_t stackCount
 
     vertices.insert(VertexNoTex{Vector4(initPos.x, initPos.y - radius, initPos.z, 1.0f), color});
 
-    for (uint32_t i = 1; i <= sliceCount; i++)
+    if (fill)
     {
-        indexes.insert(0);
-        indexes.insert(i + 1);
-        indexes.insert(i);
-    }
-
-    auto baseIndex = 1;
-    auto ringVertexCount = sliceCount + 1;
-    for (uint32_t i = 0; i < stackCount - 2; i++)
-    {
-        for (uint32_t j = 0; j < sliceCount; j++)
+        for (uint32_t i = 1; i <= sliceCount; i++)
         {
-            indexes.insert(baseIndex + (i + 1) * ringVertexCount + j);
-            indexes.insert(baseIndex + i * ringVertexCount + j);
-            indexes.insert(baseIndex + i * ringVertexCount + j + 1);
-            indexes.insert(baseIndex + (i + 1) * ringVertexCount + j + 1);
-            indexes.insert(baseIndex + (i + 1) * ringVertexCount + j);
-            indexes.insert(baseIndex + i * ringVertexCount + j + 1);
+            indexes.insert(0);
+            indexes.insert(i + 1);
+            indexes.insert(i);
+        }
 
+        auto baseIndex = 1;
+        auto ringVertexCount = sliceCount + 1;
+        for (uint32_t i = 0; i < stackCount - 2; i++)
+        {
+            for (uint32_t j = 0; j < sliceCount; j++)
+            {
+                indexes.insert(baseIndex + (i + 1) * ringVertexCount + j);
+                indexes.insert(baseIndex + i * ringVertexCount + j);
+                indexes.insert(baseIndex + i * ringVertexCount + j + 1);
+                indexes.insert(baseIndex + (i + 1) * ringVertexCount + j + 1);
+                indexes.insert(baseIndex + (i + 1) * ringVertexCount + j);
+                indexes.insert(baseIndex + i * ringVertexCount + j + 1);
+
+            }
+        }
+
+        auto southPoleIndex = vertices.size() - 1;
+        baseIndex = southPoleIndex - ringVertexCount;
+        for (uint32_t i = 0; i < sliceCount; i++)
+        {
+            indexes.insert(southPoleIndex);
+            indexes.insert(baseIndex + i);
+            indexes.insert(baseIndex + i + 1);
         }
     }
-
-    auto southPoleIndex = vertices.size() - 1;
-    baseIndex = southPoleIndex - ringVertexCount;
-    for (uint32_t i = 0; i < sliceCount; i++)
+    else
     {
-        indexes.insert(southPoleIndex);
-        indexes.insert(baseIndex + i);
-        indexes.insert(baseIndex + i + 1);
+        const uint32_t quarterSlice = sliceCount / 4;
+        const uint32_t halfStack = stackCount / 2;
+
+        for (uint32_t i = 1; i <= sliceCount; i += quarterSlice)
+        {
+            indexes.insert(0);
+            indexes.insert(i);
+        }
+
+        auto baseIndex = 1;
+        auto ringVertexCount = sliceCount + 1;
+        for (uint32_t i = 0; i < stackCount - 2; ++i)
+        {
+            for (uint32_t j = 0; j < sliceCount; j += quarterSlice)
+            {
+                indexes.insert(baseIndex + (i + 1) * ringVertexCount + j);
+                indexes.insert(baseIndex + i * ringVertexCount + j);
+            }
+        }
+
+        for (uint32_t j = 0; j < sliceCount; j++)
+        {
+            indexes.insert(baseIndex + (halfStack - 1) * ringVertexCount + j + 1);
+            indexes.insert(baseIndex + (halfStack - 1) * ringVertexCount + j);
+        }
+
+        auto southPoleIndex = vertices.size() - 1;
+        baseIndex = southPoleIndex - ringVertexCount;
+        for (uint32_t i = 0; i < sliceCount; i += quarterSlice)
+        {
+            indexes.insert(southPoleIndex);
+            indexes.insert(baseIndex + i);
+        }
     }
 }

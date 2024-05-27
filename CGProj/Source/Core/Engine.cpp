@@ -226,7 +226,7 @@ void Engine::Initialize()
         for (const auto partSys : particleSystems)
         {
             partSys->Initialize();
-        }
+         }
     }
 }
 
@@ -393,7 +393,7 @@ void Engine::DetectOverlapped()
 
 void Engine::Render()
 {
-    curPlData->context->ClearState();
+    GetContext()->ClearState();
     UpdateLightsData();
     SortMeshesByTransparency();
 
@@ -451,7 +451,7 @@ void Engine::Render()
         postRend->Draw();
     }
 
-    curPlData->swapChain->Present(1, /*DXGI_PRESENT_DO_NOT_WAIT*/ 0);
+    curPlData->swapChain->Present(1, /*DXGI_PRESENT_DO_NOT_WAIT*/0 );
 }
 
 void Engine::SortMeshesByTransparency()

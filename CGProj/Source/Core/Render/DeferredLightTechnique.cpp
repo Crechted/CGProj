@@ -110,24 +110,15 @@ void DeferredLightTechnique::GBufferPass()
 
 void DeferredLightTechnique::LightingPass()
 {
-    engInst->SetRenderState(RenderState::Deferred_Lighting);
-    engInst->GetTexRenderTarget()->Clear();
-
-    //engInst->GetContext()->RSSetState(rastStateCullBack);
-    engInst->GetTexRenderTarget()->SetDepthStencilState(DSSLess);
-    blendState->Bind();
+    engInst->SetRenderState(RenderState::Deferred_Lighting);    
     engInst->GetTexRenderTarget()->BindTarget();
-    const auto SRV = tarLightAccumulation->GetRenderTargetSRV();
-    engInst->GetContext()->PSSetShaderResources(0, 1, &SRV);
-    DrawDirectionalLightVolume(fullQuadShader);
+    engInst->GetTexRenderTarget()->Clear();
+    blendState->Bind();
+
+    DrawAmbient();
 
     SortLights();
-    engInst->GetTexRenderTarget()->BindTarget();
 
-    /*auto camData =    engInst->GetCurEyeData();;
-    camData.isCam = true;
-    engInst->SetCurEyeData(camData);*/
-    blendState->Bind();
     DrawLightsByType(LightType::DirectionalLight);
     DrawLightsByType(LightType::PointLight);
     DrawLightsByType(LightType::SpotLight);
@@ -163,6 +154,14 @@ void DeferredLightTechnique::LightingPass()
     }*/
     engInst->GetContext()->RSSetState(nullptr);
     blendState->UnBind();
+}
+
+void DeferredLightTechnique::DrawAmbient()
+{
+    engInst->GetTexRenderTarget()->BindDepthStencilState(DSSLess);
+    const auto SRV = tarLightAccumulation->GetRenderTargetSRV();
+    engInst->GetContext()->PSSetShaderResources(0, 1, &SRV);
+    DrawDirectionalLightVolume(fullQuadShader);
 }
 
 void DeferredLightTechnique::DrawLightVolume(LightComponent* light, Shader* curShader)
@@ -291,13 +290,11 @@ void DeferredLightTechnique::CreateConstantBuffers()
 void DeferredLightTechnique::CreateShaders()
 {
     std::strstream s;
-    std::string cascade, numLights;
-    s << engInst->GetLightComponents().size() << "\x00";
-    s >> numLights;
+    std::string cascade;
     s.clear();
     s << CASCADE_COUNT << "\x00";
     s >> cascade;
-    D3D_SHADER_MACRO macro[] = {"DO_CASCADE_SHADOW", "1", "CASCADE_COUNT", cascade.c_str(), "NUM_LIGHTS", numLights.c_str(), nullptr,
+    D3D_SHADER_MACRO macro[] = {"DO_CASCADE_SHADOW", "1", "CASCADE_COUNT", cascade.c_str(), nullptr,
                                 nullptr};
 
     quadShader = new Shader();

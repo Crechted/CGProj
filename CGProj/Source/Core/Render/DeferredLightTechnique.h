@@ -86,6 +86,7 @@ private:
     void CreateDepthStencilStates();
     void CreateRasterizerState();
     void GBufferPass();
+    void DrawAmbient();
     void DrawLightVolume(LightComponent* light, Shader* curShader);
     void DrawDirectionalLightVolume(Shader* curShader);
     void DrawLightsByType(LightType type);
