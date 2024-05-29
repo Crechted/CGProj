@@ -115,6 +115,7 @@ float4 PS(PS_IN input) : SV_Target
     specular = lit.specular;
 #endif
 
+    specular *= material.specularScale;
     float4 col = float4((ambient + diffuse + specular).rgb, opacity);
     //col.rgb = pow(col.rgb, 1.0f / 2.2f);
 

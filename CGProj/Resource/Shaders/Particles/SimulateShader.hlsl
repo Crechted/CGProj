@@ -102,7 +102,7 @@ void CS_Simulate(uint3 id : SV_DispatchThreadID)
             pb.vel += pb.mass * vGravity * DeltaTime;
 
             // Apply a little bit of a wind force
-            float3 windDir = float3(0.1, 1, 0);
+            float3 windDir = float3(0, 1, 0);
             float windStrength = 0.0;
 
             pb.vel += normalize(windDir) * windStrength * DeltaTime;
@@ -179,8 +179,7 @@ void CS_Simulate(uint3 id : SV_DispatchThreadID)
         // If the position is below the floor, let's kill it now rather than wait for it to retire
         if (vNewPosition.y < -1)
         {
-            vNewPosition.y = 50.0f;
-            //killParticle = true;
+            killParticle = true;
         }
 
         // Write the new position

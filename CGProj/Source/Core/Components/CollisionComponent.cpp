@@ -30,11 +30,11 @@ void CollisionComponent::Draw()
 void CollisionComponent::OnBeginOverlap(CollisionComponent* other)
 {
     if (other) overlappedCollisions.insert(other);
-    printf("Overlaped!");
+    //printf("Overlaped!");
 }
 
 void CollisionComponent::OnEndOverlap(CollisionComponent* other)
 {
     if (other) overlappedCollisions.remove(other);
-    printf("Endlaped!");
+    //printf("Endlaped!");
 }

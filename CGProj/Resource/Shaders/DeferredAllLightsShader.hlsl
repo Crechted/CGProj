@@ -125,9 +125,9 @@ float4 PS(PSInput input) : SV_Target
     float4 shadowPosH = mul(P, mul(CascData.ViewProj[layer], mT));
     shadow = CalcCascadeShadowFactor(ShadCompSamp, CascadeShadowMaps, shadowPosH, layer);
 #endif
-        
+
     LightingResult lit = DoLighting(Lights[input.instID], mat, eyePos, P, N, shadow);
-    return (diffuse * lit.diffuse) + (lit.specular);
+    return (diffuse * lit.diffuse) + (specular * lit.specular);
 }
 
 #endif

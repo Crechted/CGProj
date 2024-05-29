@@ -23,7 +23,7 @@ struct Material
     Vector4 ambientColor = Vector4(0.2f);
     Vector4 emissiveColor;
     Vector4 diffuseColor;
-    Vector4 specularColor;
+    Vector4 specularColor = Vector4::One;
     Vector4 reflectance;
 
     float opacity = 1.0f;

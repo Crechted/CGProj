@@ -32,16 +32,23 @@ int main()
     pawn->GetPlayerMoveComponent()->speed = 2.0f;
     //engine->CreateObject<Spectator>(0.0f, Vector3(-3.0f, 0.5f, 0.0f))->GetMovementComponent()->speed = 2.0f;
 
-    const auto plane = engine->CreateComponent<BoxComponent>(L"Resource/Textures/grass.png", Vector3(-10.0f, -0.05f, -10.0f),
-        Vector3(20.0f, 0.1f, 20.0f));
-    plane->GetMeshCollision()->SetCollisionEnabled(false);
-    engine->CreateComponent<BoxComponent>(L"Resource/Textures/grass.png", Vector3(-10.0f, -0.05f, 10.0f), Vector3(20.0f, 0.1f, 20.0f))->
-            GetMeshCollision()->SetCollisionEnabled(false);
-    engine->CreateComponent<BoxComponent>(L"Resource/Textures/grass.png", Vector3(10.0f, -0.05f, 10.0f), Vector3(20.0f, 0.1f, 20.0f))->
-            GetMeshCollision()->SetCollisionEnabled(false);
-    engine->CreateComponent<BoxComponent>(L"Resource/Textures/grass.png", Vector3(10.0f, -0.05f, -10.0f), Vector3(20.0f, 0.1f, 20.0f))->
-            GetMeshCollision()->SetCollisionEnabled(false);
+    const auto planeMesh1 = engine->CreateComponent<BoxComponent>(L"Resource/Textures/Ice.jpg", Vector3(-10.0f, -0.05f, -10.0f),
+        Vector3(20.0f, 0.1f, 20.0f))->GetMesh();
+    const auto planeMesh2 = engine->CreateComponent<BoxComponent>(L"Resource/Textures/Ice.jpg", Vector3(-10.0f, -0.05f, 10.0f),
+        Vector3(20.0f, 0.1f, 20.0f))->GetMesh();
+    const auto planeMesh3 = engine->CreateComponent<BoxComponent>(L"Resource/Textures/Ice.jpg", Vector3(10.0f, -0.05f, 10.0f),
+        Vector3(20.0f, 0.1f, 20.0f))->GetMesh();
+    const auto planeMesh4 = engine->CreateComponent<BoxComponent>(L"Resource/Textures/Ice.jpg", Vector3(10.0f, -0.05f, -10.0f),
+        Vector3(20.0f, 0.1f, 20.0f))->GetMesh();
 
+    auto mat = planeMesh1->GetTextureComponent()->GetMaterial();
+    mat.specularPower = 2.0f;
+    //mat.specularScale = 0.0f;
+    planeMesh1->SetMaterial(mat);
+    planeMesh2->SetMaterial(mat);
+    planeMesh3->SetMaterial(mat);
+    planeMesh4->SetMaterial(mat);
+    
     const auto mesh = engine->CreateObject<CatamaryObjects>("Resource/Meshes/Piram.obj");
     mesh->GetSceneComponent()->initPosition = Vector3(2.0f, 0.0f, 0.0f);
     mesh->GetSceneComponent()->initScale = Vector3(2.0);
@@ -84,7 +91,7 @@ int main()
     auto transper2 = engine->CreateObject<Box>(nullptr, Vector3(-2.0f, 1.0f, -4.0f), Vector3(0.7f));
     transper2->SetOpacity(0.7f);
 
-    auto particleSys = engine->CreateObject<ParticleSystem>(10000, Transform({0.0f, 0.0f, 0.0f}));
+    auto particleSys = engine->CreateObject<ParticleSystem>(100000, Transform({0.0f, 25.0f, 0.0f}));
     particleSys->GetTextureComponent()->SetTexture(L"Resource/Textures/snowflake.png");
 
     //auto img = engine->CreateObject<PostRenderGameMap>( L"./Resource/Shaders/ImgShader.hlsl", nullptr, Vector2(200, 200), Vector2(20.0, 20.0f));

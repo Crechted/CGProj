@@ -1415,6 +1415,7 @@
     <Content Include="Resource\Textures\hdri3.jpg" />
     <Content Include="Resource\Textures\hdri4.jpg" />
     <Content Include="Resource\Textures\hdri5.jpg" />
+    <Content Include="Resource\Textures\Ice.jpg" />
     <Content Include="Resource\Textures\Putin.dds" />
     <Content Include="Resource\Textures\Putin.jpg" />
     <Content Include="Resource\Textures\sky.jpeg" />

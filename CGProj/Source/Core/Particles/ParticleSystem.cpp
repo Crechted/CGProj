@@ -3,6 +3,7 @@
 #include "SortLib.h"
 #include "Core/Windisplay.h"
 #include "Core/Components/TextureComponent.h"
+#include "Core/Input/InputDevice.h"
 #include "Core/Render/BlendState.h"
 #include "Core/Render/Buffer.h"
 #include "Core/Render/DeferredLightTechnique.h"
@@ -75,6 +76,7 @@ void ParticleSystem::Initialize()
     particleCount = maxParticleCount;
     particleEmitRate = 100;
     //textureComp->SetOpacity(0.5f);
+    engInst->GetInputDevice()->KeyDownDelegate.AddRaw(this, &ParticleSystem::OnKeyDown);
     Object::Initialize();
 }
 
@@ -109,7 +111,7 @@ void ParticleSystem::Update(float timeTick)
     data.DeltaTime = timeTick;
 
     data.CollisionThickness = 0.1f;
-    data.CollideParticles = 1;
+    data.CollideParticles = doCollide ? 1 : 0;
     data.ShowSleepingParticles = 0;
     data.EnableSleepState = 0;
 
@@ -457,9 +459,16 @@ void ParticleSystem::CreateSamplers()
 void ParticleSystem::InitDefaultEmitter()
 {
     emitter.posVar = Vector4::One * 50.f;
+    emitter.vel = Vector4(0.5f, 0.0f, 0.5f, 1.0f);
+    emitter.velVar = 1.0f;
     emitter.lifeSpan = -1.0f;
     emitter.startSize = emitter.endSize = 0.1f;
     emitter.mass = 0.01f;
     emitter.ID = 0;
     emitter.streaks = 1;
+}
+
+void ParticleSystem::OnKeyDown(Keys key)
+{
+    if (key == Keys::L) doCollide = !doCollide;
 }

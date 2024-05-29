@@ -128,7 +128,7 @@ GBuffer PS(PS_IN input)
     }
 
     ambient *= material.globalAmbient;
-    
+
     float4 emissive = material.emissiveColor;
     if (material.hasEmissiveTex == 1)
     {
@@ -183,7 +183,7 @@ GBuffer PS(PS_IN input)
     float4 specular = 0;
     if (specularPower > 1.0f) // If specular power is too low, don't use it.
     {
-        specular = material.specularColor;
+        specular = material.specularColor * material.specularScale;
         if (material.hasSpecularTex == 1)
         {
             float4 specularTex = SpecularTex.Sample(LinearRepeatSampler, input.texCoord);

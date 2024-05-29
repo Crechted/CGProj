@@ -3,6 +3,7 @@
 #include "Core/Components/SceneComponent.h"
 #include "Core/Objects/Object.h"
 
+enum class Keys;
 class SortLib;
 class TextureComponent;
 class BlendState;
@@ -84,6 +85,7 @@ public:
     TextureComponent* GetTextureComponent() const { return textureComp; }
 
 protected:
+    bool doCollide = false;
     EmitterData emitter;
 
     SortLib* sortLib = nullptr;
@@ -146,4 +148,6 @@ protected:
     void CreateBlendState();
     void CreateSamplers();
     void InitDefaultEmitter();
+
+    void OnKeyDown(Keys key);
 };
