@@ -70,7 +70,7 @@ int main()
     sky->SetCollisionEnabled(false);*/
     Transform trans{Vector3::One};
     engine->CreateComponent<PointLightComponent>(trans, 4.0f, Vector4(1.0f, 0.0f, 0.0f, 0.0f) * 10.0f, true);
-    
+
     engine->CreateComponent<DirectionalLightComponent>();
 
     Transform trans1{Vector3(0.0f, 1.0f, 2.0f)};
@@ -84,20 +84,15 @@ int main()
     auto transper2 = engine->CreateObject<Box>(nullptr, Vector3(-2.0f, 1.0f, -4.0f), Vector3(0.7f));
     transper2->SetOpacity(0.7f);
 
-    auto particleSys = engine->CreateObject<ParticleSystem>(100000, Transform({-5.0f, 2.0f, 0.0f}));
+    auto particleSys = engine->CreateObject<ParticleSystem>(10000, Transform({0.0f, 0.0f, 0.0f}));
     particleSys->GetTextureComponent()->SetTexture(L"Resource/Textures/snowflake.png");
 
-    auto Border = engine->CreateObject<PostRenderImage>(nullptr, Vector2(220, 220), Vector2(10.0, 10.0f));
-    Border->SetShaderPath(L"./Resource/Shaders/CascadeImgShader.hlsl");
-    auto img = engine->CreateObject<PostRenderGameMap>( L"./Resource/Shaders/ImgShader.hlsl", nullptr, Vector2(200, 200), Vector2(20.0, 20.0f));
-    
-    
+    //auto img = engine->CreateObject<PostRenderGameMap>( L"./Resource/Shaders/ImgShader.hlsl", nullptr, Vector2(200, 200), Vector2(20.0, 20.0f));
+
     engine->useCascadeShadow = true;
     engine->SetRenderType(RenderType::Deferred);
     engine->Initialize();
 
-    Border->SetSRV(img->GetMapSRV());
-    
     engine->Run();
     return 0;
 }

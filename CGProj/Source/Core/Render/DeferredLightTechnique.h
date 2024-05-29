@@ -35,6 +35,9 @@ public:
     void Destroy();
     void Render();
 
+    Array<ID3D11RenderTargetView*> GetGBuffer() const {return GBuffer;};
+    ID3D11DepthStencilView* GetDepthStencil() const;
+    ID3D11ShaderResourceView* GetDepthStencilSRV() const;
 protected:
     Engine* engInst = nullptr;
     RenderTarget* tarDepthStencil = nullptr;

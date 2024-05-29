@@ -226,7 +226,7 @@ void Engine::Initialize()
         for (const auto partSys : particleSystems)
         {
             partSys->Initialize();
-         }
+        }
     }
 }
 
@@ -451,7 +451,7 @@ void Engine::Render()
         postRend->Draw();
     }
 
-    curPlData->swapChain->Present(1, /*DXGI_PRESENT_DO_NOT_WAIT*/0 );
+    curPlData->swapChain->Present(1, /*DXGI_PRESENT_DO_NOT_WAIT*/0);
 }
 
 void Engine::SortMeshesByTransparency()
@@ -585,9 +585,13 @@ void Engine::RenderScene(bool renderOpaque, bool renderTransparent)
         alphaBlendState->UnBind();
     }
 
-    if (renderState == RenderState::Forward_Normal || renderState == RenderState::Deferred_GBuffer)
+    if ( /*renderState == RenderState::Forward_Normal || renderState == RenderState::Deferred_GBuffer ||*/
+        renderState == RenderState::Forward_Transparent)
         for (const auto partSys : particleSystems)
         {
+            /*if (renderOpaque && partSys->GetTextureComponent()->GetOpacity() >= 1.0f)
+                partSys->Render();
+            else if (renderTransparent && partSys->GetTextureComponent()->GetOpacity() < 1.0f)*/
             partSys->Render();
         }
 }

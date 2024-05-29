@@ -49,6 +49,8 @@ void PostRenderImage::Draw()
     engInst->GetContext()->IASetVertexBuffers(0, 1, vertBuf->GetBuffers(), &stride, &offset);
     engInst->GetContext()->IASetIndexBuffer(indBuf->GetBuffer(), DXGI_FORMAT_R32_UINT, 0);
     engInst->GetContext()->DrawIndexed(indexes.size(), 0, 0);
+    ID3D11ShaderResourceView* srvs[] = {nullptr};
+    engInst->GetContext()->PSSetShaderResources(0, ARRAYSIZE(srvs), srvs);
 }
 
 void PostRenderImage::CreateBuffers()

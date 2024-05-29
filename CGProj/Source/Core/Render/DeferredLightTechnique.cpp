@@ -22,6 +22,16 @@ void DeferredLightTechnique::Render()
     engInst->GetTexRenderTarget()->CopyDepthStencilViewTex(tarDepthStencil->GetDepthStencilTexture());
 }
 
+ID3D11DepthStencilView* DeferredLightTechnique::GetDepthStencil() const
+{
+    return tarDepthStencil->GetDepthStencilView();
+}
+
+ID3D11ShaderResourceView* DeferredLightTechnique::GetDepthStencilSRV() const
+{
+    return tarDepthStencil->GetDepthStencilSRV();
+}
+
 void DeferredLightTechnique::Initialize()
 {
     GBuffer.clear();
@@ -110,7 +120,7 @@ void DeferredLightTechnique::GBufferPass()
 
 void DeferredLightTechnique::LightingPass()
 {
-    engInst->SetRenderState(RenderState::Deferred_Lighting);    
+    engInst->SetRenderState(RenderState::Deferred_Lighting);
     engInst->GetTexRenderTarget()->BindTarget();
     engInst->GetTexRenderTarget()->Clear();
     blendState->Bind();
@@ -201,7 +211,7 @@ void DeferredLightTechnique::DrawLightsByType(LightType type)
     if (type == LightType::SpotLight) lights = spotLights;
     if (type == LightType::DirectionalLight) lights = directionalLights;
     PreRenderLightPassByLights(lights);
-    const uint32_t stride[2]  = {sizeof(VertexNoTex), 0};
+    const uint32_t stride[2] = {sizeof(VertexNoTex), 0};
     const uint32_t offset[2] = {0, 0};
     engInst->GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     engInst->GetContext()->IASetVertexBuffers(0, 1, &vertexBuffer, stride, offset);
@@ -227,23 +237,23 @@ void DeferredLightTechnique::PreRenderLightPassByLights(const Array<LightCompone
     engInst->GetContext()->PSSetShaderResources(0, 5, &GBufferSRV[0]);
 
     BindScreenToWorldData();
-    
+
     curLightsData.clear();
     for (const auto lightComp : lights)
     {
         curLightsData.insert(lightComp->GetLightData());
     }
-    
+
     for (const auto light : lights)
     {
         light->UpdateLightData();
         if (light->GetLightData().type == LightType::DirectionalLight)
             light->BindShadowMapSRV();
     }
-    
+
     const auto lightsSRV = engInst->GetLightsStructuredSRV();
     const auto lightsBuf = engInst->GetLightsBuffer();
-    
+
     lightsBuf->UpdateData(&curLightsData[0]);
     engInst->GetContext()->PSSetShaderResources(8, 1, &lightsSRV);
 }

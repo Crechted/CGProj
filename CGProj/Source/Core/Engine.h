@@ -110,6 +110,7 @@ public:
     template <typename T, typename... Args>
     T* CreateComponent(const Args&... args);
 
+    DeferredLightTechnique* GetDeferredTech() const {return deferredLight;};
     Buffer* GetLightsBuffer() const {return lightsBuffer;}
     ID3D11ShaderResourceView* GetLightsStructuredSRV() const {return lightsSRV;}
     void UpdateLightsData();

@@ -64,3 +64,11 @@ static Vector4 Rand(Vector4 min, Vector4 max)
     res.w = Rand(min.w, max.w);
     return res;
 }
+
+static float RandomVariance(float median, float variance)
+{
+    //float fUnitRandomValue = Rand(0.0f, 1.0f);
+    float fUnitRandomValue = (float)rand() / (float)RAND_MAX;
+    float fRange = variance * fUnitRandomValue;
+    return median - variance + (2.0f * fRange);
+}

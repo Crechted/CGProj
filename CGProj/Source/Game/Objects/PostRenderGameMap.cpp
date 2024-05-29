@@ -56,9 +56,9 @@ void PostRenderGameMap::Draw()
     const auto eye = mapCamera->GetEyeData();
     engInst->SetCurCamera(mapCamera);
     engInst->SetCurEyeData(eye);
+    mapRenderTarget->ClearTarget();
     mapRenderTarget->BindTarget();
     mapRenderTarget->BindDepthStencilState();
-    mapRenderTarget->ClearTarget();
     //engInst->SetRenderState(RenderState::DrawDebug);
     engInst->RenderScene(true, true);
     engInst->GetBackBufferRTV()->BindTarget();

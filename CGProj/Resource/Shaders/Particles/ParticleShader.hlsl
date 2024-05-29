@@ -1,15 +1,10 @@
 #ifndef PARTICLE
 #define PARTICLE
 
-#include "Structures.hlsl"
+#include "../Structures.hlsl"
+#include "GlobalsParticles.hlsl"
 
-struct Particle
-{
-    float3 Position;
-    float3 Velocity;
-};
-
-StructuredBuffer<Particle> Particles : register(t0);
+StructuredBuffer<ParticleB> Particles : register(t0);
 
 Texture2D DiffuseTex : register( t2 );
 sampler LinearRepeatSampler : register( s0 );
@@ -30,8 +25,8 @@ PixelInput VS(uint id: SV_VertexID)
 {
     PixelInput output = (PixelInput)0;
 
-    const Particle particle = Particles[id];
-    output.pos = mul(float4(particle.Position, 1.0f), viewData.mWorld);
+    const ParticleB particle = Particles[id];
+    output.pos = mul(float4(particle.pos, 1.0f), viewData.mWorld);
     output.pos = mul(output.pos, viewData.mView);
     output.UV = 0;
     return output;
