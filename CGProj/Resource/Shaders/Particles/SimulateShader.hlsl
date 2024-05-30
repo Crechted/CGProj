@@ -26,6 +26,7 @@ RWBuffer<uint> DrawArgs : register( u6 );
 // The opaque scene's depth buffer read as a texture
 Texture2D DepthBuffer : register( t0 );
 
+Texture3D WindVolumeBuffer : register( t1 );
 
 // Calculate the view space position given a point in screen space and a texel offset
 float3 calcViewSpacePositionFromDepth(float2 normalizedScreenPosition, int2 texelOffset)
@@ -56,6 +57,18 @@ float3 calcViewSpacePositionFromDepth(float2 normalizedScreenPosition, int2 texe
     return viewSpacePosOfDepthBuffer.xyz;
 }
 
+int InsideWind(float3 wPos, inout float3 windCoord)
+{
+    float3 CenterWind = mul(float4(0.0f, 0.0f, 0.0f, 1.0f), mWorld).xyz;
+    const float Side = WindSize / 2;
+    if (wPos.x < CenterWind.x + Side && wPos.y < CenterWind.y + Side && wPos.z < CenterWind.z + Side
+        && wPos.x > CenterWind.x - Side && wPos.y > CenterWind.y - Side && wPos.z > CenterWind.z - Side)
+    {
+        windCoord = (wPos - CenterWind) / WindSize;
+        return 1;
+    }
+    return 0;
+}
 
 // Simulate 256 particles per thread group, one thread per particle
 [numthreads(256,1,1)]
@@ -81,7 +94,7 @@ void CS_Simulate(uint3 id : SV_DispatchThreadID)
     ParticleB pb = ParticleBufferB[id.x];
 
     // If the partile is alive
-    if (pb.lifespan == -1) pb.age = 1.0f;
+
     if (pb.age > 0.0f)
     {
         // Extract the individual emitter properties from the particle
@@ -101,14 +114,20 @@ void CS_Simulate(uint3 id : SV_DispatchThreadID)
         {
             pb.vel += pb.mass * vGravity * DeltaTime;
 
-            // Apply a little bit of a wind force
-            float3 windDir = float3(0, 1, 0);
-            float windStrength = 0.0;
+            float3 p;
+            if (DoWindVolume && InsideWind(vNewPosition, p))
+            {
+                float3 windCoord = (p + float3(1, 1, 1)) * float3(0.5, 0.5, 0.5f);
+                float3 windDir = WindVolumeBuffer.SampleLevel(samWrapLinear, windCoord.xyz, 0).xyz;
+                float windStrength = 10.0;
 
-            pb.vel += normalize(windDir) * windStrength * DeltaTime;
+                pb.vel += normalize(windDir) * windStrength * DeltaTime;
+            }
 
             // Calculate the new position of the particle
-            vNewPosition += pb.vel * DeltaTime;
+            float velSpeed = length(pb.vel);
+            velSpeed = clamp(velSpeed, 0.0f, 10.0f);
+            vNewPosition += normalize(pb.vel) * velSpeed * DeltaTime;
         }
 
         // Calculate the normalized age
@@ -120,7 +139,7 @@ void CS_Simulate(uint3 id : SV_DispatchThreadID)
         float radius = lerp(pb.startSize, pb.endSize, fScaledLife);
 
         // By default, we are not going to kill the particle
-        bool killParticle = false;
+        int killParticle = 0;
 
         if (CollideParticles)
         {
@@ -179,7 +198,7 @@ void CS_Simulate(uint3 id : SV_DispatchThreadID)
         // If the position is below the floor, let's kill it now rather than wait for it to retire
         if (vNewPosition.y < -1)
         {
-            killParticle = true;
+            killParticle = 1;
         }
 
         // Write the new position
@@ -238,7 +257,7 @@ void CS_Simulate(uint3 id : SV_DispatchThreadID)
         }
 
         // Dead particles are added to the dead list for recycling
-        if (pb.age <= 0.0f || killParticle)
+        if (pb.age <= 0.0f || killParticle == 1)
         {
             pb.age = -1;
             DeadListToAddTo.Append(id.x);

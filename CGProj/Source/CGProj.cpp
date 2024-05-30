@@ -13,6 +13,7 @@
 #include "Game/Components/LightComponents/DirectionalLightComponent.h"
 #include "Game/Components/MovementComponent.h"
 #include "Game/Components/SphereComponent.h"
+#include "Game/Components/SpringArmComponent.h"
 #include "Game/Components/LightComponents/PointLightComponent.h"
 #include "Game/Components/LightComponents/SpotLightComponent.h"
 #include "Game/Objects/PostRenderGameMap.h"
@@ -27,10 +28,11 @@ int main()
     Engine* engine = &Engine::GetInstance();
     //auto grids = engine->CreateObject<Grids>(1.0f, 41);
 
-    auto pawn = engine->CreateObject<Pawn>(5.0f, Vector3(-3.0f, 0.5f, 0.0f));
+    /*auto pawn = engine->CreateObject<Pawn>(5.0f, Vector3(-3.0f, 0.5f, 0.0f));
     pawn->GetSphereComponent()->GetMesh()->SetCollisionVisibility(true);
-    pawn->GetPlayerMoveComponent()->speed = 2.0f;
-    //engine->CreateObject<Spectator>(0.0f, Vector3(-3.0f, 0.5f, 0.0f))->GetMovementComponent()->speed = 2.0f;
+    pawn->GetPlayerMoveComponent()->speed = 2.0f;*/
+    auto spec = engine->CreateObject<Spectator>(0.0f, Vector3(0.0f, 25.0f, 25.0f));
+    spec->GetMovementComponent()->speed = 5.0f;
 
     const auto planeMesh1 = engine->CreateComponent<BoxComponent>(L"Resource/Textures/Ice.jpg", Vector3(-10.0f, -0.05f, -10.0f),
         Vector3(20.0f, 0.1f, 20.0f))->GetMesh();
@@ -43,12 +45,12 @@ int main()
 
     auto mat = planeMesh1->GetTextureComponent()->GetMaterial();
     mat.specularPower = 2.0f;
-    //mat.specularScale = 0.0f;
+    mat.specularScale = 0.05f;
     planeMesh1->SetMaterial(mat);
     planeMesh2->SetMaterial(mat);
     planeMesh3->SetMaterial(mat);
     planeMesh4->SetMaterial(mat);
-    
+
     const auto mesh = engine->CreateObject<CatamaryObjects>("Resource/Meshes/Piram.obj");
     mesh->GetSceneComponent()->initPosition = Vector3(2.0f, 0.0f, 0.0f);
     mesh->GetSceneComponent()->initScale = Vector3(2.0);
@@ -96,6 +98,7 @@ int main()
 
     //auto img = engine->CreateObject<PostRenderGameMap>( L"./Resource/Shaders/ImgShader.hlsl", nullptr, Vector2(200, 200), Vector2(20.0, 20.0f));
 
+    //particleSys->GetSceneComponent()->AttachTo(spec->GetSpringArmComponent());
     engine->useCascadeShadow = true;
     engine->SetRenderType(RenderType::Deferred);
     engine->Initialize();

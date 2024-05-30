@@ -117,7 +117,7 @@ void GS(point VS_OUTPUT input[1], inout TriangleStream<PS_INPUT> SpriteStream)
             sincos(input[0].VelocityXYRotationEmitterNdotL.z, s, c);
             float2x2 rotation = {float2(c, -s), float2(s, c)};
 
-            //offset = mul(offset, rotation);
+            offset = mul(offset, rotation);
 
             cameraFacingPos = input[0].ViewSpaceCentreAndRadius.xyz;
             cameraFacingPos.xy += radius * offset;

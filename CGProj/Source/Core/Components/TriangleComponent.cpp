@@ -298,7 +298,7 @@ void TriangleComponent::CreateDeferredGeometryShader()
     deferredGeometryPassShader->AddInputElementDesc("NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT);
     deferredGeometryPassShader->AddInputElementDesc("TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT);
     deferredGeometryPassShader->CreateShader(L"./Resource/Shaders/GBufferShader.hlsl", SVertex);
-    deferredGeometryPassShader->CreateShader(L"./Resource/Shaders/GBufferShader.hlsl", SPixel);
+    deferredGeometryPassShader->CreateShader(L"./Resource/Shaders/GBufferShader.hlsl", SPixel); 
 }
 
 void TriangleComponent::CreateDeferredLightShader()

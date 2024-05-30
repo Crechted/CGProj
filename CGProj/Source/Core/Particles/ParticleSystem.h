@@ -37,6 +37,7 @@ struct ParticleBuf
 
 struct HandlerData
 {
+    Matrix mWorld;
     Matrix mInvProjView;
     Matrix mInvProj;
     Matrix mInvView;
@@ -52,9 +53,14 @@ struct HandlerData
     float DeltaTime;
 
     float CollisionThickness;
-    int CollideParticles;
-    int ShowSleepingParticles;
-    int EnableSleepState;
+    int32_t CollideParticles;
+    int32_t ShowSleepingParticles;
+    int32_t EnableSleepState;
+
+    int32_t DoWindVolume;
+    float WindSize;
+    int32_t pad;
+    int32_t pad2;
 };
 
 struct ListCount
@@ -73,6 +79,7 @@ class ParticleSystem : public Object
 public:
     ParticleSystem(int32_t maxParticleCount = 1000000, const Transform& transform = Transform::Identity,
         SceneComponent* parentComp = nullptr);
+
     void Destroy() override;
     void Initialize() override;
     void Reload() override;
@@ -80,6 +87,8 @@ public:
     void PreDraw() override;
     void Draw() override;
     void SetEmitter(const EmitterData& emit) { emitter = emit; }
+
+    void DoWind(bool wind) { doWind = wind; }
 
     SceneComponent* GetSceneComponent() const { return sceneComp; }
     TextureComponent* GetTextureComponent() const { return textureComp; }
@@ -89,7 +98,7 @@ protected:
     EmitterData emitter;
 
     SortLib* sortLib = nullptr;
-    
+
     Shader* renderShader;
     Shader* emitShader;
     Shader* simulateShader;
@@ -103,6 +112,7 @@ protected:
     Buffer* emitterBuf;
     Buffer* deadListCountBuf;
     Buffer* activeListCountBuf;
+    Buffer* counterBuf;
 
     TextureComponent* textureComp;
     ID3D11ShaderResourceView* particlesA_SRV;
@@ -131,6 +141,8 @@ protected:
     SceneComponent* sceneComp;
 
     bool needReset = true;
+    bool doWind = true;
+
     int32_t maxParticleCount;
     int32_t particleCount;
     int32_t particleEmitRate;
@@ -149,5 +161,12 @@ protected:
     void CreateSamplers();
     void InitDefaultEmitter();
 
+    uint32_t ReadCounter(ID3D11UnorderedAccessView* uav);
     void OnKeyDown(Keys key);
+
+
+    ID3D11Texture3D* windVolumeTex;
+    ID3D11ShaderResourceView* windVolumeSRV;
+    void CreateWindVolume();
+    void BindWind();
 };

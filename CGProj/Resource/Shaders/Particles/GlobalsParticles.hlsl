@@ -32,6 +32,7 @@ struct ParticleB
 
 cbuffer Handler : register(b0)
 {
+matrix mWorld;
 matrix mInvProjView;
 matrix mInvProj;
 matrix mInvView;
@@ -50,6 +51,11 @@ float CollisionThickness;
 int CollideParticles;
 int ShowSleepingParticles;
 int EnableSleepState;
+
+int DoWindVolume;
+float WindSize;
+int pad;
+int pad2;
 };
 
 // The number of dead particles in the system
@@ -98,10 +104,10 @@ uint WriteEmitterProperties(uint emitterIndex, uint textureIndex, bool isStreakE
     return properties;
 }
 
-float2 calcEllipsoidRadius( float radius, float2 viewSpaceVelocity )
+float2 calcEllipsoidRadius(float radius, float2 viewSpaceVelocity)
 {
-    float minRadius = radius * max( 1.0, 0.1*length( viewSpaceVelocity ) );
-    return float2( radius, minRadius );
+    float minRadius = radius * max(1.0, 0.1 * length(viewSpaceVelocity));
+    return float2(radius, minRadius);
 }
 
 float3 ConvertProjToView(float4 p, matrix mProjectionInv)

@@ -1,5 +1,7 @@
 #include "ParticleSystem.h"
 
+#include <iostream>
+
 #include "SortLib.h"
 #include "Core/Windisplay.h"
 #include "Core/Components/TextureComponent.h"
@@ -40,6 +42,7 @@ void ParticleSystem::Destroy()
     if (emitterBuf) emitterBuf->Destroy();
     if (deadListCountBuf) deadListCountBuf->Destroy();
     if (activeListCountBuf) activeListCountBuf->Destroy();
+    if (counterBuf) counterBuf->Destroy();
 
     if (textureComp) textureComp->DestroyResource();
 
@@ -69,6 +72,8 @@ void ParticleSystem::Initialize()
     CreateBuffers();
     CreateBlendState();
     CreateSamplers();
+    doWind = true;
+    CreateWindVolume();
     FillRandomTexture();
     InitSort();
     if (emitter.startSize == 0.0f || emitter.endSize == 0.0f) InitDefaultEmitter();
@@ -93,8 +98,10 @@ void ParticleSystem::Update(float timeTick)
     const auto camera = engInst->GetCurCamera();
     const auto eyeData = camera->GetEyeData();
     const auto invertProjView = eyeData.GetViewProj().Invert();
+    const auto worldMat = sceneComp->GetWorldMatrix();
 
     HandlerData data;
+    data.mWorld = worldMat.Transpose();
     data.mInvProjView = invertProjView.Transpose();
     data.mInvProj = eyeData.mProj.Invert().Transpose();
     data.mInvView = eyeData.mView.Invert().Transpose();
@@ -114,6 +121,9 @@ void ParticleSystem::Update(float timeTick)
     data.CollideParticles = doCollide ? 1 : 0;
     data.ShowSleepingParticles = 0;
     data.EnableSleepState = 0;
+
+    data.DoWindVolume = doWind;
+    data.WindSize = 50.0f;
 
     handlerBuf->UpdateData(&data);
 }
@@ -147,9 +157,16 @@ void ParticleSystem::PreDraw()
         needReset = false;
     }
 
-    curParticleToEmit = particleEmitRate % particleCount;
+    const auto ac = ReadCounter(aliveIndexBufferUAV);
+    const auto pc = ReadCounter(deadListUAV);
+    std::cout << "Alive: " << ac << " Dead: " << pc << std::endl;
+
+    particleCount = particleCount == 0 ? pc : particleCount;
+    curParticleToEmit = particleCount > 100 ? particleEmitRate % particleCount : particleCount > 0 ? particleCount : 0;
     particleCount -= curParticleToEmit;
     Emit(curParticleToEmit);
+
+    if (doWind) BindWind();
     const auto depthSRV = engInst->GetDeferredTech()->GetDepthStencilSRV();
     Simulate(depthSRV, true);
 
@@ -418,8 +435,9 @@ void ParticleSystem::CreateBuffers()
 
     handlerBuf = (new Buffer())->CreateBuffer<HandlerData>();
     emitterBuf = (new Buffer())->CreateBuffer<EmitterData>();
-    deadListCountBuf = (new Buffer)->CreateBuffer<ListCount>();
-    activeListCountBuf = (new Buffer)->CreateBuffer<ListCount>();
+    deadListCountBuf = (new Buffer())->CreateBuffer<ListCount>();
+    activeListCountBuf = (new Buffer())->CreateBuffer<ListCount>();
+    counterBuf = (new Buffer())->CreateBuffer<uint32_t>(D3D11_USAGE_STAGING, 0, D3D11_CPU_ACCESS_READ);
 }
 
 void ParticleSystem::CreateBlendState()
@@ -458,17 +476,90 @@ void ParticleSystem::CreateSamplers()
 
 void ParticleSystem::InitDefaultEmitter()
 {
-    emitter.posVar = Vector4::One * 50.f;
-    emitter.vel = Vector4(0.5f, 0.0f, 0.5f, 1.0f);
-    emitter.velVar = 1.0f;
+    emitter.posVar = Vector4::One * 25.f;
+    //emitter.vel = Vector4(0.5f, 0.0f, 0.5f, 1.0f);
+    //emitter.velVar = 1.0f;
     emitter.lifeSpan = -1.0f;
     emitter.startSize = emitter.endSize = 0.1f;
     emitter.mass = 0.01f;
     emitter.ID = 0;
-    emitter.streaks = 1;
+    emitter.streaks = 0;
+}
+
+uint32_t ParticleSystem::ReadCounter(ID3D11UnorderedAccessView* uav)
+{
+    uint32_t count = 0;
+
+    engInst->GetContext()->CopyStructureCount(counterBuf->GetBuffer(), 0, uav);
+    D3D11_MAPPED_SUBRESOURCE MappedResource;
+
+    engInst->GetContext()->Map(counterBuf->GetBuffer(), 0, D3D11_MAP_READ, 0, &MappedResource);
+    count = *(uint32_t*)MappedResource.pData;
+    engInst->GetContext()->Unmap(counterBuf->GetBuffer(), 0);
+
+    return count;
 }
 
 void ParticleSystem::OnKeyDown(Keys key)
 {
     if (key == Keys::L) doCollide = !doCollide;
+    if (key == Keys::K) doWind = !doWind;
+    if (key == Keys::R) Reload();
+}
+
+
+void ParticleSystem::CreateWindVolume()
+{
+    D3D11_TEXTURE3D_DESC desc;
+    ZeroMemory(&desc, sizeof( desc ));
+    desc.Width = 256;
+    desc.Height = 256;
+    desc.Depth = 256;
+    desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+    desc.Usage = D3D11_USAGE_IMMUTABLE;
+    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    desc.MipLevels = 1;
+
+    Array<Vector4> values(static_cast<int32_t>(desc.Width * desc.Height * desc.Depth));
+    for (UINT i = 0; i < desc.Width; i++)
+    {
+        for (UINT j = 0; j < desc.Height; j++)
+        {
+            for (UINT k = 0; k < desc.Depth; k++)
+            {
+                auto x = k / (float)desc.Depth;
+                auto y = j / (float)desc.Height;
+                auto z = i / (float)desc.Width;
+
+                x = 0.5 - x;
+                y = 0.5 - y;
+                z = 0.5 - z;
+
+                values[i * desc.Width * desc.Height + j * desc.Height + k] = Vector4(x, y, z, 1.0f);
+            }
+        }
+    }
+
+    D3D11_SUBRESOURCE_DATA data;
+    data.pSysMem = &values[0];
+    data.SysMemPitch = desc.Width * 16;
+    data.SysMemSlicePitch = desc.Width * desc.Height * 16;
+
+    engInst->GetDevice()->CreateTexture3D(&desc, &data, &windVolumeTex);
+
+    values.clear();
+
+    D3D11_SHADER_RESOURCE_VIEW_DESC srv;
+    srv.Format = desc.Format;
+    srv.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE3D;
+    srv.Texture2D.MipLevels = 1;
+    srv.Texture2D.MostDetailedMip = 0;
+
+    engInst->GetDevice()->CreateShaderResourceView(windVolumeTex, &srv, &windVolumeSRV);
+}
+
+void ParticleSystem::BindWind()
+{
+    ID3D11ShaderResourceView* srvs[] = {windVolumeSRV};
+    engInst->GetContext()->CSSetShaderResources(1, ARRAYSIZE(srvs), srvs);
 }

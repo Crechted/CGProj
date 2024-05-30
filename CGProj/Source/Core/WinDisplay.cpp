@@ -41,8 +41,8 @@ void WinDisplay::WindowInit()
     // Register the window class.
     RegisterClassEx(&wc);
 
-    screenWidth = screenWidth > 0 ? screenWidth : 800;
-    screenHeight = screenHeight > 0 ? screenHeight : 800;
+    screenWidth = screenWidth > 0 ? screenWidth : 1400;
+    screenHeight = screenHeight > 0 ? screenHeight : 1400;
 
     RECT windowRect = {0, 0, static_cast<LONG>(screenWidth), static_cast<LONG>(screenHeight)};
     AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, FALSE);
