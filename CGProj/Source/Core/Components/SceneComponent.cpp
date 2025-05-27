@@ -46,7 +46,7 @@ void SceneComponent::Initialize()
     transform.location = initPosition;
     transform.rotate = initRotation;
     transform.scale = initScale;
-    UpdateTransformMatrix();    
+    UpdateTransformMatrix();
 
     constBufDesc.Usage = D3D11_USAGE_DEFAULT;
     constBufDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -121,6 +121,7 @@ Transform SceneComponent::GetWorldTransform() const
 void SceneComponent::SetWorldTransform(const Transform& trans)
 {
     transform = GetLocalFromWorldTransform(trans);
+    UpdateTransformMatrix();
 }
 
 Vector3 SceneComponent::GetWorldLocation() const
@@ -133,6 +134,8 @@ void SceneComponent::SetWorldLocation(const Vector3& loc)
     Transform trans;
     trans.location = loc;
     transform.location = GetLocalFromWorldTransform(trans).location;
+    UpdateTransformMatrix();
+
 }
 
 Vector3 SceneComponent::GetWorldRotation() const
@@ -150,6 +153,7 @@ void SceneComponent::AddQuatRotation(const Vector3& addRot)
     const auto euler = quat.ToEuler();
     const auto deg = DegreeFromRadians(euler);
     transform.rotate = deg;
+    UpdateTransformMatrix();
 }
 
 Vector3 SceneComponent::GetForward() const

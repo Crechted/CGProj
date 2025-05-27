@@ -176,7 +176,7 @@ void Engine::SetRenderState(RenderState state)
 
 void Engine::Initialize()
 {
-    if (pipelinesData.isEmpty()) AddWindow();
+    if (pipelinesData.isEmpty()) AddWindow(850, 850);
 
     inputDevice = new InputDevice(&GetInstance());
     if (!GetDisplay() || !inputDevice) return;

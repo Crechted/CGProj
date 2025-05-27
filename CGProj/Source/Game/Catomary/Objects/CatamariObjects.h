@@ -1,10 +1,10 @@
 #pragma once
 #include "Core/Objects/Mesh.h"
 
-class CatamaryObjects : public Mesh
+class CatamariObjects : public Mesh
 {
 public:
-    CatamaryObjects(const std::string& pathModel, const wchar_t* pathTex = nullptr);
+    CatamariObjects(const std::string& pathModel, const wchar_t* pathTex = nullptr);
 
     void Initialize() override;
 

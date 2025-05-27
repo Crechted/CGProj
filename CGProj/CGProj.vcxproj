@@ -164,8 +164,8 @@
     <ClInclude Include="Source\Core\WinDisplay.h" />
     <ClInclude Include="Source\Game\Camera.h" />
     <ClInclude Include="Source\Game\Catomary\Components\PlayerMoveComponent.h" />
-    <ClInclude Include="Source\Game\Catomary\Objects\CatamaryObjects.h" />
-    <ClInclude Include="Source\Game\Catomary\Objects\Pawn.h" />
+    <ClInclude Include="Source\Game\Catomary\Objects\CatamariObjects.h" />
+    <ClInclude Include="Source\Game\Catomary\Objects\CatamariPawn.h" />
     <ClInclude Include="Source\Game\Components\BoxComponent.h" />
     <ClInclude Include="Source\Game\Components\DrawBoxComponent.h" />
     <ClInclude Include="Source\Game\Components\DrawSphereComponent.h" />
@@ -475,8 +475,8 @@
     <ClCompile Include="Source\Core\WinDisplay.cpp" />
     <ClCompile Include="Source\Game\Camera.cpp" />
     <ClCompile Include="Source\Game\Catomary\Components\PlayerMoveComponent.cpp" />
-    <ClCompile Include="Source\Game\Catomary\Objects\CatamaryObjects.cpp" />
-    <ClCompile Include="Source\Game\Catomary\Objects\Pawn.cpp" />
+    <ClCompile Include="Source\Game\Catomary\Objects\CatamariObjects.cpp" />
+    <ClCompile Include="Source\Game\Catomary\Objects\CatamariPawn.cpp" />
     <ClCompile Include="Source\Game\Components\BoxComponent.cpp" />
     <ClCompile Include="Source\Game\Components\DrawBoxComponent.cpp" />
     <ClCompile Include="Source\Game\Components\DrawSphereComponent.cpp" />

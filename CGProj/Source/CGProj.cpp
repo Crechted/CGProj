@@ -7,8 +7,8 @@
 #include "Core/Render/RenderTarget.h"
 #include "Game/Camera.h"
 #include "Game/Catomary/Components/PlayerMoveComponent.h"
-#include "Game/Catomary/Objects/CatamaryObjects.h"
-#include "Game/Catomary/Objects/Pawn.h"
+#include "Game/Catomary/Objects/CatamariObjects.h"
+#include "Game/Catomary/Objects/CatamariPawn.h"
 #include "Game/Components/BoxComponent.h"
 #include "Game/Components/LightComponents/DirectionalLightComponent.h"
 #include "Game/Components/MovementComponent.h"
@@ -28,11 +28,11 @@ int main()
     Engine* engine = &Engine::GetInstance();
     //auto grids = engine->CreateObject<Grids>(1.0f, 41);
 
-    /*auto pawn = engine->CreateObject<Pawn>(5.0f, Vector3(-3.0f, 0.5f, 0.0f));
+    auto pawn = engine->CreateObject<CatamariPawn>(7.0f, Vector3(-3.0f, 0.5f, 0.0f));
     pawn->GetSphereComponent()->GetMesh()->SetCollisionVisibility(true);
-    pawn->GetPlayerMoveComponent()->speed = 2.0f;*/
-    auto spec = engine->CreateObject<Spectator>(0.0f, Vector3(0.0f, 25.0f, 25.0f));
-    spec->GetMovementComponent()->speed = 5.0f;
+    pawn->GetPlayerMoveComponent()->speed = 2.0f;
+    /*auto spec = engine->CreateObject<Spectator>(0.0f, Vector3(0.0f, 25.0f, 25.0f));
+    spec->GetMovementComponent()->speed = 5.0f;*/
 
     const auto planeMesh1 = engine->CreateComponent<BoxComponent>(L"Resource/Textures/Ice.jpg", Vector3(-10.0f, -0.05f, -10.0f),
         Vector3(20.0f, 0.1f, 20.0f))->GetMesh();
@@ -51,28 +51,28 @@ int main()
     planeMesh3->SetMaterial(mat);
     planeMesh4->SetMaterial(mat);
 
-    const auto mesh = engine->CreateObject<CatamaryObjects>("Resource/Meshes/Piram.obj");
+    const auto mesh = engine->CreateObject<CatamariObjects>("Resource/Meshes/Piram.obj");
     mesh->GetSceneComponent()->initPosition = Vector3(2.0f, 0.0f, 0.0f);
     mesh->GetSceneComponent()->initScale = Vector3(2.0);
 
-    auto gun = engine->CreateObject<CatamaryObjects>("Resource/Meshes/GunLow2.fbx");
+    auto gun = engine->CreateObject<CatamariObjects>("Resource/Meshes/GunLow2.fbx");
     gun->GetSceneComponent()->initScale = Vector3(0.02f);
     gun->GetSceneComponent()->initPosition = Vector3(0.0f, 0.5f, 3.0f);
     gun->GetCollision()->SetCollisionVisibility(true);
 
-    auto chair = engine->CreateObject<CatamaryObjects>("Resource/Meshes/Chair/Chair and Table.fbx",
+    auto chair = engine->CreateObject<CatamariObjects>("Resource/Meshes/Chair/Chair and Table.fbx",
         L"Resource/Meshes/Chair/Texture/Chair and table_Base_color.png");
     chair->GetSceneComponent()->initPosition = Vector3(0.0f, 0.5f, 1.5f);
     chair->GetSceneComponent()->initScale = Vector3(5.0f);
     chair->GetCollision()->SetCollisionVisibility(true);
 
-    auto gear = engine->CreateObject<CatamaryObjects>("Resource/Meshes/Gear/Gear2.obj",
+    auto gear = engine->CreateObject<CatamariObjects>("Resource/Meshes/Gear/Gear2.obj",
         L"Resource/Meshes/Gear/textures/Gear_2_BaseColor.png");
     gear->GetSceneComponent()->initPosition = Vector3(0.0f, 0.5f, -3.0f);
     gear->GetSceneComponent()->initScale = Vector3(0.05f);
     gear->GetCollision()->SetCollisionVisibility(true);
 
-    auto ball = engine->CreateObject<CatamaryObjects>("Resource/Meshes/Basketball_ball.obj");
+    auto ball = engine->CreateObject<CatamariObjects>("Resource/Meshes/Basketball_ball.obj");
 
     /*auto sky = engine->CreateObject<SkySphere>();
     sky->SetCollisionVisibility(false);

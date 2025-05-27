@@ -30,7 +30,7 @@ public:
     Keys inputDown = Keys::Q;
 
     float speed = 1.0;
-    float sensitive = 10.0;
+    float sensitive = 20.0;
 
     DirectX::SimpleMath::Vector3 delLocation;
     DirectX::SimpleMath::Vector3 delRotation;

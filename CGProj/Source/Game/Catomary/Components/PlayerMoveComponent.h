@@ -6,7 +6,7 @@
 
 using namespace DirectX::SimpleMath;
 
-class Pawn;
+class CatamariPawn;
 
 class PlayerMoveComponent : public GameComponent
 {
@@ -33,7 +33,7 @@ public:
     Vector3 delRotation;
 
 protected:
-    Pawn* pawn = nullptr;
+    CatamariPawn* pawn = nullptr;
     virtual void HandleInputByKey();
     virtual void CalcOffset(float timeTick);
     virtual void OnMouseMove(const MouseMoveEventArgs& mouseEvent);

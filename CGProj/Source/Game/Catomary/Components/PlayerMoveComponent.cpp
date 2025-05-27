@@ -3,12 +3,12 @@
 #include "Core/Engine.h"
 #include "Core/Components/SceneComponent.h"
 #include "Game/Components/SpringArmComponent.h"
-#include "Game/Catomary/Objects/Pawn.h"
+#include "Game/Catomary/Objects/CatamariPawn.h"
 #include "Game/Components/SphereComponent.h"
 
 void PlayerMoveComponent::Initialize()
 {
-    pawn = dynamic_cast<Pawn*>(Owner);
+    pawn = dynamic_cast<CatamariPawn*>(Owner);
     if (!pawn) return;
     engInst->GetInputDevice()->MouseMoveDelegate.AddRaw(this, &PlayerMoveComponent::OnMouseMove);
     GameComponent::Initialize();

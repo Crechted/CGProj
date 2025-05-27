@@ -96,22 +96,55 @@ public:
     //Vector3 GetLocation() const { return location; }
     const Transform& GetTransform() const { return transform; }
     Transform GetWorldTransform() const;
-    void SetTransform(const Transform& trans) { transform = trans; }
+
+    void SetTransform(const Transform& trans)
+    {
+        transform = trans;
+        UpdateTransformMatrix();
+    }
+
     void SetWorldTransform(const Transform& trans);
 
     const Vector3& GetLocation() const { return transform.location; }
     Vector3 GetWorldLocation() const;
-    void SetLocation(const Vector3& loc) { transform.location = loc; }
+
+    void SetLocation(const Vector3& loc)
+    {
+        transform.location = loc;
+        UpdateTransformMatrix();
+    }
+
     void SetWorldLocation(const Vector3& loc);
-    void AddLocation(const Vector3& addLoc) { transform.location += addLoc; }
+
+    void AddLocation(const Vector3& addLoc)
+    {
+        transform.location += addLoc;
+        UpdateTransformMatrix();
+    }
 
     const Vector3& GetScale() const { return transform.scale; }
-    void SetScale(const Vector3& scale) { transform.scale = scale; }
+
+    void SetScale(const Vector3& scale)
+    {
+        transform.scale = scale;
+        UpdateTransformMatrix();
+    }
 
     const Vector3& GetRotation() const { return transform.rotate; }
     Vector3 GetWorldRotation() const;
-    void SetRotation(const Vector3& rot) { transform.rotate = rot; }
-    void AddRotation(const Vector3& addRot) { transform.rotate += addRot; }
+
+    void SetRotation(const Vector3& rot)
+    {
+        transform.rotate = rot;
+        UpdateTransformMatrix();
+    }
+
+    void AddRotation(const Vector3& addRot)
+    {
+        transform.rotate += addRot;
+        UpdateTransformMatrix();
+    }
+
     void AddQuatRotation(const Vector3& addRot);
 
 
