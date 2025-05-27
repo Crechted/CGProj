@@ -1,0 +1,12 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "learn-cg-api",
+  "version": "0.0.1",
+  "dependencies": [
+    "assimp",
+    "directx-headers",
+    "directxtk",
+    "jsoncpp",
+    "directxtk12"
+  ]
+}

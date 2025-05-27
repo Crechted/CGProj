@@ -531,9 +531,9 @@ void ParticleSystem::CreateWindVolume()
                 auto y = j / (float)desc.Height;
                 auto z = i / (float)desc.Width;
 
-                x = 0.5 - x;
-                y = 0.5 - y;
-                z = 0.5 - z;
+                x = 0.5f - x;
+                y = 0.5f - y;
+                z = 0.5f - z;
 
                 values[i * desc.Width * desc.Height + j * desc.Height + k] = Vector4(x, y, z, 1.0f);
             }

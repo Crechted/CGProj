@@ -20,7 +20,7 @@ void Movement2DComponent::Draw()
 
 void Movement2DComponent::Reload()
 {
-    offset = {0.0};
+    offset = Vector2::Zero;
 }
 
 void Movement2DComponent::Update(float timeTick)
